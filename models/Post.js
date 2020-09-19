@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 
+
 const PostSchema = mongoose.Schema({
     listing_name: {
         type: String,
@@ -82,6 +83,5 @@ const PostSchema = mongoose.Schema({
         default: Date.now
     }
 })
-
 
 module.exports = mongoose.model('Posts', PostSchema)
