@@ -5,9 +5,11 @@ const app = express();
 require('dotenv/config')
 
 const postRoute = require('./routes/post')
+const profileRoute = require('./routes/profile')
 
 app.use(bodyParser.json())
  app.use('/post', postRoute)
+ app.use('/profile', profileRoute)
 
  
 

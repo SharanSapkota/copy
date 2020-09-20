@@ -19,34 +19,110 @@ catch(err){
 // POST
 router.post('/', async (req, res) => {
     
-    const posts = new Post({
-        listing_name: req.body.listing_name,
-        listing_type: req.body.listing_type,
-        occassion: req.body.occassion,
-        gender: req.body.gender,
-        design: req.body.design,
-        feature: req.body.feature,  
-        purchase_price: req.body.purchase_price,
-        selling_price: req.body.selling_price,
-        commission: req.body.commission,
-        platform_fee: req.body.platform_fee,
-        purchase_date: req.body.purchase_date,
-        condition: req.body.condition,
-        likes: req.body.likes,
-        measurement: req.body.measurement,
-        fabric: req.body.fabric,
-        color: req.body.color,
-        status: req.body.status
-    })
-    try{ 
-
-    const savedPost = await posts.save()
-  
-   res.json(savedPost)
-}
-catch {
-    res.json({message: err})
-}
+    const  {
+        listing_name,
+        listing_type,
+        occassion,
+        gender,
+        design, 
+        feature, 
+        purchase_price, 
+                
+        selling_price, 
+        commission, 
+        platform_fee, 
+        purchase_date, 
+        condition, 
+        likes, 
+        measurement, 
+        fabric, 
+         color, 
+        status
+         } = req.body
+    
+         const postClothings = {}
+            
+         if (listing_name) {
+             postClothings.listing_name = req.body.listing_name 
+            
+         }
+         if (listing_type) {
+             postClothings.listing_type = req.body.listing_type 
+            
+         }
+         if (occassion) {
+             postClothings.occassion = req.body.occassion
+            
+         }
+         if (gender) {
+             postClothings.gender = req.body.gender 
+            
+         }
+         if (design) {
+             postClothings.design = req.body.design 
+            
+         }
+         if (feature) {
+             postClothings.feature = req.body.feature 
+            
+         }
+         if (purchase_price) {
+             postClothings.purchase_price = req.body.purchase_price 
+            
+         }
+         if (selling_price) {
+             postClothings.selling_price = req.body.selling_price 
+            
+         }
+         if (commission) {
+             postClothings.commission = req.body.commission 
+            
+         }
+         if (platform_fee) {
+             postClothings.platform_fee = req.body.platform_fee 
+            
+         }
+         if (purchase_date) {
+             postClothings.purchase_date = req.body.purchase_date 
+            
+         }
+         if (likes) {
+             postClothings.likes = req.body.likes 
+            
+         }
+         if (status) {
+             postClothings.status = req.body.status 
+            
+         }
+         if (condition) {
+             postClothings.condition = req.body.condition 
+            
+         }
+         if (measurement) {
+             postClothings.measurement = req.body.measurement 
+            
+         }
+         if (fabric) {
+             postClothings.fabric = req.body.fabric 
+            
+         }
+         if (color) {
+             postClothings.color = req.body.color 
+            
+         }
+    
+    
+         const posts = new Post(postClothings)
+        try{ 
+    
+        const savedPost = await posts.save()
+      
+       res.json(savedPost)
+    }
+    catch (err) {
+        res.json({message: err})
+    }
+    
 })
 
 

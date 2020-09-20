@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Schema = mongoose.Schema;
 
 
 const PostSchema = mongoose.Schema({
@@ -30,10 +31,12 @@ const PostSchema = mongoose.Schema({
         type: String,
         required: false
     },
-    images: {
+    images: [
+        { 
         type: String,
         required: false
-    },
+        }
+        ],   
     purchase_price: {
         type: Number,
         required: false
@@ -62,9 +65,11 @@ const PostSchema = mongoose.Schema({
         type: Number,
         required: false
     },
-    Measurement: {
-        type: Number,
-        required: false
+    measurement:{
+        type: Schema.Types.Mixed,
+        required: false,
+        default: {}
+        
     },
     fabric: {
         type: String,
@@ -77,6 +82,10 @@ const PostSchema = mongoose.Schema({
     status: {
         type: String,
         required: false
+    },
+    seller: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
     },
     date: {
         type: Date,
