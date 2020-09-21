@@ -3,13 +3,18 @@ const bodyParser = require('body-parser');
 const mongoose  = require('mongoose');
 const app = express();
 require('dotenv/config')
+const AuthController = require('./routes/auth')
+const loginController = require('./routes/login')
 
 const postRoute = require('./routes/post')
 const profileRoute = require('./routes/profile')
 
 app.use(bodyParser.json())
+
+
  app.use('/post', postRoute)
  app.use('/profile', profileRoute)
+app.use( AuthController )
 
  
 

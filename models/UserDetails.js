@@ -6,6 +6,10 @@ const UserDetailsSchema = mongoose.Schema({
     user: {
         type: Schema.Types.ObjectId,
         ref: 'Users'
+    },username: {
+        type: String,
+        required: false,
+        trim: true
     },
     name: {
         type: String,
@@ -35,10 +39,22 @@ const UserDetailsSchema = mongoose.Schema({
     }, 
 
     bank_details: { 
-        
-        type: String,
-        required: false,
-        trim: true
+        bank_name: {
+            type: String,
+            required: false
+        },
+        branch: {
+            type: String,
+            required: false
+        },
+        account_number: {
+            type: Number,
+            required: false
+        },
+        account_holder_name: {
+            type: String,
+            required: false
+        }
     }, 
     type: {
         type: String,

@@ -36,78 +36,78 @@ router.post('/', async (req, res) => {
         likes, 
         measurement, 
         fabric, 
-         color, 
+         color,
         status
          } = req.body
     
          const postClothings = {}
             
          if (listing_name) {
-             postClothings.listing_name = req.body.listing_name 
+             postClothings.listing_name = listing_name 
             
          }
          if (listing_type) {
-             postClothings.listing_type = req.body.listing_type 
+             postClothings.listing_type = listing_type 
             
          }
          if (occassion) {
-             postClothings.occassion = req.body.occassion
+             postClothings.occassion = occassion
             
          }
          if (gender) {
-             postClothings.gender = req.body.gender 
+             postClothings.gender = gender 
             
          }
          if (design) {
-             postClothings.design = req.body.design 
+             postClothings.design = design 
             
          }
          if (feature) {
-             postClothings.feature = req.body.feature 
+             postClothings.feature = feature 
             
          }
          if (purchase_price) {
-             postClothings.purchase_price = req.body.purchase_price 
+             postClothings.purchase_price = purchase_price 
             
          }
          if (selling_price) {
-             postClothings.selling_price = req.body.selling_price 
+             postClothings.selling_price = selling_price 
             
          }
          if (commission) {
-             postClothings.commission = req.body.commission 
+             postClothings.commission = commission 
             
          }
          if (platform_fee) {
-             postClothings.platform_fee = req.body.platform_fee 
+             postClothings.platform_fee = platform_fee 
             
          }
          if (purchase_date) {
-             postClothings.purchase_date = req.body.purchase_date 
+             postClothings.purchase_date = purchase_date 
             
          }
          if (likes) {
-             postClothings.likes = req.body.likes 
+             postClothings.likes = likes 
             
          }
          if (status) {
-             postClothings.status = req.body.status 
+             postClothings.status = status 
             
          }
          if (condition) {
-             postClothings.condition = req.body.condition 
+             postClothings.condition = condition 
             
          }
          if (measurement) {
-             postClothings.measurement = req.body.measurement 
+             postClothings.measurement = measurement 
             
          }
          if (fabric) {
-             postClothings.fabric = req.body.fabric 
+             postClothings.fabric = fabric 
             
          }
          if (color) {
-             postClothings.color = req.body.color 
+             postClothings.color = color 
             
          }
     
@@ -133,7 +133,7 @@ router.get('/:postId', async (req, res) => {
     res.json(posts)
     } 
     catch(error) {
-        res.jsaon({message: error})
+        res.json({message: error})
     }
 })
 
@@ -146,7 +146,7 @@ router.delete('/:postId',async (req, res) => {
         res.json(removedPosts)
     }
     catch(error) {
-        res.jsaon({message: error})
+        res.json({message: error})
     }
 })
 
