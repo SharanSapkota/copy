@@ -1,29 +1,23 @@
-// const express = require('express')
-// const router = express.Router()
-// const Post = require('../models/Post')
-// const 
+const express = require("express");
+const router = express.Router();
+const Post = require("../models/Post");
 
-// router.get('/post/gender/men', async (req, res) => {
-//     try{
-//     const menPost = await Post.find({gender: 'male'})
-//     res.json(menPost)
-// }
-// catch(err) {
-//     res.json({message: err})
-// }
+router.get("/men", async (req, res) => {
+  try {
+    const menPost = await Post.find({ gender: "men" });
+    res.json(menPost);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
 
+router.get("/women", async (req, res) => {
+  try {
+    const womenPost = await Post.find({ gender: "women" });
+    res.json(womenPost);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
 
-// })
-// router.get('/post/gender/women', async(req, res) => {
-//     try{
-//         const womenPost = await Post.find().where({gender: 'women'})
-//         res.json(womenPost)
-//     }
-//     catch(err) {
-//         res.json({message: err})
-//     }
-    
-
-// })
-
-// module.exports = router;
+module.exports = router;
