@@ -3,8 +3,6 @@ const router = express.Router()
 const Profile = require('../models/Profiles')
 
 
-
-
 router.get('/', async (req, res) => {
     try{ 
     const getAllProfile = await Profile.find()
@@ -49,8 +47,6 @@ router.post('/', async (req, res) => {
           }
          
 
-
-
     try{
         const Profiles = new Profile(postProfile)
 
@@ -74,6 +70,12 @@ router.get('/:profileId', async (req, res) => {
     }
 })
 
+
+// router.delete('/profileId', async(req, res) => {
+//     try{
+//         const 
+//     }
+// })
 
 
 
