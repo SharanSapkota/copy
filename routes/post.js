@@ -1,11 +1,17 @@
 const express = require('express')
+const jwt = require('jsonwebtoken')
+// const verifyToken = require('../controllers/jwtVerify')
 
 const router = express.Router()
 const Post = require('../models/Post')
+// const multer = require('multer')
 
 
 //GET ALL
 router.get('/', async(req, res) => {
+    res.header('Access-Control-Allow-Origin', '*')
+
+
     try{
     const getAll = await Post.find()
     res.json(getAll)
@@ -17,7 +23,21 @@ catch(err){
 
 
 // POST
-router.post('/', async (req, res) => {
+router.post('/',async (req, res) => {
+
+    //Jwt verification
+
+    // jwt.verify(req.token, process.env.SECRET_KEY, (err, data) => {
+    //     if (err) {
+    //         res.status(403)
+    //     }
+    //     else{
+    //         res.json({ 
+    //             data,
+    //             text: "this is protected"
+    //         })
+    //     }
+    // })
     
     const  {
         listing_name,
@@ -27,16 +47,17 @@ router.post('/', async (req, res) => {
         design, 
         feature, 
         purchase_price, 
-                
+        images,
         selling_price, 
         commission, 
         platform_fee, 
         purchase_date, 
         condition, 
         likes, 
+        category,
         measurement, 
         fabric, 
-         color,
+         color  ,
         status
          } = req.body
     
@@ -56,6 +77,14 @@ router.post('/', async (req, res) => {
          }
          if (gender) {
              postClothings.gender = gender 
+            
+         }
+         if (category) {
+             postClothings.category = category 
+            
+         }
+         if (images) {
+             postClothings.images = images 
             
          }
          if (design) {
@@ -128,6 +157,7 @@ router.post('/', async (req, res) => {
 
 //GET BY ID
 router.get('/:postId', async (req, res) => {
+    console.log(req.params.postId)
     try{ 
      const posts = await Post.findById(req.params.postId)
     res.json(posts)
@@ -149,7 +179,6 @@ router.delete('/:postId',async (req, res) => {
         res.json({message: error})
     }
 })
-
 
 
 
@@ -260,5 +289,52 @@ router.patch('/:postId', async(req, res) => {
             res.json({message: err})
         }}
 )
+
+
+
+
+router.get('/category', async (req, res) => {
+
+   
+    try{ 
+        
+     const posts1 = await Post.find({category: req.params.category})
+     
+    res.json(posts1)
+   
+    } 
+    catch(error) {
+        res.json({message: error})
+    }
+})
+
+
+
+router.get('/men', async (req, res) => {
+    try{
+    const menPost = await Post.find({gender: 'men'})
+    res.json(menPost)
+}
+catch(err) {
+    res.json({message: err})
+}
+
+
+ })
+
+
+router.get('/women', async(req, res) => {
+    try{
+        const womenPost = await Post.find({gender: 'women'})
+        res.json(womenPost)
+    }
+    catch(err) {
+        res.json({message: err})
+    }
+    
+
+})
+
+
 
 module.exports = router

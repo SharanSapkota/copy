@@ -13,6 +13,7 @@ const PostSchema = mongoose.Schema({
     },
     category: {
         type: String,
+        
         required: false
     },
     occassion: {

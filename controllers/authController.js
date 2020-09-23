@@ -1,12 +1,16 @@
 
-const signupModel = require('../models/UserDetails')
-const signupModelUser = require('../models/Users')
-const bcrypt = require('bcryptjs')
+const userDetailsModel = require('../models/UserDetails')
+const userModel = require('../models/Users')
+const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+require('dotenv/config')
+// const router = require('../routes/login')
+// const express = require('express')
+// const router = express.Router()
 
 
 const registerSeller = (req, res, next) => {
-    console.log("error")
+  
     bcrypt.hash(req.body.password, 10, function (err, hashedPass) {
         if(err) {
             res.json({ error: err})
@@ -14,7 +18,7 @@ const registerSeller = (req, res, next) => {
 
         let userRefId = "";
 
-        let user = new signupModelUser ({
+        let user = new userModel ({
             username: req.body.username,
             password: hashedPass, 
             phone_number: req.body.phone_number,
@@ -32,7 +36,7 @@ const registerSeller = (req, res, next) => {
             //     message: "User added successfully"
             // })
 
-            let userDetails = new signupModel({
+            let userDetails = new userDetailsModel({
                 _id : user._id,
                 username: user.username,
                 phone_number: user.phone_number,
@@ -40,6 +44,7 @@ const registerSeller = (req, res, next) => {
                 role: 1,   
                 fullname: req.body.fullname,
                 address: req.body.address,
+                credits: req.body.credits,
                 dob: req.body.dob,
                 bank_details: {
                     bank_name: req.body.bank_details.bank_name,
@@ -48,7 +53,7 @@ const registerSeller = (req, res, next) => {
                     account_number: req.body.bank_details.account_number
                 }
                 
-            })
+            }) 
 
             userDetails.save(userDetails);
             res.json({message: 'user added'})
@@ -66,10 +71,11 @@ const registerSeller = (req, res, next) => {
 const registerBuyer = (req, res, next) => {
     bcrypt.hash(req.body.password, 10, function (err, hashedPass) {
         if(err) {
-            res.json({ error: err})
+            res.json({ err: "err while hasing"})
         }
+        
 
-        let user = new signupModel ({
+        var user = new userDetailsModel ({
             fullname: req.body.fullname,
             username: req.body.username,
             password: hashedPass, 
@@ -78,11 +84,12 @@ const registerBuyer = (req, res, next) => {
             address: req.body.address,
             dob: req.body.dob
         })
+      
     
         user.save()
         .then(user => {
             res.json({
-                data: user,
+            
                 message: "User added successfully"
             })
         })
@@ -91,6 +98,7 @@ const registerBuyer = (req, res, next) => {
                 message: error
             })
         })
+        console.log(user.password)
 
     })
 
@@ -98,20 +106,25 @@ const registerBuyer = (req, res, next) => {
 }
 
 
-const login = (req, res) => {
+const login = async (req, res) => {
     var username = req.body.username,
-    password = req.body.password
+     password1 = req.body.password
 
-    signupModel.findOne({$or: [{email: username}, {username:username}]})
+     await userModel.findOne({$or: [{email: username}, {username:username}]})
     .then(user => {
+        console.log(user)
         if(user){
-            bcrypt.compare(password, user.password, function(err, result) {
+            
+          bcrypt.compare(password1, user.password, function(err, result) {
+            
                 if(err) {
-                    res.json({ err: "error"})
-                }
+                    console.log(err)
+                    res.json({ err: "error in bcrypt compare"})
+                }   
 
                 if(result) {
-                    let token = jwt.sign({name: user.username},'secretvalue',{expiresIn: '1h'})
+                    let token = jwt.sign({name: user.username},process.env.SECRET_KEY,{expiresIn: '4h'})
+                    console.log(token)
                     res.json({
                         message: "login successfully",
                         token
@@ -132,6 +145,23 @@ const login = (req, res) => {
 
 
 }
+
+
+// router.post('/login', (req, res) => {
+//     try{
+//         var username = req.body.username,
+//         password = req.body.password
+//         console.log(username)
+
+//         const savedpwd = userDetailsModel.findOne({$or: [{email: username}, {username:username}]})
+//         console.log(savedpwd)
+//     }
+//     catch(err) {
+//         res.json({message: err})
+//     }
+// })
+
+
 
 
 

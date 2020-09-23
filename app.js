@@ -5,16 +5,29 @@ const app = express();
 require('dotenv/config')
 const AuthController = require('./routes/auth')
 const loginController = require('./routes/login')
+const multer = require('multer')
+var upload = multer();
+const cors = require('cors')
 
 const postRoute = require('./routes/post')
 const profileRoute = require('./routes/profile')
+const creditsRoute = require('./routes/credit')
+
+// const loginRouter = require('./controllers/authController')
 
 app.use(bodyParser.json())
 
 
- app.use('/post', postRoute)
- app.use('/profile', profileRoute)
+
+app.use(upload.array())
+
+app.use('/post', postRoute)
+app.use('/profile', profileRoute)
+app.use('/credits', creditsRoute)
 app.use( AuthController )
+app.use(cors())
+
+// app.use(loginRouter)
 
  
 
