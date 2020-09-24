@@ -1,6 +1,4 @@
-// module.exports = function(a, b, c) {
-//     return eval(`${a} ${c} ${b}`);
-// }
+
 
 const updateCredit = (a, b, c) => {
     switch(c) {

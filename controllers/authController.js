@@ -1,6 +1,7 @@
 
 const userDetailsModel = require('../models/UserDetails')
 const userModel = require('../models/Users')
+const partnerModel = require('../models/Partners')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 require('dotenv/config')
@@ -107,6 +108,7 @@ const registerBuyer = (req, res, next) => {
 
 
 const login = async (req, res) => {
+    console.log(req.body)
     var username = req.body.username,
      password1 = req.body.password
 
@@ -123,11 +125,14 @@ const login = async (req, res) => {
                 }   
 
                 if(result) {
-                    let token = jwt.sign({name: user.username},process.env.SECRET_KEY,{expiresIn: '4h'})
+                    let token = jwt.sign({id1: user._id},process.env.SECRET_KEY,{expiresIn: '4h'})
                     console.log(token)
                     res.json({
                         message: "login successfully",
-                        token
+                        
+                        token,
+                        username
+                        
                     })
 
                 }
@@ -145,6 +150,31 @@ const login = async (req, res) => {
 
 
 }
+
+
+const loginPartner = async (req, res) => {
+    try{ 
+    // const usernamePartner = req.body.username
+    // const passwordPartner = req.body.password
+    
+    const data = await partnerModel.findOne({username: req.body.username})
+    console.log(data)
+    if(data.username == req.body.username && data.password == req.body.password){
+        res.status(200).json({ username: data.username, brand_name: data.brand_name})
+    }
+        
+    }
+    catch(err) {
+        res.json({ error: err})
+    }
+       
+    
+}
+  
+
+
+
+
 
 
 // router.post('/login', (req, res) => {
@@ -168,5 +198,6 @@ const login = async (req, res) => {
 module.exports = {
     registerSeller,
     registerBuyer,
-    login
+    login,
+    loginPartner
 }

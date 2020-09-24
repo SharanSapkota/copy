@@ -12,9 +12,9 @@ router.get("/", async (req, res) => {
 
   try {
     const getAll = await Post.find();
-    res.json(getAll);
+    res.status(200).json(getAll);
   } catch (err) {
-    res.json({ message: err });
+    res.status(404).json({ message: err });
   }
 });
 
@@ -131,9 +131,9 @@ router.get("/:postId", async (req, res) => {
   console.log(req.params.postId);
   try {
     const posts = await Post.findById(req.params.postId);
-    res.json(posts);
+    res.status(200).json(posts);
   } catch (error) {
-    res.json({ message: error });
+    res.status(404).json({ message: error });
   }
 });
 
@@ -141,9 +141,9 @@ router.get("/:postId", async (req, res) => {
 router.delete("/:postId", async (req, res) => {
   try {
     const removedPosts = await Post.remove({ _id: req.params.postId });
-    res.json(removedPosts);
+    res.status(200).json(removedPosts);
   } catch (error) {
-    res.json({ message: error });
+    res.status(404).json({ message: error });
   }
 });
 
@@ -230,20 +230,20 @@ router.patch("/:postId", async (req, res) => {
 
       { $set: update }
     );
-    res.json(updatedPost);
+    res.status(200).json(updatedPost);
   } catch (err) {
-    res.json({ message: err });
+    res.status(404).json({ message: err });
   }
 });
 
-router.get("/category", async (req, res) => {
-  try {
-    const posts1 = await Post.find({ category: req.params.category });
+// router.get("/category", async (req, res) => {
+//   try {
+//     const posts1 = await Post.find({ category: req.params.category });
 
-    res.json(posts1);
-  } catch (error) {
-    res.json({ message: error });
-  }
-});
+//     res.json(posts1);
+//   } catch (error) {
+//     res.json({ message: error });
+//   }
+// });
 
 module.exports = router;
