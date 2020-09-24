@@ -21,6 +21,7 @@ const searchRoute = require("./routes/search");
 app.use(bodyParser.json());
 
 app.use(upload.array());
+app.use(cors());
 
 app.use("/post", postRoute);
 app.use("/post/gender", postGenderRoute);
@@ -29,20 +30,12 @@ app.use("/credits", creditsRoute);
 app.use("/post/category", categoryRoute);
 app.use(AuthController);
 app.use("/search", searchRoute);
-app.use(cors());
 
 // app.use(loginRouter)
 
 app.get("/", (req, res) => {
-  
   res.send("this the main page");
 });
-
-
-app.get('/test', (req,res) => {
-  console.log(req.body)
-  res.send("text")
-})
 
 mongoose.connect(
   process.env.MONGO_URI,
@@ -52,6 +45,6 @@ mongoose.connect(
   }
 );
 
-app.listen(3000, () => {
+app.listen(3005, () => {
   console.log("server started");
 });
