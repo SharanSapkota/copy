@@ -13,6 +13,8 @@ const postRoute = require("./routes/post");
 const profileRoute = require("./routes/profile");
 const creditsRoute = require("./routes/credit");
 const postGenderRoute = require("./routes/gender");
+const categoryRoute = require("./routes/category");
+const searchRoute = require("./routes/search");
 
 // const loginRouter = require('./controllers/authController')
 
@@ -24,14 +26,23 @@ app.use("/post", postRoute);
 app.use("/post/gender", postGenderRoute);
 app.use("/profile", profileRoute);
 app.use("/credits", creditsRoute);
+app.use("/post/category", categoryRoute);
 app.use(AuthController);
+app.use("/search", searchRoute);
 app.use(cors());
 
 // app.use(loginRouter)
 
 app.get("/", (req, res) => {
+  
   res.send("this the main page");
 });
+
+
+app.get('/test', (req,res) => {
+  console.log(req.body)
+  res.send("text")
+})
 
 mongoose.connect(
   process.env.MONGO_URI,

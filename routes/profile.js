@@ -71,7 +71,8 @@ router.get('/:profileId', async (req, res) => {
 })
 
 
-// router.delete('/profileId', async(req, res) => {
+// router.delete('/:profileId', async(req, res) => {
+
 //     try{
 //         const 
 //     }
