@@ -1,18 +1,39 @@
-const express = require('express')
+const express = require("express");
+const { check } = require("express-validator");
+const Users = require("../models/Users");
 
-const router = express.Router()
+const router = express.Router();
 
-const AuthController = require('../controllers/authController')
-const {userValidator, userValidationResult} = require('../controllers/userValidator')
+const AuthController = require("../controllers/authController");
+const {
+  userValidator,
+  userValidationResult
+} = require("../controllers/userValidator");
 
-router.post('/register/seller',userValidator, userValidationResult, AuthController.registerSeller)
-router.post('/register/buyer', AuthController.registerBuyer)
-router.post('/login', AuthController.login)
-router.get('/test', (req,res) => {
-    res.send("text")
-})
-router.post('/loginPartner', AuthController.loginPartner)
+router.get("/auth", AuthController.authUser, async (req, res) => {
+  try {
+    const user = await Users.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).send("Server Error");
+  }
+});
 
+router.post(
+  "/register/seller",
+  userValidator,
+  userValidationResult,
+  AuthController.registerSeller
+);
+router.post("/register/buyer", AuthController.registerBuyer);
+router.post(
+  "/login",
+  [
+    check("email", "Please include a valid email").isEmail(),
+    check("password", "Password is required").exists()
+  ],
+  AuthController.login
+);
+router.post("/loginPartner", AuthController.loginPartner);
 
-
-module.exports = router
+module.exports = router;
