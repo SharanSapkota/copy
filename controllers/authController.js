@@ -1,6 +1,7 @@
 const userDetailsModel = require("../models/UserDetails");
 const userModel = require("../models/Users");
 const partnerModel = require("../models/Partners");
+const Profiles = require("../models/Profiles");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
@@ -53,6 +54,11 @@ const registerSeller = (req, res, next) => {
         //     message: "User added successfully"
         // })
 
+        let profile = new Profiles({
+          _id: user._id,
+          profile_picture: req.body.profile_picture
+        });
+
         let userDetails = new userDetailsModel({
           _id: user._id,
           username: user.username,
@@ -72,6 +78,7 @@ const registerSeller = (req, res, next) => {
         });
 
         userDetails.save(userDetails);
+        profile.save();
         res.json({ message: "user added" });
       })
       .catch(error => {

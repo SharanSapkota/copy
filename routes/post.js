@@ -5,13 +5,14 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const Post = require("../models/Post");
 // const multer = require('multer')
+const AuthController = require("../controllers/authController");
 
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
 
   try {
-    const getAll = await Post.find();
+    const getAll = await Post.find().populate("seller");
     res.status(200).json(getAll);
   } catch (err) {
     res.status(404).json({ message: err });
@@ -19,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST
-router.post("/", async (req, res) => {
+router.post("/", AuthController.authUser, async (req, res) => {
   //Jwt verification
 
   // jwt.verify(req.token, process.env.SECRET_KEY, (err, data) => {
@@ -44,19 +45,19 @@ router.post("/", async (req, res) => {
     purchase_price,
     images,
     selling_price,
-    commission,
-    platform_fee,
     purchase_date,
     condition,
-    likes,
     category,
     measurement,
     fabric,
-    color,
-    status
+    color
   } = req.body;
 
   const postClothings = {};
+
+  postClothings.seller = req.user.id;
+  postClothings.platform_fee = selling_price * 0.3;
+  postClothings.commission = selling_price * 0.7;
 
   if (listing_name) {
     postClothings.listing_name = listing_name;
@@ -88,20 +89,8 @@ router.post("/", async (req, res) => {
   if (selling_price) {
     postClothings.selling_price = selling_price;
   }
-  if (commission) {
-    postClothings.commission = commission;
-  }
-  if (platform_fee) {
-    postClothings.platform_fee = platform_fee;
-  }
   if (purchase_date) {
     postClothings.purchase_date = purchase_date;
-  }
-  if (likes) {
-    postClothings.likes = likes;
-  }
-  if (status) {
-    postClothings.status = status;
   }
   if (condition) {
     postClothings.condition = condition;
@@ -119,9 +108,11 @@ router.post("/", async (req, res) => {
   const posts = new Post(postClothings);
   try {
     const savedPost = await posts.save();
+    console.log(savedPost);
 
     res.json(savedPost);
   } catch (err) {
+    console.log(err);
     res.json({ message: err });
   }
 });
@@ -130,10 +121,13 @@ router.post("/", async (req, res) => {
 router.get("/:postId", async (req, res) => {
   console.log(req.params.postId);
   try {
-    const posts = await Post.findById(req.params.postId);
+    const posts = await Post.findById(req.params.postId).populate(
+      "seller",
+      "username"
+    );
     res.status(200).json(posts);
   } catch (error) {
-    res.status(404).json({ message: error });
+    res.status(404).json({ message: "Product Not Found!" });
   }
 });
 
