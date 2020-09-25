@@ -8,9 +8,7 @@ const {userValidator, userValidationResult} = require('../controllers/userValida
 router.post('/register/seller',userValidator, userValidationResult, AuthController.registerSeller)
 router.post('/register/buyer', AuthController.registerBuyer)
 router.post('/login', AuthController.login)
-router.get('/test', (req,res) => {
-    res.send("text")
-})
+
 router.post('/loginPartner', AuthController.loginPartner)
 
 

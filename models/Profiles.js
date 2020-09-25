@@ -12,18 +12,18 @@ const profileSchema = mongoose.Schema({
         required: false
 
     },
-    // clothes_listed: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Post'
-    // }],
-    // followers: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Users'
-    // },
-    // following:{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Users'
-    // },
+    clothes_listed: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Post'
+    }],
+    followers: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+    },
+    following:{
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+    },
     reviews: [{
         type: String,
         required: false

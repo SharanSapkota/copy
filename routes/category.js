@@ -6,12 +6,16 @@ const router = express.Router()
 router.get('/:category', async (req, res) => {
     try{
         const getCategory = await Post.find({category: req.params.category})
-        res.json(getCategory)
+        res.status(200).json(getCategory)
 
     }
     catch(err) {
-        res.json({message: err})
+        res.status(404).json({message: err})
     }
-})
+})  
+
+
+
+
 
 module.exports = router
