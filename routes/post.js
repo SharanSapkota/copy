@@ -92,6 +92,12 @@ router.post("/", AuthController.authUser, async (req, res) => {
   if (purchase_date) {
     postClothings.purchase_date = purchase_date;
   }
+  if (likes) {
+    postClothings.likes = likes;
+  }
+  if (status) {
+    postClothings.status = status;
+  }
   if (condition) {
     postClothings.condition = condition;
   }
@@ -108,11 +114,9 @@ router.post("/", AuthController.authUser, async (req, res) => {
   const posts = new Post(postClothings);
   try {
     const savedPost = await posts.save();
-    console.log(savedPost);
 
     res.json(savedPost);
   } catch (err) {
-    console.log(err);
     res.json({ message: err });
   }
 });

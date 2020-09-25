@@ -15,6 +15,9 @@ const creditsRoute = require("./routes/credit");
 const postGenderRoute = require("./routes/gender");
 const categoryRoute = require("./routes/category");
 const searchRoute = require("./routes/search");
+const reviewRoute = require("./routes/review");
+const likesRoute = require("./routes/productLikes");
+const orderRoute = require("./routes/order");
 
 // const loginRouter = require('./controllers/authController')
 
@@ -23,6 +26,7 @@ app.use(bodyParser.json());
 app.use(upload.array());
 app.use(cors());
 
+app.use("/post/product", likesRoute);
 app.use("/post", postRoute);
 app.use("/post/gender", postGenderRoute);
 app.use("/profile", profileRoute);
@@ -30,6 +34,10 @@ app.use("/credits", creditsRoute);
 app.use("/post/category", categoryRoute);
 app.use(AuthController);
 app.use("/search", searchRoute);
+app.use("/order", orderRoute);
+app.use("/post", likesRoute);
+app.use("/review", reviewRoute);
+app.use(cors());
 
 // app.use(loginRouter)
 

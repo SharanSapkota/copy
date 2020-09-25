@@ -93,12 +93,6 @@ const PostSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "Profiles"
   },
-  likes: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Users"
-    }
-  ],
   date: {
     type: Date,
     default: Date.now
