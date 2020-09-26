@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+// const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
 
 const router = express.Router();
@@ -15,10 +16,6 @@ router.get("/", async (req, res) => {
     const getAll = await Post.find();
     // res.status(200).json(getAll);
 
-
-
-
-    
     const page = req.query.page
     const limit = req.query.limit
 
@@ -27,6 +24,9 @@ router.get("/", async (req, res) => {
 
     const resultUsers = getAll.slice(startIndex, endIndex)
 
+
+    
+ 
     res.json(resultUsers)
 
 
