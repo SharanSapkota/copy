@@ -10,9 +10,29 @@ const Post = require("../models/Post");
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
 
+
   try {
     const getAll = await Post.find();
-    res.status(200).json(getAll);
+    // res.status(200).json(getAll);
+
+
+
+
+    
+    const page = req.query.page
+    const limit = req.query.limit
+
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+
+    const resultUsers = getAll.slice(startIndex, endIndex)
+
+    res.json(resultUsers)
+
+
+
+
+
   } catch (err) {
     res.status(404).json({ message: err });
   }
@@ -119,6 +139,9 @@ router.post("/", async (req, res) => {
   const posts = new Post(postClothings);
   try {
     const savedPost = await posts.save();
+
+
+
 
     res.json(savedPost);
   } catch (err) {
@@ -236,14 +259,5 @@ router.patch("/:postId", async (req, res) => {
   }
 });
 
-// router.get("/category", async (req, res) => {
-//   try {
-//     const posts1 = await Post.find({ category: req.params.category });
-
-//     res.json(posts1);
-//   } catch (error) {
-//     res.json({ message: error });
-//   }
-// });
 
 module.exports = router;
