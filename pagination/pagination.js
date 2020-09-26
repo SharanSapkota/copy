@@ -1,15 +1,33 @@
-// const express = require('express');
-
-// const pagination = () => {
-//     const page = req.query.page
-//     const limit = req.query.limit
+// const pagination = (model) => {
+//     // return (req, res, next) => {
+//     const page = parseInt(req.query.page)
+//     const limit = parseInt(req.query.limit)
 
 //     const startIndex = (page - 1) * limit
 //     const endIndex = page * limit
 
-//     const resultUsers = getAll.slice(startIndex, endIndex)
+//     const result = {}
 
-    
+//     if(endIndex < model.length) { 
+//     result.next = {
+//       page: page + 1,
+//       limit: limit
+//     }
+//   }
+
+//   if(startIndex > 0) {
+//     result.previous = {
+//       page: page-1,
+//       limit: limit
+//     }
+//   }
+
+  
+//     result.resultUsers = model.slice(startIndex, endIndex)
+
+//     res.paginatedResult = result
+//     next()
+
 // }
 
 // module.exports = pagination

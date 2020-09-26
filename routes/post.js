@@ -16,18 +16,36 @@ router.get("/", async (req, res) => {
     const getAll = await Post.find();
     // res.status(200).json(getAll);
 
-    const page = req.query.page
-    const limit = req.query.limit
+    const page = parseInt(req.query.page)
+    const limit = parseInt(req.query.limit)
 
     const startIndex = (page - 1) * limit
     const endIndex = page * limit
 
-    const resultUsers = getAll.slice(startIndex, endIndex)
+    const result = {}
+
+    if(endIndex < getAll.length) { 
+    result.next = {
+      page: page + 1,
+      limit: limit
+    }
+  }
+
+  if(startIndex > 0) {
+    result.previous = {
+      page: page-1,
+      limit: limit
+    }
+  }
+
+  
+    result.resultUsers = getAll.slice(startIndex, endIndex)
+
+    // console.log(result)
 
 
-    
- 
-    res.json(resultUsers)
+  
+    res.status(200).json(result)
 
 
 
