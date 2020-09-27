@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 const UserDetailModel = require("../models/UserDetails");
 const updateCredits = require("../controllers/updateCredits");
+const nodemailer = require('nodemailer')
+require('dotenv/config')
+
+const mailing = require("../pagination/nodemailer")
+
 
 router.get("/", async (req, res) => {
   const users = await UserDetailModel.find();
@@ -28,8 +33,13 @@ router.get("/:customer", async (req, res) => {
 
 router.patch("/:userId/redeem", async (req, res) => {
   const { creditAmount, customerPin } = req.body;
+ 
 
-  await UserDetailModel.findOne({ _id: req.params.userId }).then(user => {
+ await UserDetailModel.findOne({ _id: req.params.userId }).then(user => {
+
+    
+        
+
     if (user.pincode === customerPin) {
       if (user.credits > 0) {
         if (user.credits > creditAmount) {
@@ -38,6 +48,11 @@ router.patch("/:userId/redeem", async (req, res) => {
           user.credits = updatedCredits;
 
           user.save();
+
+          mailing('sapkotarambbo@gmail.com', {
+            subject: "antidote", html:"Antidote go is initiating"
+          })
+         
 
           res.status(200).json({ updatedCredits: user.credits, success: true });
         } else {
