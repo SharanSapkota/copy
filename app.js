@@ -19,6 +19,7 @@ const reviewRoute = require("./routes/review");
 const likesRoute = require("./routes/productLikes");
 const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
+const internalRoute = require("./routes/internal");
 
 // const loginRouter = require('./controllers/authController')
 
@@ -39,6 +40,7 @@ app.use("/order", orderRoute);
 app.use("/post", likesRoute);
 app.use("/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
+app.use("/api/internal", internalRoute);
 app.use(cors());
 
 // app.use(loginRouter)
@@ -49,12 +51,17 @@ app.get("/", (req, res) => {
 
 mongoose.connect(
   process.env.MONGO_URI,
-  { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false },
+  {
+    useCreateIndex: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
+  },
   () => {
     console.log("DB connected");
   }
 );
 
-app.listen(3000, () => {
+app.listen(3005, () => {
   console.log("server started");
 });
