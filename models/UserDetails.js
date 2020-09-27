@@ -66,6 +66,11 @@ const UserDetailsSchema = mongoose.Schema({
     required: false,
     trim: true
   },
+  pincode: {
+    type: Number,
+    required: false,
+    trim: true
+  },
   role: {
     type: String,
     required: false,

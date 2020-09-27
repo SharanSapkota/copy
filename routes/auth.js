@@ -34,6 +34,5 @@ router.post(
   ],
   AuthController.login
 );
-router.post("/loginPartner", AuthController.loginPartner);
 
 module.exports = router;

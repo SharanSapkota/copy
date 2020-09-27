@@ -166,7 +166,7 @@ const login = async (req, res) => {
         });
       }
     );
-  } catch {
+  } catch (error) {
     res.status(400).json({
       message: "Server Error."
     });
@@ -175,21 +175,25 @@ const login = async (req, res) => {
 
 const loginPartner = async (req, res) => {
   try {
-    // const usernamePartner = req.body.username
-    // const passwordPartner = req.body.password
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      res.status(400).json({ msg: "Username and password are required." });
+    }
 
     const data = await partnerModel.findOne({ username: req.body.username });
-    console.log(data);
-    if (
-      data.username == req.body.username &&
-      data.password == req.body.password
-    ) {
-      res
-        .status(200)
-        .json({ username: data.username, brand_name: data.brand_name });
+
+    if (data.username == username && data.password == password) {
+      res.status(200).json({
+        username: data.username,
+        brand_name: data.brand_name,
+        success: true
+      });
+    } else {
+      res.status(400).json({ msg: "Invalid Credentials." });
     }
   } catch (err) {
-    res.json({ error: err });
+    res.json({ msg: "User not found" });
   }
 };
 
