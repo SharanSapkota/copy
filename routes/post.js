@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+// const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
 
 const router = express.Router();
@@ -13,7 +14,35 @@ router.get("/", async (req, res) => {
 
   try {
     const getAll = await Post.find().populate("seller");
-    res.status(200).json(getAll);
+    // res.status(200).json(getAll);
+
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const result = {};
+
+    if (endIndex < getAll.length) {
+      result.next = {
+        page: page + 1,
+        limit: limit
+      };
+    }
+
+    if (startIndex > 0) {
+      result.previous = {
+        page: page - 1,
+        limit: limit
+      };
+    }
+
+    result.resultUsers = getAll.slice(startIndex, endIndex);
+
+    // console.log(result)
+
+    res.status(200).json(result);
   } catch (err) {
     res.status(404).json({ message: err });
   }
@@ -233,15 +262,5 @@ router.patch("/:postId", async (req, res) => {
     res.status(404).json({ message: err });
   }
 });
-
-// router.get("/category", async (req, res) => {
-//   try {
-//     const posts1 = await Post.find({ category: req.params.category });
-
-//     res.json(posts1);
-//   } catch (error) {
-//     res.json({ message: error });
-//   }
-// });
 
 module.exports = router;
