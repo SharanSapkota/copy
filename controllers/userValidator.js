@@ -1,60 +1,42 @@
-const { check, validationResult } = require('express-validator')
+const { check, validationResult } = require("express-validator");
 
-exports.userValidationResult =(req, res, next) => {
-    const result = validationResult(req)
-    console.log(result)
-    if(!result.isEmpty()) {
-        console.log("erro")
-        const error = result.array()[0].msg;
-        return res.status(400).json({success: false, error: error})
-    }
-    next()
-}
-
+exports.userValidationResult = (req, res, next) => {
+  const result = validationResult(req);
+  console.log(result);
+  if (!result.isEmpty()) {
+    console.log("erro");
+    const error = result.array()[0].msg;
+    return res.status(400).json({ success: false, error: error });
+  }
+  next();
+};
 
 exports.userValidator = [
-    check('fullname')
+  check("username")
     .trim()
     .not()
     .isEmpty()
-    .withMessage('fullname is required')
-    .isLength({min: 5})
-    .withMessage('Fullname is too short '),
-    
-    check('username')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage('username is required')
-    .isLength({min: 5})
-    .withMessage('username is too short'),
+    .withMessage("username is required"),
 
-    check('password')
+  check("password")
     .trim()
     .not()
     .isEmpty()
-    .withMessage('password is required')
-    .isLength({min: 5})
-    .withMessage('Password too short'),
+    .withMessage("password is required")
+    .isLength({ min: 5 })
+    .withMessage("Password too short"),
 
-    check('email')
+  check("email")
     .trim()
     .not()
     .isEmpty()
-    .withMessage('email is required')
+    .withMessage("Email is required")
     .isEmail()
-    .withMessage('Please provide a valid email'),
+    .withMessage("Please provide a valid email"),
 
-    check('phone_number')
+  check("phone_number")
     .trim()
     .not()
     .isEmpty()
-    .withMessage('email is required'),
-
-    check('dob')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage('dob is required'),
-   
-]
+    .withMessage("Phone number is required")
+];

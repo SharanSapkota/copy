@@ -94,3 +94,4 @@ const imageminPngquant = require('imagemin-pngquant');
 app.listen('5000', () => {
     console.log("server started")
 })
+

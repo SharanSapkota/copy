@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const UserDetailModel = require("../models/UserDetails");
+const UsersModel = require("../models/Users");
 const updateCredits = require("../controllers/updateCredits");
 const nodemailer = require('nodemailer')
 require('dotenv/config')
@@ -9,23 +10,30 @@ const mailing = require("../pagination/nodemailer")
 
 
 router.get("/", async (req, res) => {
-  const users = await UserDetailModel.find();
+  const users = await UserDetailModel.find().populate("user");
   if (users) res.status(200).json({ users });
 
   res.end();
 });
 
 router.get("/:customer", async (req, res) => {
-  const user = await UserDetailModel.findOne({ username: req.params.customer });
+  const username = req.params.customer;
+  const customerUser = await UsersModel.findOne({ username: username });
 
-  if (!user) {
+  const customer = await UserDetailModel.findOne({
+    user: customerUser._id
+  }).populate({
+    path: "user"
+  });
+
+  if (!customer) {
     res.status(400).json({ error: "User not found.", success: false });
   } else {
     res.status(200).json({
-      userId: user.id,
-      username: user.username,
-      name: user.name,
-      credits: user.credits,
+      userId: customer.id,
+      username: customerUser.username,
+      name: customer.name,
+      credits: customer.credits,
       success: true
     });
   }
@@ -88,10 +96,19 @@ router.patch("/:userId/redeem", async (req, res) => {
 router.patch("/:userId/add", async (req, res) => {
   const { creditAmount } = req.body;
   await UserDetailModel.findOne({ _id: req.params.userId }).then(user => {
-    const updatedCredits = updateCredits(user.credits, creditAmount, "+");
+    if (!user.credits) {
+      user.credits = creditAmount;
+      user.save();
+      res.status(200).json({ success: true, user: user });
+    } else {
+      const updatedCredits = user.credits
+        ? updateCredits(user.credits, creditAmount, "+")
+        : creditAmount;
 
-    console.log(updatedCredits);
-    res.end();
+      user.credits = updatedCredits;
+      user.save();
+      res.status(200).json({ success: true, user: user });
+    }
   });
 });
 

@@ -30,7 +30,27 @@ const authUser = (req, res, next) => {
 };
 
 const registerSeller = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10, function(err, hashedPass) {
+  console.log("here");
+  const {
+    username,
+    password,
+    phone_number,
+    email,
+    name,
+    address,
+    dob
+  } = req.body;
+
+  if (!username || !password || !phone_number || !email) {
+    res.status(400).json({
+      error: {
+        msg:
+          "Username, password, phone number, and email fields are required. Registration Failed."
+      }
+    });
+  }
+
+  bcrypt.hash(password, 10, function(err, hashedPass) {
     if (err) {
       res.json({ error: err });
     }
@@ -38,10 +58,10 @@ const registerSeller = (req, res, next) => {
     let userRefId = "";
 
     let user = new userModel({
-      username: req.body.username,
+      username: username,
       password: hashedPass,
-      phone_number: req.body.phone_number,
-      email: req.body.email,
+      phone_number: phone_number,
+      email: email,
       role: 1
     });
 
@@ -55,29 +75,19 @@ const registerSeller = (req, res, next) => {
         // })
 
         let profile = new Profiles({
-          _id: user._id,
+          user: user._id,
           profile_picture: req.body.profile_picture
         });
 
         let userDetails = new userDetailsModel({
-          _id: user._id,
-          username: user.username,
-          phone_number: user.phone_number,
-          email: user.email,
+          user: user._id,
           role: 1,
-          fullname: req.body.fullname,
-          address: req.body.address,
-          credits: req.body.credits,
-          dob: req.body.dob,
-          bank_details: {
-            bank_name: req.body.bank_details.bank_name,
-            branch: req.body.bank_details.branch,
-            account_holder_name: req.body.bank_details.account_holder_name,
-            account_number: req.body.bank_details.account_number
-          }
+          name: name,
+          address: address,
+          dob: dob
         });
 
-        userDetails.save(userDetails);
+        userDetails.save();
         profile.save();
         res.json({ message: "user added" });
       })

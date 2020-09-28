@@ -8,25 +8,14 @@ const UserDetailsSchema = mongoose.Schema({
   },
   username: {
     type: String,
-    required: false,
-    trim: true
-  },
-  name: {
-    type: String,
-    required: false,
-    trim: true
+    required: false
   },
 
-  email: {
+  name: {
     type: String,
-    required: false,
-    trim: true
+    required: false
   },
-  phone_number: {
-    type: Number,
-    required: false,
-    trim: true
-  },
+
   dob: {
     type: Date,
     required: false,
@@ -49,7 +38,8 @@ const UserDetailsSchema = mongoose.Schema({
     },
     account_number: {
       type: Number,
-      required: false
+      required: false,
+      unique: true
     },
     account_holder_name: {
       type: String,
