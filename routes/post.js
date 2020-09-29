@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 const Post = require("../models/Post");
+const Users = require("../models/Users");
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
 
@@ -161,6 +162,35 @@ router.get("/:postId", async (req, res) => {
     res.status(200).json(posts);
   } catch (error) {
     res.status(404).json({ message: "Product Not Found!" });
+  }
+});
+
+//GET ALL POSTS BY SELLER
+router.get("/seller/:username", async (req, res) => {
+  let username = req.params.username;
+
+  try {
+    const user = await Users.findOne({ username: username }).select(
+      "-password"
+    );
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, error: { msg: "Seller not found." } });
+    }
+    const posts = await Post.find({ seller: user.id }).select("-seller");
+
+    if (!posts.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: { msg: "Seller has no clothes listed." }
+      });
+    }
+
+    return res.status(200).json({ success: true, posts });
+  } catch (error) {
+    return res.status(400).json({ error: error });
   }
 });
 

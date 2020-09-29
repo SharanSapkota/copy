@@ -3,11 +3,10 @@ const router = express.Router();
 const UserDetailModel = require("../models/UserDetails");
 const UsersModel = require("../models/Users");
 const updateCredits = require("../controllers/updateCredits");
-const nodemailer = require('nodemailer')
-require('dotenv/config')
+const nodemailer = require("nodemailer");
+require("dotenv/config");
 
-const mailing = require("../pagination/nodemailer")
-
+const mailing = require("../pagination/nodemailer");
 
 router.get("/", async (req, res) => {
   const users = await UserDetailModel.find().populate("user");
@@ -39,15 +38,32 @@ router.get("/:customer", async (req, res) => {
   }
 });
 
-router.patch("/:userId/redeem", async (req, res) => {
-  const { creditAmount, customerPin } = req.body;
- 
+router.get("/test/email", (req, res) => {
+  const { creditAmount, customerPin, brand_name } = req.body;
+  console.log(brand_name);
 
- await UserDetailModel.findOne({ _id: req.params.userId }).then(user => {
+  mailing("atshdubs@gmail.com", {
+    subject: "Credit Used at " + brand_name + " | Antidote Nepal",
+    html: `<h3>Thank you for making your purchase with Antidote's credits.</h3><h5>Here is your invoice: </h5><p>Credit Used: ${creditAmount}</p>`
+  });
+});
 
-    
-        
+router.patch("/:username/redeem", async (req, res) => {
+  console.log("here");
+  const { creditAmount, customerPin, brand_name } = req.body;
+  const username = req.params.username;
 
+  const customerUser = await UsersModel.findOne({ username: username });
+
+  const user = await UserDetailModel.findOne({
+    user: customerUser._id
+  }).populate({
+    path: "user"
+  });
+
+  if (!user) {
+    res.status(400).json({ error: { msg: "Customer not found." } });
+  } else {
     if (user.pincode === customerPin) {
       if (user.credits > 0) {
         if (user.credits > creditAmount) {
@@ -57,10 +73,12 @@ router.patch("/:userId/redeem", async (req, res) => {
 
           user.save();
 
-          mailing('sapkotarambbo@gmail.com', {
-            subject: "antidote", html:"Antidote go is initiating"
-          })
-         
+          mailing(`${customerUser.email}`, {
+            subject: "Credit Used at " + brand_name + " | Antidote Nepal",
+            html: `<h3>Hello ${
+              user.name.split(" ")[0]
+            },<br /><br />Thank you for making your purchase with Antidote's credits.</h3><h5>Here is your invoice: </h5><p>Credit Used: ${creditAmount}</p>`
+          });
 
           res.status(200).json({ updatedCredits: user.credits, success: true });
         } else {
@@ -90,7 +108,7 @@ router.patch("/:userId/redeem", async (req, res) => {
         success: false
       });
     }
-  });
+  }
 });
 
 router.patch("/:userId/add", async (req, res) => {

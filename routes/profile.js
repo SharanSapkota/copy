@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Profile = require("../models/Profiles");
+const UserDetails = require("../models/UserDetails");
+const Users = require("../models/Users");
 
 router.get("/", async (req, res) => {
   try {
@@ -46,13 +48,22 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/:profileId", async (req, res) => {
-  try {
-    const getProfileById = await Profile.findById(req.params.profileId);
-    res.json(getProfileById);
-  } catch (err) {
-    res.json({ message: err });
+router.get("/:username", async (req, res) => {
+  let username = req.params.username;
+
+  const getUser = await Users.findOne({ username }).select("-password");
+
+  if (getUser && getUser.role == 1) {
+    const getUserDetails = await UserDetails.findOne({ user: getUser.id });
+    console.log(getUserDetails);
   }
+
+  // try {
+  //   const getProfileByUsername = await Profile.findOne({username});
+  //   res.json(getProfileByUsername);
+  // } catch (err) {
+  //   res.json({ message: err });
+  // }
 });
 
 // router.delete('/:profileId', async(req, res) => {

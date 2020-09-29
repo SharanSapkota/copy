@@ -37,7 +37,7 @@ const UserDetailsSchema = mongoose.Schema({
       required: false
     },
     account_number: {
-      type: Number,
+      type: String,
       required: false,
       unique: true
     },
@@ -45,11 +45,6 @@ const UserDetailsSchema = mongoose.Schema({
       type: String,
       required: false
     }
-  },
-  type: {
-    type: String,
-    required: false,
-    trim: true
   },
   credits: {
     type: Number,

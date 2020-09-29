@@ -29,7 +29,7 @@ const authUser = (req, res, next) => {
   }
 };
 
-const registerSeller = (req, res, next) => {
+const registerSeller = async (req, res, next) => {
   console.log("here");
   const {
     username,
@@ -38,95 +38,121 @@ const registerSeller = (req, res, next) => {
     email,
     name,
     address,
+    dob,
+    account_holder_name,
+    account_number,
+    bank_name,
+    branch
+  } = req.body;
+
+  const bank_details = {};
+
+  if (bank_name) bank_details.bank_name = bank_name;
+  if (branch) bank_details.branch = branch;
+  if (account_holder_name)
+    bank_details.account_holder_name = account_holder_name;
+  if (account_number) bank_details.account_number = account_number;
+
+  let user = await userModel.findOne({ email });
+
+  if (user && user.role == 1) {
+    console.log("here1");
+    return res.status(400).json({ errors: { msg: "User already exists." } });
+  } else if (user && user.role == 2) {
+    let updatedUser = await userDetailsModel.findOneAndUpdate(
+      { user: user.id },
+      {
+        bank_details: bank_details,
+        role: 1
+      }
+    );
+
+    if (updatedUser) {
+      user.role = 1;
+      user.save();
+      res.status(200).json({ success: true, msg: "bank details updated" });
+    } else {
+      res.status(400).json({ success: false, error: { msg: "Server error." } });
+    }
+  } else {
+    console.log("here3");
+    const userDetailsFields = {};
+    const userFields = {};
+
+    if (username) userFields.username = username;
+    if (phone_number) userFields.phone_number = phone_number;
+    if (email) userFields.email = email;
+    userFields.role = 1;
+
+    if (name) userDetailsFields.name = name;
+    if (address) userDetailsFields.address = address;
+    if (dob) userDetailsFields.dob = dob;
+
+    const hashedPassword = bcrypt.hash(password, 10);
+    if (hashedPassword) userDetailsFields.password = hashedPassword;
+    userDetailsFields.credits = 0;
+    userDetailsFields.bank_details = bank_details;
+
+    user = new userModel(userFields);
+    user.save().then(user => {
+      userDetailsFields.user = user.id;
+      let userDetails = userDetailsModel(userDetailsFields);
+      userDetails.save().then(userDetails => {
+        res.status(200).json({
+          success: true,
+          msg: "User added successfully",
+          user,
+          userDetails
+        });
+      });
+    });
+  }
+};
+const registerBuyer = async (req, res, next) => {
+  const {
+    username,
+    password,
+    name,
+    phone_number,
+    email,
+    address,
     dob
   } = req.body;
 
-  if (!username || !password || !phone_number || !email) {
-    res.status(400).json({
-      error: {
-        msg:
-          "Username, password, phone number, and email fields are required. Registration Failed."
-      }
-    });
+  const userDetailsFields = {};
+  const userFields = {};
+
+  if (username) userFields.username = username;
+  if (phone_number) userFields.phone_number = phone_number;
+  if (email) userFields.email = email;
+  userFields.role = 2;
+
+  if (name) userDetailsFields.name = name;
+  if (address) userDetailsFields.address = address;
+  if (dob) userDetailsFields.dob = dob;
+
+  const hashedPassword = bcrypt.hash(password, 10);
+  if (hashedPassword) userDetailsFields.password = hashedPassword;
+  userDetailsFields.credits = 0;
+
+  let user = await userModel.findOne({ email });
+
+  if (user) {
+    return res.status(400).json({ errors: { msg: "User already exists." } });
   }
 
-  bcrypt.hash(password, 10, function(err, hashedPass) {
-    if (err) {
-      res.json({ error: err });
-    }
-
-    let userRefId = "";
-
-    let user = new userModel({
-      username: username,
-      password: hashedPass,
-      phone_number: phone_number,
-      email: email,
-      role: 1
-    });
-
-    user
-      .save()
-      .then(user => {
-        // userRefId = user._id;
-        // res.json({
-
-        //     message: "User added successfully"
-        // })
-
-        let profile = new Profiles({
-          user: user._id,
-          profile_picture: req.body.profile_picture
-        });
-
-        let userDetails = new userDetailsModel({
-          user: user._id,
-          role: 1,
-          name: name,
-          address: address,
-          dob: dob
-        });
-
-        userDetails.save();
-        profile.save();
-        res.json({ message: "user added" });
-      })
-      .catch(error => {
-        res.json({
-          message: error
-        });
+  user = new userModel(userFields);
+  user.save().then(user => {
+    userDetailsFields.user = user.id;
+    let userDetails = userDetailsModel(userDetailsFields);
+    userDetails.save().then(userDetails => {
+      res.status(200).json({
+        success: true,
+        msg: "User added successfully",
+        user,
+        userDetails
       });
-  });
-};
-const registerBuyer = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10, function(err, hashedPass) {
-    if (err) {
-      res.json({ err: "err while hasing" });
-    }
-
-    var user = new userDetailsModel({
-      fullname: req.body.fullname,
-      username: req.body.username,
-      password: hashedPass,
-      phone_number: req.body.phone_number,
-      email: req.body.email,
-      address: req.body.address,
-      dob: req.body.dob
     });
-
-    user
-      .save()
-      .then(user => {
-        res.json({
-          message: "User added successfully"
-        });
-      })
-      .catch(error => {
-        res.json({
-          message: error
-        });
-      });
-    console.log(user.password);
   });
 };
 

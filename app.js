@@ -3,16 +3,13 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
-const AuthController = require("./routes/auth");
+
 const loginController = require("./routes/login");
 const multer = require("multer");
 const uploadForm = multer();
 const cors = require("cors");
 
-
-
-
-const uploadRoute = require("./routes/upload")
+const uploadRoute = require("./routes/upload");
 const postRoute = require("./routes/post");
 const profileRoute = require("./routes/profile");
 const creditsRoute = require("./routes/credit");
@@ -24,6 +21,7 @@ const likesRoute = require("./routes/productLikes");
 const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
+const AuthController = require("./routes/auth");
 
 // const loginRouter = require('./controllers/authController')
 
@@ -37,8 +35,8 @@ app.use("/api/post", postRoute);
 app.use("/api/post/gender", postGenderRoute);
 app.use("/api/profile", profileRoute);
 app.use("/api/credits", creditsRoute);
-app.use("api/post/category", categoryRoute);
-app.use(AuthController);
+app.use("/api/post/category", categoryRoute);
+app.use("/api/auth", AuthController);
 app.use("/api/search", searchRoute);
 app.use("/api/order", orderRoute);
 app.use("/api/post", likesRoute);
@@ -57,10 +55,8 @@ app.get("/", (req, res) => {
   res.send("this the main page");
 });
 
-
-
 // app.post("/upload", upload.single('image'), (req, res) => {
-  
+
 //   console.log(req.file)
 
 // })
@@ -78,7 +74,6 @@ mongoose.connect(
   }
 );
 
-
-app.listen(3000, () => {
-  console.log("server started at 3000");
+app.listen(3005, () => {
+  console.log("server started at 3005");
 });
