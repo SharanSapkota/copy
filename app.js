@@ -24,14 +24,14 @@ const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
-const uploadRoute = require("./routes/upload")
+//const uploadRoute = require("./routes/upload")
 const uploadImagesRoute = require("./routes/uploadImages")
 
 // const loginRouter = require('./controllers/authController')
 
 app.use(bodyParser.json());
 
-app.use(uploadForm.array());
+//app.use(uploadForm.array());
 //app.use(uploadForm.single);
 console.log(uploadForm.storage);
 app.use(cors());
