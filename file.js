@@ -2,9 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 
-const router = express.Router();
+const app = express()
 
-router.get('/upload',(req, res) => {
+app.get('/upload',(req, res) => {
     res.send("I am in upload route")
 })
 
@@ -46,7 +46,7 @@ if(mimetype && extname){
 }
 }
 
-router.post('/upload', (req, res) => {
+app.post('/upload', (req, res) => {
         upload(req, res, (err) => {
             if(err) { 
                 console.log("errr")
@@ -60,12 +60,12 @@ router.post('/upload', (req, res) => {
                    })
                } else{
                    res.json({
-                       
                        msg:'File uploaded',
                        file: `uploads/${req.file.filename}`
 
+
                    })
-                 //  console.log(req.file)
+                   console.log(req.file)
                     
 
 
@@ -75,7 +75,7 @@ router.post('/upload', (req, res) => {
                     
                    (async () => {
                        console.log("heres")
-                       const files = await imagemin(['uploads/*.{jpeg,png}'], {
+                       const files1 = await imagemin(['uploads/*.{jpeg,png}'], {
                            destination: 'build/images',
                            plugins: [
                                imageminJpegtran(),
@@ -96,4 +96,6 @@ router.post('/upload', (req, res) => {
 
 
 
-module.exports = router
+app.listen('5000', () => {
+    console.log("server started")
+})

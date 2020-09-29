@@ -1,10 +1,10 @@
+
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const router = express.Router()
 
-const app = express()
-
-app.get('/uploadImages',(req, res) => {
+router.get('/uploadImages',(req, res) => {
     res.send("I am in the upload images route")
 })
 
@@ -27,24 +27,6 @@ var storage = multer.diskStorage({
 
 
 
-<<<<<<< HEAD
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 1000000 },
-    fileFilter: function(req, file, cd) {
-        checkFileType(file, cd)
-    }
-}).single('myImage');
-
-//Check file TypeError
-function checkFileType(file, cd) {
-    // Allowed extensions
-    const filetypes = /jpeg|jpg|png/;
-    //check extension
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-//CHeck mine
-const mimetype = filetypes.test(file.mimetype)
-=======
 var upload = multer({
     storage: storage,
   //  limits: { fileSize: 3 * 1024 * 1024 },
@@ -61,7 +43,6 @@ function checkFileType(files, cd) {
     var extname = filetypes.test(path.extname(files.originalname).toLowerCase());
 //CHeck mine
 var mimetype = filetypes.test(files.mimetype)
->>>>>>> e19881166368fe2d58b6c1f84d7285a5876b2ed3
 
 if(mimetype && extname){
     return cd(null, true);
@@ -70,57 +51,34 @@ if(mimetype && extname){
 }
 }
 
-<<<<<<< HEAD
-app.post('/upload', (req, res) => {
-        upload(req, res, (err) => {
-=======
-app.post('/uploadImages', (req, res) => {
+router.post('/uploadimages', (req, res) => {
         upload(req, res, (err) => {
            // console.log(req.files)
->>>>>>> e19881166368fe2d58b6c1f84d7285a5876b2ed3
             if(err) { 
                 res.status(404).json({ 
                     msg:err
                 })
             } else {
-<<<<<<< HEAD
-               if(req.file == undefined){
-=======
                if(req.files == undefined){
                    
->>>>>>> e19881166368fe2d58b6c1f84d7285a5876b2ed3
                    res.status(404).json({
                        msg: "upload image"
                    })
                } else{
+                   
                    res.json({
                        msg:'File uploaded',
-<<<<<<< HEAD
-                       file: `uploads/${req.file.filename}`
-                   })
-               }
-            }
-        })
-    })
 
-
-
-
-
-    const imagemin = require('imagemin');
-const imageminJpegtran = require('imagemin-jpegtran');
-const imageminJpegtran = require('imagemin-jpgtran');
-const imageminPngquant = require('imagemin-pngquant');
- 
-(async () => {
-    const files = await imagemin(['uploads/*.{jpg,png}'], {
-        destination: 'build/images',
-        plugins: [
-            imageminJpegtran(),
-            imageminJpgtran(),
-=======
+                       
                        file: `uploadImages/${req.files.filename}`
+                       
                    })
+                 console.log(req.files.filename)
+                //    for(var i=0; i<2; i++){
+                       
+                //        console.log(req.files[i].buffer)
+                // }
+                  
 
                    const imagemin = require('imagemin');
 const imageminJpegtran = require('imagemin-jpegtran');
@@ -131,25 +89,12 @@ const imageminPngquant = require('imagemin-pngquant');
         destination: 'build/imagesMultiple',
         plugins: [
             imageminJpegtran(),
->>>>>>> e19881166368fe2d58b6c1f84d7285a5876b2ed3
             imageminPngquant({
                 quality: [0.6, 0.8]
             })
         ]
     });
  
-<<<<<<< HEAD
-    
-    //=> [{data: <Buffer 89 50 4e …>, destinationPath: 'build/images/foo.jpg'}, …]
-})();
-
-
-
-app.listen('5000', () => {
-    console.log("server started")
-})
-
-=======
   //  console.log(files);
    
 })();
@@ -162,11 +107,4 @@ app.listen('5000', () => {
 
 
 
-
-  
-
-
-app.listen(3005, () => {
-    console.log("server started on 3005")
-})
->>>>>>> e19881166368fe2d58b6c1f84d7285a5876b2ed3
+module.exports = router;
