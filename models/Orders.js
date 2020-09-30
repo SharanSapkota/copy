@@ -6,6 +6,11 @@ const orderSchema = mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Users'
     },
+    seller: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+
+    },
     clothes: {
         type: Schema.Types.ObjectId,
         ref: 'Post'

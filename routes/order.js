@@ -1,5 +1,6 @@
 const express = require('express')
 const Order = require('../models/Orders')
+const User = require('../models/Users')
 
 const router = express.Router()
 
@@ -12,8 +13,6 @@ router.get('/', async (req, res) => {
     catch(err) {
         res.json(err)
     }
-
-
 })
 
 router.get('/:orderId', async (req, res) => {
@@ -21,15 +20,11 @@ router.get('/:orderId', async (req, res) => {
     const order_status = "pending";
     try{
     const getOrderById = await Order.findById({_id: req.params.orderId})
-        res.json({getOrderById, order_status})
+        res.json({getOrderById})
     }
     catch(err) {
         res.json(err)
     }
-
-    
-
-
 })
 
 
@@ -47,7 +42,6 @@ router.post('/', async (req, res) => {
         delivery_location,
         payment_status,
         
-
     } = req.body
 
    var order_status = "pending"
@@ -104,15 +98,12 @@ router.patch('/:orderId', async (req, res) => {
         
         pickup_location,
         delivery_location
-     
-        
-
+      
     } = req.body
 
     
     orderUpdateDestructure = {}
 
-    
     if(pickup_location) {
         orderUpdateDestructure.pickup_location = pickup_location
     }
@@ -138,12 +129,6 @@ router.patch('/:orderId', async (req, res) => {
 
 
 router.patch('/:orderId/cancel', async (req, res) => {
-   
-    //const order_status = "cancelled"
-
-    // const getOrderById = await Order.findById({_id: req.params.orderId})
-    // res.json({getOrderById, order_status})
-    
     try{
         const updateStatus = await Order.findOneAndUpdate (
             {_id:req.params.orderId},
@@ -176,6 +161,32 @@ router.patch('/:orderId/complete', async (req, res) => {
     }
 })
 
+router.get('/to/:UserId', async (req, res) => {
+    console.log("this is the population")
+    try{
+    
+    const getUsers = await User.find()
+    //console.log(getUsers)
+     //await Order.find({buyer: User._id}).populate("clothes").exec((err, docs) => { 
+     const buyerOrders = await Order.find({$or: [{buyer: User._id}, {seller: User._id}]}).populate("clothes")
+
+        res.json(buyerOrders)
+}
+catch(err) {
+    res.json(err)
+}
+
+})
+
+//  router.get('/seller/:UserId', async (req, res) => {
+//     await Order find({seller: User._id})
+//     .populate("clothes")
+//     .exec((err, result) => {
+//         res.json(result)
+//     })
+
+
+// })
 
 
 
