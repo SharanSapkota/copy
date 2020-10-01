@@ -21,17 +21,10 @@ const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
-const uploadRoute = require("./routes/upload");
-const uploadImagesRoute = require("./routes/uploadImages");
 const s3uploadRoute = require("./routes/s3upload");
-
-// const loginRouter = require('./controllers/authController')
 
 app.use(bodyParser.json());
 
-// app.use(uploadForm.array());
-//app.use(uploadForm.single);
-// console.log(uploadForm.storage);
 app.use(cors());
 
 app.use("/api/post/product", likesRoute);
@@ -48,20 +41,10 @@ app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
 app.use("/api/s3upload", s3uploadRoute);
-app.use(uploadRoute);
-app.use(uploadImagesRoute);
-
-// app.use(loginRouter)
 
 app.get("/", (req, res) => {
   res.send("this the main page");
 });
-
-// app.post("/upload", upload.single('image'), (req, res) => {
-
-//   console.log(req.file)
-
-// })
 
 mongoose.connect(
   process.env.MONGO_URI,
