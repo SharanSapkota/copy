@@ -11,7 +11,7 @@ const {
   userValidationResult
 } = require("../controllers/userValidator");
 
-router.get("/auth", AuthController.authUser, async (req, res) => {
+router.get("/", AuthController.authUser, async (req, res) => {
   try {
     const user = await Users.findById(req.user.id).select("-password");
     res.json(user);
@@ -20,7 +20,7 @@ router.get("/auth", AuthController.authUser, async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/allUsers", async (req, res) => {
   const users = await UserDetails.find().populate("user");
 
   res.status(200).json(users);

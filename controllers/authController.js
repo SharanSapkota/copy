@@ -30,7 +30,6 @@ const authUser = (req, res, next) => {
 };
 
 const registerSeller = async (req, res, next) => {
-  console.log("here");
   const {
     username,
     password,
@@ -56,7 +55,6 @@ const registerSeller = async (req, res, next) => {
   let user = await userModel.findOne({ email });
 
   if (user && user.role == 1) {
-    console.log("here1");
     return res.status(400).json({ errors: { msg: "User already exists." } });
   } else if (user && user.role == 2) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
@@ -75,7 +73,6 @@ const registerSeller = async (req, res, next) => {
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
   } else {
-    console.log("here3");
     const userDetailsFields = {};
     const userFields = {};
 
@@ -131,9 +128,9 @@ const registerBuyer = async (req, res, next) => {
   if (address) userDetailsFields.address = address;
   if (dob) userDetailsFields.dob = dob;
 
-  const hashedPassword = bcrypt.hash(password, 10);
-  if (hashedPassword) userDetailsFields.password = hashedPassword;
-  userDetailsFields.credits = 0;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  if (hashedPassword) userFields.password = hashedPassword;
+  userFields.credits = 0;
 
   let user = await userModel.findOne({ email });
 
@@ -171,37 +168,35 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ errors: [{ msg: "Invalid Credentials" }] });
+      return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const comparisonResult = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ errors: [{ msg: "Invalid Credentials." }] });
+    if (comparisonResult) {
+      const payload = {
+        user: {
+          id: user.id
+        }
+      };
+
+      jwt.sign(
+        payload,
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "4h"
+        },
+        (err, token) => {
+          if (err) throw err;
+          res.status(200).json({
+            message: "login successfully",
+            token
+          });
+        }
+      );
+    } else {
+      return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
-
-    const payload = {
-      user: {
-        id: user.id
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.SECRET_KEY,
-      {
-        expiresIn: "4h"
-      },
-      (err, token) => {
-        if (err) throw err;
-        res.json({
-          message: "login successfully",
-          token
-        });
-      }
-    );
   } catch (error) {
     res.status(400).json({
       message: "Server Error."
