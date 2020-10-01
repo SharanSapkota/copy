@@ -6,6 +6,11 @@ const orderSchema = mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Users'
     },
+    seller: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+
+    },
     clothes: {
         type: Schema.Types.ObjectId,
         ref: 'Post'
@@ -39,11 +44,11 @@ const orderSchema = mongoose.Schema({
         required: false
     },
     payment_status: {
-        type: Number,
+        type: String,
         required: false
     },
     order_status: {
-        type: Number,
+        type: String,
         required: false
     },
 })

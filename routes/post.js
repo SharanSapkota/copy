@@ -122,12 +122,6 @@ router.post("/", AuthController.authUser, async (req, res) => {
   if (purchase_date) {
     postClothings.purchase_date = purchase_date;
   }
-  if (likes) {
-    postClothings.likes = likes;
-  }
-  if (status) {
-    postClothings.status = status;
-  }
   if (condition) {
     postClothings.condition = condition;
   }

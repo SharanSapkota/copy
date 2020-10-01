@@ -51,7 +51,7 @@ router.post('/upload', (req, res) => {
             if(err) { 
                 console.log("errr")
                 res.status(404).json({ 
-                    msg:err
+                    err
                 })
             } else {
                if(req.file == undefined){
@@ -65,7 +65,7 @@ router.post('/upload', (req, res) => {
                        file: `uploads/${req.file.filename}`
 
                    })
-                 //  console.log(req.file)
+                  console.log(req.file)
                     
 
 

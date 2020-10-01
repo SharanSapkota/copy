@@ -4,14 +4,14 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
 
-const uploadRoute = require("./routes/upload");
+
 const loginController = require("./routes/login");
 var multer = require("multer");
 var uploadForm = multer();
 const cors = require("cors");
 
 
-
+var uploadRoute = require("./routes/upload");
 const postRoute = require("./routes/post");
 const profileRoute = require("./routes/profile");
 const creditsRoute = require("./routes/credit");
@@ -24,16 +24,18 @@ const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
-const uploadRoute = require("./routes/upload")
-const uploadImagesRoute = require("./routes/uploadImages")
+var uploadRoute = require("./routes/upload")
+var uploadImagesRoute = require("./routes/uploadImages")
 
 // const loginRouter = require('./controllers/authController')
 
 app.use(bodyParser.json());
 
-app.use(uploadForm.array());
-//app.use(uploadForm.single);
-console.log(uploadForm.storage);
+
+
+//app.use(uploadForm.array());
+
+//console.log(uploadForm.storage);
 app.use(cors());
 
 app.use("/api/post/product", likesRoute);
@@ -49,9 +51,13 @@ app.use("/api/post", likesRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
+
+
+
+// app.use(uploadForm.single('myImages'));
+ 
 app.use(uploadRoute)
 app.use(uploadImagesRoute)
-
 // app.use(loginRouter)
 
 app.get("/", (req, res) => {
