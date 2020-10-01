@@ -9,7 +9,6 @@ const orderSchema = mongoose.Schema({
     seller: {
         type: Schema.Types.ObjectId,
         ref: 'Users'
-
     },
     clothes: {
         type: Schema.Types.ObjectId,

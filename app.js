@@ -26,6 +26,7 @@ const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
 var uploadRoute = require("./routes/upload")
 var uploadImagesRoute = require("./routes/uploadImages")
+const productLikes = require("./routes/productLikes")
 
 // const loginRouter = require('./controllers/authController')
 
@@ -51,6 +52,7 @@ app.use("/api/post", likesRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
+app.use(productLikes)
 
 
 
