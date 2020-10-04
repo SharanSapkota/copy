@@ -86,6 +86,6 @@ app.post("/uploadImages", (req, res) => {
   });
 });
 
-app.listen(3005, () => {
+app.listen(2000, () => {
   console.log("server started on 3005");
 });
