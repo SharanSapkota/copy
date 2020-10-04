@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 // const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
+const mongoose = require("mongoose")
 
 const router = express.Router();
 const Post = require("../models/Post");
@@ -190,12 +191,27 @@ router.get("/seller/:username", async (req, res) => {
 
 //DELETE
 router.delete("/:postId", async (req, res) => {
-  try {
-    const removedPosts = await Post.remove({ _id: req.params.postId });
-    res.status(200).json(removedPosts);
-  } catch (error) {
-    res.status(404).json({ message: error });
-  }
+
+
+  await mongoose.model('Posts').findById({ _id:req.params.postId }, function(err, result) {
+    console.log(result)
+
+    let swap =   new (mongoose.model('archievePosts'))(result.toJSON()) //or result.toObject
+   
+    result.remove()
+    swap.save()
+    res.json(swap)
+
+ })
+
+
+
+  // try {
+  //   const removedPosts = await Post.remove({ _id: req.params.postId });
+  //   res.status(200).json(removedPosts);
+  // } catch (error) {
+  //   res.status(404).json({ message: error });
+  // }
 });
 
 //UPDATE
