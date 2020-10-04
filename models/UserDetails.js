@@ -6,24 +6,20 @@ const UserDetailsSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "Users"
   },
-  username: {
-    type: String,
-    required: false
-  },
 
   name: {
     type: String,
-    required: false
+    required: true
   },
 
   dob: {
     type: Date,
-    required: false,
+    required: true,
     trim: true
   },
   address: {
     type: String,
-    required: false,
+    required: true,
     trim: true
   },
 
@@ -48,16 +44,12 @@ const UserDetailsSchema = mongoose.Schema({
   },
   credits: {
     type: Number,
-    required: false,
-    trim: true
+    required: true,
+    trim: true,
+    default: 0
   },
   pincode: {
     type: Number,
-    required: false,
-    trim: true
-  },
-  role: {
-    type: String,
     required: false,
     trim: true
   }
