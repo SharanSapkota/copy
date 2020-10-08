@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const Profile = require("../models/Profiles");
 const UserDetails = require("../models/UserDetails");
 const Users = require("../models/Users");
+const AWSS3 = require("../lib/aws-s3");
 
 router.get("/", async (req, res) => {
   try {
@@ -13,33 +17,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
-  const {
-    userId,
-    profile_picture,
-    clothes_listed,
-    followers,
-    following,
-    reviews
-  } = req.body;
+router.post("/:id", async (req, res) => {
+  let userId = req.params.id;
+  let { profile_picture } = req.body;
 
-  const postProfile = {};
+  let profileFields = {};
 
-  if (clothes_listed) {
-    postProfile.clothes_listed = req.body.clothes_listed;
-  }
-  if (followers) {
-    postProfile.followers = req.body.followers;
-  }
-  if (following) {
-    postProfile.following = req.body.following;
-  }
-  if (reviews) {
-    postProfile.reviews = req.body.reviews;
-  }
+  profile_picture
+    ? (profileFields.profile_picture = profile_picture)
+    : (profileFields.profile_picture = "http://www.gravatar.com/avatar/?d=mp");
+  if (userId) profileFields.userId = userId;
 
   try {
-    const Profiles = new Profile(postProfile);
+    const Profiles = new Profile(profileFields);
 
     const savedProfile = await Profiles.save();
     res.json(savedProfile);
@@ -48,14 +38,39 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.post(
+  "/profile_picture",
+  upload.single("profile_picture"),
+  async (req, res) => {
+    const profile_picture = req.file;
+
+    try {
+      if (profile_picture) {
+        AWSS3(profile_picture, 500, 500, "pp");
+      }
+    } catch (err) {
+      res.json({ message: err });
+    }
+  }
+);
+
 router.get("/:username", async (req, res) => {
   let username = req.params.username;
 
-  const getUser = await Users.findOne({ username }).select("-password");
+  const getUser = await Users.findOne({ username: username }).select("id");
 
-  if (getUser && getUser.role == 1) {
-    const getUserDetails = await UserDetails.findOne({ user: getUser.id });
-    console.log(getUserDetails);
+  if (getUser) {
+    const profile = await Profile.findOne({ userId: getUser.id });
+
+    if (profile) {
+      res.status(200).json({
+        success: true,
+        msg: "Profile found.",
+        profile: profile
+      });
+    } else {
+      res.status(400).json({ errors: { msg: "Profile not found." } });
+    }
   }
 
   // try {

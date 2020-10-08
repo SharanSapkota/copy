@@ -29,20 +29,33 @@ const authUser = (req, res, next) => {
   }
 };
 
+const getUserDetails = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id).select("-password");
+    const userDetails = await userDetailsModel.findOne({ user: req.user.id });
+    const userProfile = await Profiles.findOne({ user: req.user.id });
+
+    res.json({ user, userDetails, userProfile });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server Error");
+  }
+};
+
 const registerSeller = async (req, res, next) => {
   const {
-    username,
-    password,
-    phone_number,
     email,
-    name,
-    address,
-    dob,
     account_holder_name,
     account_number,
     bank_name,
     branch
   } = req.body;
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+  }
 
   const bank_details = {};
 
@@ -54,9 +67,7 @@ const registerSeller = async (req, res, next) => {
 
   let user = await userModel.findOne({ email });
 
-  if (user && user.role == 1) {
-    return res.status(400).json({ errors: { msg: "User already exists." } });
-  } else if (user && user.role == 2) {
+  if (user && user.role == 2) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       {
@@ -73,36 +84,7 @@ const registerSeller = async (req, res, next) => {
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
   } else {
-    const userDetailsFields = {};
-    const userFields = {};
-
-    if (username) userFields.username = username;
-    if (phone_number) userFields.phone_number = phone_number;
-    if (email) userFields.email = email;
-    userFields.role = 1;
-
-    if (name) userDetailsFields.name = name;
-    if (address) userDetailsFields.address = address;
-    if (dob) userDetailsFields.dob = dob;
-
-    const hashedPassword = bcrypt.hash(password, 10);
-    if (hashedPassword) userDetailsFields.password = hashedPassword;
-    userDetailsFields.credits = 0;
-    userDetailsFields.bank_details = bank_details;
-
-    user = new userModel(userFields);
-    user.save().then(user => {
-      userDetailsFields.user = user.id;
-      let userDetails = userDetailsModel(userDetailsFields);
-      userDetails.save().then(userDetails => {
-        res.status(200).json({
-          success: true,
-          msg: "User added successfully",
-          user,
-          userDetails
-        });
-      });
-    });
+    res.status(400).json({ success: false, error: { msg: "Server error." } });
   }
 };
 const registerBuyer = async (req, res, next) => {
@@ -115,6 +97,12 @@ const registerBuyer = async (req, res, next) => {
     address,
     dob
   } = req.body;
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+  }
 
   const userDetailsFields = {};
   const userFields = {};
@@ -141,14 +129,32 @@ const registerBuyer = async (req, res, next) => {
   user = new userModel(userFields);
   user.save().then(user => {
     userDetailsFields.user = user.id;
-    let userDetails = userDetailsModel(userDetailsFields);
+    let userDetails = new userDetailsModel(userDetailsFields);
     userDetails.save().then(userDetails => {
-      res.status(200).json({
-        success: true,
-        msg: "User added successfully",
-        user,
-        userDetails
-      });
+      const payload = {
+        user: {
+          id: user.id
+        }
+      };
+
+      let profile = new Profiles({ user: user.id });
+      profile.save();
+
+      jwt.sign(
+        payload,
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "4h"
+        },
+        (err, token) => {
+          if (err) throw err;
+          res.status(200).json({
+            success: true,
+            message: "Registered New User",
+            token
+          });
+        }
+      );
     });
   });
 };
@@ -243,6 +249,7 @@ const loginPartner = async (req, res) => {
 // })
 
 module.exports = {
+  getUserDetails,
   registerSeller,
   registerBuyer,
   login,
