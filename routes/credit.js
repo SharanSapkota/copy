@@ -7,6 +7,7 @@ const nodemailer = require("nodemailer");
 require("dotenv/config");
 
 const mailing = require("../pagination/nodemailer");
+const GenerateMailBody = require("../lib/generate.js");
 
 router.get("/", async (req, res) => {
   const users = await UserDetailModel.find().populate("user");
@@ -73,11 +74,17 @@ router.patch("/:username/redeem", async (req, res) => {
 
           user.save();
 
+          var mailBody = GenerateMailBody(
+            user.name.split(" ")[0],
+            creditAmount,
+            user.credits,
+            brand_name,
+            Date.now()
+          );
+
           mailing(`${customerUser.email}`, {
             subject: "Credit Used at " + brand_name + " | Antidote Nepal",
-            html: `<h3>Hello ${
-              user.name.split(" ")[0]
-            },<br /><br />Thank you for making your purchase with Antidote's credits.</h3><h5>Here is your invoice: </h5><p>Credit Used: ${creditAmount}</p>`
+            html: mailBody
           });
 
           res.status(200).json({ updatedCredits: user.credits, success: true });
