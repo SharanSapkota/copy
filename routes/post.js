@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 const Post = require("../models/Post");
 const Users = require("../models/Users");
+const archievePost = require("../models/archievePosts");
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
 
@@ -190,12 +191,34 @@ router.get("/seller/:username", async (req, res) => {
 
 //DELETE
 router.delete("/:postId", async (req, res) => {
-  try {
-    const removedPosts = await Post.remove({ _id: req.params.postId });
-    res.status(200).json(removedPosts);
-  } catch (error) {
-    res.status(404).json({ message: error });
+
+  const archievePosts = await Post.findById(req.params.postId).populate(
+    "seller",
+    "username"
+  )
+    console.log(archievePosts)
+    const savedArchievePosts =  new archievePost(archievePosts)
+    console.log(savedArchievePosts)
+    try {
+      const abc = await savedArchievePosts.save()
+  
+    
+  
+  
+    console.log(abc)
   }
+    catch(err) {
+      console.log(err)
+    }
+   
+
+
+  // try {
+  //   const removedPosts = await Post.remove({ _id: req.params.postId });
+  //   res.status(200).json(removedPosts);
+  // } catch (error) {
+  //   res.status(404).json({ message: error });
+  // }
 });
 
 //UPDATE

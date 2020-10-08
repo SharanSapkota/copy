@@ -21,8 +21,11 @@ const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
+const productLikes = require("./routes/productLikes")
+
 const s3uploadRoute = require("./routes/s3upload");
 const validateFields = require("./routes/validateFields");
+
 
 app.use(bodyParser.json());
 
@@ -41,8 +44,12 @@ app.use("/api/post", likesRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
+
+app.use(productLikes)
+
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);
+
 
 app.get("/", (req, res) => {
   res.send("this the main page");
