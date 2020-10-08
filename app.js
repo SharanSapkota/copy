@@ -4,14 +4,11 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
 
-
 const loginController = require("./routes/login");
-var multer = require("multer");
-var uploadForm = multer();
+// var multer = require("multer");
+// var uploadForm = multer();
 const cors = require("cors");
 
-
-var uploadRoute = require("./routes/upload");
 const postRoute = require("./routes/post");
 const profileRoute = require("./routes/profile");
 const creditsRoute = require("./routes/credit");
@@ -24,19 +21,14 @@ const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
-var uploadRoute = require("./routes/upload")
-var uploadImagesRoute = require("./routes/uploadImages")
 const productLikes = require("./routes/productLikes")
 
-// const loginRouter = require('./controllers/authController')
+const s3uploadRoute = require("./routes/s3upload");
+const validateFields = require("./routes/validateFields");
+
 
 app.use(bodyParser.json());
 
-
-
-//app.use(uploadForm.array());
-
-//console.log(uploadForm.storage);
 app.use(cors());
 
 app.use("/api/post/product", likesRoute);
@@ -52,27 +44,16 @@ app.use("/api/post", likesRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
+
 app.use(productLikes)
 
+app.use("/api/s3upload", s3uploadRoute);
+app.use("/api/validate", validateFields);
 
-
-// app.use(uploadForm.single('myImages'));
- 
-app.use(uploadRoute)
-app.use(uploadImagesRoute)
-// app.use(loginRouter)
 
 app.get("/", (req, res) => {
   res.send("this the main page");
 });
-
-
-
-// app.post("/upload", upload.single('image'), (req, res) => {
-  
-//   console.log(req.file)
-
-// })
 
 mongoose.connect(
   process.env.MONGO_URI,
@@ -87,6 +68,6 @@ mongoose.connect(
   }
 );
 
-app.listen(3000, () => {
-  console.log("server started at 3000");
+app.listen(3005, () => {
+  console.log("server started at 3005");
 });
