@@ -61,8 +61,6 @@ const validate = method => {
           .isLength({ max: 50 })
       ];
     }
-
-
     case "createPostValidation": {
         return [
             body("listing_name", "Listing name is invalid")
@@ -115,7 +113,5 @@ const validate = method => {
 
   }
 };
-
-
 
 module.exports = validate;

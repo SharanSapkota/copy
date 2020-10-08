@@ -8,6 +8,7 @@ const { validationResult } = require("express-validator");
 const router = express.Router();
 const Post = require("../models/Post");
 const Users = require("../models/Users");
+const archievePost = require("../models/archievePosts");
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
 const limiter = require('./rateLimiter');
@@ -205,7 +206,6 @@ router.get("/seller/:username", async (req, res) => {
 //DELETE
 router.delete("/:postId", async (req, res) => {
 
-
   await mongoose.model('Posts').findById({ _id:req.params.postId }, function(err, result) {
     console.log(result)
 
@@ -216,7 +216,6 @@ router.delete("/:postId", async (req, res) => {
     res.json(swap)
 
  })
-
 
 
   // try {

@@ -1,15 +1,42 @@
-const express = require('express')
+const express = require('express');
+const Post = require('../models/Post');
+const router = express.Router();
+const AuthController = require("../controllers/authController");
 
-const router = express.Router()
+router.get('/like', async (req, res) => {
+    res.json("I am in the like route")
+})
 
-router.get('/likes', (req, res) => {
-    res.send('I am in likes product')
+router.put('/like/:postId', AuthController.authUser, async (req, res) => {
+
+    try{
+   const likesCount = await Post.findByIdAndUpdate(req.params.postId, 
+    {$push: {likes: req.user._id}}, {new: true}
+    )
+res.status(200).json(likesCount)
+}
+catch(err) {
+    res.json(err)
+}
+
+})
+
+router.get('/unlike/:postId', AuthController.authUser, async (req, res) => {
+    res.json("I am in the unlike route")
 })
 
 
-router.get('/dislikes', (req, res) => {
-    res.send('I am in dislike product')
-})
+router.put('/unlike/:postId', async (req, res) => {
+    try{
+   const unlikesCount = await Post.findByIdAndUpdate(req.params.postId, 
+    {$pull: {likes: req.user._id}}, {new: true}
+    )
+res.status(200).json(unlikesCount)
+}
+catch(err) {
+    res.json(err)
+}
 
+})
 
 module.exports = router

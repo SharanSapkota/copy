@@ -178,18 +178,6 @@ catch(err) {
 
 })
 
-//  router.get('/seller/:UserId', async (req, res) => {
-//     await Order find({seller: User._id})
-//     .populate("clothes")
-//     .exec((err, result) => {
-//         res.json(result)
-//     })
-
-
-// })
-
-
-
 
 router.get('/cancelorder', (req, res) => {
     res.send('I am in cancel order.js')
