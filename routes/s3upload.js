@@ -15,7 +15,9 @@ let s3bucket = new AWS.S3({
 });
 
 router.post("/", upload.single("files"), async (req, res) => {
+  console.log(req.file)
   let file = req.file;
+  console.log(file)
   let fileType = file.originalname.substr(
     file.originalname.lastIndexOf(".") + 1
   );

@@ -4,10 +4,14 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
 
+
 const loginController = require("./routes/login");
 // var multer = require("multer");
 // var uploadForm = multer();
 const cors = require("cors");
+
+
+
 
 const postRoute = require("./routes/post");
 const profileRoute = require("./routes/profile");
@@ -31,6 +35,7 @@ app.use(bodyParser.json());
 
 app.use(cors());
 
+
 app.use("/api/post/product", likesRoute);
 app.use("/api/post", postRoute);
 app.use("/api/post/gender", postGenderRoute);
@@ -49,6 +54,7 @@ app.use(productLikes)
 
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);
+
 
 
 app.get("/", (req, res) => {

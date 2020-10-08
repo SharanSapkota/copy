@@ -2,6 +2,8 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 // const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
+const mongoose = require("mongoose")
+const { validationResult } = require("express-validator");
 
 const router = express.Router();
 const Post = require("../models/Post");
@@ -9,9 +11,12 @@ const Users = require("../models/Users");
 const archievePost = require("../models/archievePosts");
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
+const limiter = require('./rateLimiter');
+
+const postValidator = require('../controllers/validate');
 
 //GET ALL
-router.get("/", async (req, res) => {
+router.get("/",  async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
 
   try {
@@ -51,7 +56,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST
-router.post("/", AuthController.authUser, async (req, res) => {
+router.post("/", AuthController.authUser, postValidator("createPostValidation"),limiter, async (req, res) => {
   //Jwt verification
 
   // jwt.verify(req.token, process.env.SECRET_KEY, (err, data) => {
@@ -65,6 +70,7 @@ router.post("/", AuthController.authUser, async (req, res) => {
   //         })
   //     }
   // })
+
 
   const {
     listing_name,
@@ -83,6 +89,12 @@ router.post("/", AuthController.authUser, async (req, res) => {
     fabric,
     color
   } = req.body;
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+  }
 
   const postClothings = {};
 
@@ -144,6 +156,8 @@ router.post("/", AuthController.authUser, async (req, res) => {
   } catch (err) {
     res.json({ message: err });
   }
+
+
 });
 
 //GET BY ID
@@ -192,25 +206,16 @@ router.get("/seller/:username", async (req, res) => {
 //DELETE
 router.delete("/:postId", async (req, res) => {
 
-  const archievePosts = await Post.findById(req.params.postId).populate(
-    "seller",
-    "username"
-  )
-    console.log(archievePosts)
-    const savedArchievePosts =  new archievePost(archievePosts)
-    console.log(savedArchievePosts)
-    try {
-      const abc = await savedArchievePosts.save()
-  
-    
-  
-  
-    console.log(abc)
-  }
-    catch(err) {
-      console.log(err)
-    }
+  await mongoose.model('Posts').findById({ _id:req.params.postId }, function(err, result) {
+    console.log(result)
+
+    let swap =   new (mongoose.model('archievePosts'))(result.toJSON()) //or result.toObject
    
+    result.remove()
+    swap.save()
+    res.json(swap)
+
+ })
 
 
   // try {
