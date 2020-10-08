@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <style>
+      .body {
+        box-sizing: border-box;
+      }
+      .mail-invoice {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .mail-title,
+      .mail-footer {
+        text-align: center;
+      }
+      .mail-footer {
+        display: flex;
+        flex-direction: column;
+      }
+      .line-seperator {
+        height: 1px;
+        width: 100%;
+        background: #333;
+      }
+    </style>
+    <div class="mail-invoice">
+      <div class="mail-title">
+        Antidote Go
+        <!-- <img src="" /> -->
+      </div>
+      <div class="mail-body">
+        <div class="body-msg">
+          <p>Dear Manish,</p>
+          <p>Your Antidote Go's Store Credits has been debited by Rs. 500.</p>
+          <p>Your remaining balance is Rs. 300.</p>
+        </div>
+        <div class="body-details">
+          <h4>Transaction Details</h4>
+          <p>Store: DS Collection</p>
+          <p>Date: 9/27/2020, 9:14 AM</p>
+          <p>Credit Used: Rs. 500</p>
+          <p>Remaining Credits: Rs. 300</p>
+        </div>
+      </div>
+      <div class="mail-footer">
+        <span>Thank you for checking out with Antidote Go's Store Credits</span>
+        <div class="line-seperator"></div>
+        <h6>Pulchowk, Lalitpur</h6>
+      </div>
+    </div>
+  </body>
+</html>

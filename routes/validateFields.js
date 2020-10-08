@@ -7,6 +7,7 @@ const router = express.Router();
 router.post("/", async (req, res) => {
   const { username, email, phone, step } = req.body;
 
+  console.log(phone);
   try {
     if (step == 1) {
       const user = await Users.findOne({ username: username });
@@ -21,8 +22,8 @@ router.post("/", async (req, res) => {
       }
     }
     if (step == 3) {
-      const user1 = await Users.find({ email: email });
-      const user2 = await Users.find({ phone_number: phone });
+      const user1 = await Users.findOne({ email: email });
+      const user2 = await Users.findOne({ phone_number: phone });
       if (user1 && user2) {
         return res.json({
           success: false,
