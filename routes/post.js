@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose")
 // const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
+const mongoose = require("mongoose");
+const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
@@ -14,13 +16,16 @@ const  Post = require("../models/Post")
 
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
+const limiter = require("./rateLimiter");
+
+const postValidator = require("../controllers/validate");
 
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
 
   try {
-    const getAll = await Post.find().populate("seller");
+    const getAll = await Post.find().populate("seller", "username");
     // res.status(200).json(getAll);
 
     const page = parseInt(req.query.page);
@@ -47,8 +52,6 @@ router.get("/", async (req, res) => {
 
     result.resultUsers = getAll.slice(startIndex, endIndex);
 
-    // console.log(result)
-
     res.status(200).json(result);
   } catch (err) {
     res.status(404).json({ message: err });
@@ -56,100 +59,98 @@ router.get("/", async (req, res) => {
 });
 
 // POST
-router.post("/", AuthController.authUser, async (req, res) => {
-  //Jwt verification
+router.post(
+  "/",
+  AuthController.authUser,
+  postValidator("createPostValidation"),
+  limiter,
+  async (req, res) => {
+    const {
+      listing_name,
+      listing_type,
+      occassion,
+      gender,
+      design,
+      feature,
+      purchase_price,
+      images,
+      selling_price,
+      purchase_date,
+      condition,
+      category,
+      measurement,
+      fabric,
+      color
+    } = req.body;
 
-  // jwt.verify(req.token, process.env.SECRET_KEY, (err, data) => {
-  //     if (err) {
-  //         res.status(403)
-  //     }
-  //     else{
-  //         res.json({
-  //             data,
-  //             text: "this is protected"
-  //         })
-  //     }
-  // })
+    const errors = validationResult(req);
 
-  const {
-    listing_name,
-    listing_type,
-    occassion,
-    gender,
-    design,
-    feature,
-    purchase_price,
-    images,
-    selling_price,
-    purchase_date,
-    condition,
-    category,
-    measurement,
-    fabric,
-    color
-  } = req.body;
+    if (!errors.isEmpty()) {
+      res.status(422).json({ success: false, errors: errors.array() });
+    }
 
-  const postClothings = {};
+    const postClothings = {};
 
-  postClothings.seller = req.user.id;
-  postClothings.platform_fee = selling_price * 0.3;
-  postClothings.commission = selling_price * 0.7;
+    postClothings.seller = req.user.id;
+    postClothings.platform_fee = selling_price * 0.3;
+    postClothings.commission = selling_price * 0.7;
 
-  if (listing_name) {
-    postClothings.listing_name = listing_name;
-  }
-  if (listing_type) {
-    postClothings.listing_type = listing_type;
-  }
-  if (occassion) {
-    postClothings.occassion = occassion;
-  }
-  if (gender) {
-    postClothings.gender = gender;
-  }
-  if (category) {
-    postClothings.category = category;
-  }
-  if (images) {
-    postClothings.images = images;
-  }
-  if (design) {
-    postClothings.design = design;
-  }
-  if (feature) {
-    postClothings.feature = feature;
-  }
-  if (purchase_price) {
-    postClothings.purchase_price = purchase_price;
-  }
-  if (selling_price) {
-    postClothings.selling_price = selling_price;
-  }
-  if (purchase_date) {
-    postClothings.purchase_date = purchase_date;
-  }
-  if (condition) {
-    postClothings.condition = condition;
-  }
-  if (measurement) {
-    postClothings.measurement = measurement;
-  }
-  if (fabric) {
-    postClothings.fabric = fabric;
-  }
-  if (color) {
-    postClothings.color = color;
-  }
+    if (listing_name) {
+      postClothings.listing_name = listing_name;
+    }
+    if (listing_type) {
+      postClothings.listing_type = listing_type;
+    }
+    if (occassion) {
+      postClothings.occassion = occassion;
+    }
+    if (gender) {
+      postClothings.gender = gender;
+    }
+    if (category) {
+      postClothings.category = category;
+    }
+    if (images) {
+      postClothings.images = images;
+    }
+    if (design) {
+      postClothings.design = design;
+    }
+    if (feature) {
+      postClothings.feature = feature;
+    }
+    if (purchase_price) {
+      postClothings.purchase_price = purchase_price;
+    }
+    if (selling_price) {
+      postClothings.selling_price = selling_price;
+    }
+    if (purchase_date) {
+      postClothings.purchase_date = purchase_date;
+    }
+    if (condition) {
+      postClothings.condition = condition;
+    }
+    if (measurement) {
+      postClothings.measurement = measurement;
+    }
+    if (fabric) {
+      postClothings.fabric = fabric;
+    }
+    if (color) {
+      postClothings.color = color;
+    }
 
-  const posts = new Post(postClothings);
-  try {
-    const savedPost = await posts.save();
+    const posts = new Post(postClothings);
+    try {
+      const savedPost = await posts.save();
 
-    res.json(savedPost);
-  } catch (err) {
-    res.json({ message: err });
+      res.json(savedPost);
+    } catch (err) {
+      res.json({ message: err });
+    }
   }
-});
+);
 
 //GET BY ID
 router.get("/:postId", async (req, res) => {
@@ -196,40 +197,17 @@ router.get("/seller/:username", async (req, res) => {
 
 //DELETE
 router.delete("/:postId", async (req, res) => {
+  await mongoose
+    .model("Posts")
+    .findById({ _id: req.params.postId }, function(err, result) {
+      console.log(result);
 
+      let swap = new (mongoose.model("archievePosts"))(result.toJSON()); //or result.toObject
 
- await mongoose.model('Posts').findById({ _id:req.params.postId }, function(err, result) {
-    console.log(result)
-
-    let swap =   new (mongoose.model('archievePosts'))(result.toJSON()) //or result.toObject
-   
-    result.remove()
-    swap.save()
-    res.json(swap)
-
- })
-
-//   const archievePosts = await Post.findById({_id: req.params.postId})
-//   // .populate(
-//   //   "seller",
-//   //   "username"
-//   // )
-//   console.log(archievePosts)
-// //const objectassign = Object.assign({},archievePosts)
-//   //  console.log(objectassign)
-//     const savedArchievePosts = new archievePost(archievePosts)
-   
-//    console.log(savedArchievePosts)
-//     try {
-//       const abc =  savedArchievePosts.save(savedArchievePosts)
-//      // delete req.body.__v;
-//    console.log(savedArchievePosts._id)
-//   }
-//     catch(err) {
-//       console.log(err)
-//     }
-   
-
+      result.remove();
+      swap.save();
+      res.json(swap);
+    });
 
   // try {
   //   const removedPosts = await Post.remove({ _id: req.params.postId });

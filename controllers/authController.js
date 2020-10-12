@@ -29,21 +29,33 @@ const authUser = (req, res, next) => {
   }
 };
 
+const getUserDetails = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id).select("-password");
+    const userDetails = await userDetailsModel.findOne({ user: req.user.id });
+    const userProfile = await Profiles.findOne({ user: req.user.id });
+
+    res.json({ user, userDetails, userProfile });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server Error");
+  }
+};
+
 const registerSeller = async (req, res, next) => {
-  console.log("here");
   const {
-    username,
-    password,
-    phone_number,
     email,
-    name,
-    address,
-    dob,
     account_holder_name,
     account_number,
     bank_name,
     branch
   } = req.body;
+
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+  }
 
   const bank_details = {};
 
@@ -55,10 +67,7 @@ const registerSeller = async (req, res, next) => {
 
   let user = await userModel.findOne({ email });
 
-  if (user && user.role == 1) {
-    console.log("here1");
-    return res.status(400).json({ errors: { msg: "User already exists." } });
-  } else if (user && user.role == 2) {
+  if (user && user.role == 2) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       {
@@ -75,37 +84,7 @@ const registerSeller = async (req, res, next) => {
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
   } else {
-    console.log("here3");
-    const userDetailsFields = {};
-    const userFields = {};
-
-    if (username) userFields.username = username;
-    if (phone_number) userFields.phone_number = phone_number;
-    if (email) userFields.email = email;
-    userFields.role = 1;
-
-    if (name) userDetailsFields.name = name;
-    if (address) userDetailsFields.address = address;
-    if (dob) userDetailsFields.dob = dob;
-
-    const hashedPassword = bcrypt.hash(password, 10);
-    if (hashedPassword) userDetailsFields.password = hashedPassword;
-    userDetailsFields.credits = 0;
-    userDetailsFields.bank_details = bank_details;
-
-    user = new userModel(userFields);
-    user.save().then(user => {
-      userDetailsFields.user = user.id;
-      let userDetails = userDetailsModel(userDetailsFields);
-      userDetails.save().then(userDetails => {
-        res.status(200).json({
-          success: true,
-          msg: "User added successfully",
-          user,
-          userDetails
-        });
-      });
-    });
+    res.status(400).json({ success: false, error: { msg: "Server error." } });
   }
 };
 const registerBuyer = async (req, res, next) => {
@@ -119,6 +98,12 @@ const registerBuyer = async (req, res, next) => {
     dob
   } = req.body;
 
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    res.status(422).json({ success: false, errors: errors.array() });
+  }
+
   const userDetailsFields = {};
   const userFields = {};
 
@@ -131,9 +116,9 @@ const registerBuyer = async (req, res, next) => {
   if (address) userDetailsFields.address = address;
   if (dob) userDetailsFields.dob = dob;
 
-  const hashedPassword = bcrypt.hash(password, 10);
-  if (hashedPassword) userDetailsFields.password = hashedPassword;
-  userDetailsFields.credits = 0;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  if (hashedPassword) userFields.password = hashedPassword;
+  userFields.credits = 0;
 
   let user = await userModel.findOne({ email });
 
@@ -144,14 +129,32 @@ const registerBuyer = async (req, res, next) => {
   user = new userModel(userFields);
   user.save().then(user => {
     userDetailsFields.user = user.id;
-    let userDetails = userDetailsModel(userDetailsFields);
+    let userDetails = new userDetailsModel(userDetailsFields);
     userDetails.save().then(userDetails => {
-      res.status(200).json({
-        success: true,
-        msg: "User added successfully",
-        user,
-        userDetails
-      });
+      const payload = {
+        user: {
+          id: user.id
+        }
+      };
+
+      let profile = new Profiles({ user: user.id });
+      profile.save();
+
+      jwt.sign(
+        payload,
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "4h"
+        },
+        (err, token) => {
+          if (err) throw err;
+          res.status(200).json({
+            success: true,
+            message: "Registered New User",
+            token
+          });
+        }
+      );
     });
   });
 };
@@ -171,37 +174,35 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ errors: [{ msg: "Invalid Credentials" }] });
+      return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const comparisonResult = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ errors: [{ msg: "Invalid Credentials." }] });
+    if (comparisonResult) {
+      const payload = {
+        user: {
+          id: user.id
+        }
+      };
+
+      jwt.sign(
+        payload,
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "4h"
+        },
+        (err, token) => {
+          if (err) throw err;
+          res.status(200).json({
+            message: "login successfully",
+            token
+          });
+        }
+      );
+    } else {
+      return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
-
-    const payload = {
-      user: {
-        id: user.id
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.SECRET_KEY,
-      {
-        expiresIn: "4h"
-      },
-      (err, token) => {
-        if (err) throw err;
-        res.json({
-          message: "login successfully",
-          token
-        });
-      }
-    );
   } catch (error) {
     res.status(400).json({
       message: "Server Error."
@@ -248,6 +249,7 @@ const loginPartner = async (req, res) => {
 // })
 
 module.exports = {
+  getUserDetails,
   registerSeller,
   registerBuyer,
   login,

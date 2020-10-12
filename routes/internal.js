@@ -65,7 +65,7 @@ router.patch("/pincode/:userId", async (req, res) => {
 
   const updatePin = await UserDetails.findOneAndUpdate(
     {
-      _id: req.params.userId
+      user: req.params.userId
     },
     {
       $set: { pincode: pincode }
