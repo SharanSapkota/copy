@@ -30,6 +30,8 @@ const AuthController = require("../controllers/authController");
 
 router.get("/", AuthController.authUser, AuthController.getUserDetails);
 
+router.get("/user/:username", AuthController.getSingleUser);
+
 router.post(
   "/register/seller",
   AuthController.authUser,

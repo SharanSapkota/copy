@@ -29,6 +29,18 @@ const authUser = (req, res, next) => {
   }
 };
 
+const getSingleUser = async (req, res) => {
+  try {
+    const user = await userModel
+      .findOne({ username: req.params.username })
+      .select("username");
+    const userProfile = await Profiles.findOne({ user: user._id });
+    res.status(200).json({ success: true, user, userProfile });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 const getUserDetails = async (req, res) => {
   try {
     const user = await userModel.findById(req.user.id).select("-password");
@@ -249,6 +261,7 @@ const loginPartner = async (req, res) => {
 // })
 
 module.exports = {
+  getSingleUser,
   getUserDetails,
   registerSeller,
   registerBuyer,

@@ -124,19 +124,25 @@ router.patch("/:orderId/complete", async (req, res) => {
 });
 
 router.get("/to/:UserId", async (req, res) => {
-  console.log("this is the population");
-  try {
-    const getUsers = await User.find();
-    //console.log(getUsers)
-    //await Order.find({buyer: User._id}).populate("clothes").exec((err, docs) => {
-    const buyerOrders = await Order.find({
-      $or: [{ buyer: User._id }, { seller: User._id }]
-    }).populate("clothes");
+  // try {
+  //   const buyerOrders = await Order.find({
+  //     $or: [{ buyer: User._id }, { seller: User._id }]
+  //   }).populate("clothes");
 
-    res.json(buyerOrders);
-  } catch (err) {
-    res.json(err);
-  }
+  //   res.json(buyerOrders);
+  // } catch (err) {
+  //   res.json(err);
+  // }
+
+  const a = await Order.find().populate({
+    path: "clothes",
+    match: {
+      seller: req.params.UserId
+    }
+  });
+  console.log(a);
+
+  res.json(a);
 });
 
 router.get("/cancelorder", (req, res) => {
