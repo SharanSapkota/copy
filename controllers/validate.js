@@ -62,55 +62,47 @@ const validate = method => {
       ];
     }
     case "createPostValidation": {
-        return [
-            body("listing_name", "Listing name is invalid")
-            .exists()
-            .isLength({ max: 10 }),
-            body("listing_type", "Listing tpye is required")
-            .exists()
-            .isLength({ max: 20 }),
-            body("occassion", "Occassion is invalid")
-            .exists()
-            .isLength({ max: 20 }),
-            body("gender", "gender is invalid")
-            .exists()
-            .isLength({ max: 20 }),
-            body("design", "design is invalid")
-            .exists()
-            .isLength({ max: 20 }),
-            body("feature", "feature is invalid")
-            .exists()
-            .isLength({ max: 20 }),
-            body("purchase_price", "Purchase Price is required")
-            .exists(),
-            
-            body("images", "Images is required")
-            .exists(),
-            
-            body("selling_price", "Selling Price is required")
-            .exists(),
-            
-            body("purchase_date", "Purchase date is required")
-            .exists()
-            .isDate(),
-            body("condition", "Condition is required")
-            .exists()
-            .isLength({ max: 20 }),
-            body("category", "Category is required")
-            .exists()
-            .isLength({ max: 20 }),
-            body("measurement", "Measurement is required")
-            .exists()
-            .isLength({ max: 20 }),
-            body("fabric", "Fabric is required")
-            .exists()
-            .isLength({ max: 20 }),
-            body("color", "Color is required")
-            .exists()
-            .isLength({ max: 20 }),
-        ]
-    }    
-
+      return [
+        body("listing_name", "Listing name is invalid")
+          .exists()
+          .isLength({ max: 10 }),
+        body("listing_type", "Listing tpye is required")
+          .optional()
+          .isLength({ max: 20 }),
+        body("occassion", "Occassion is invalid")
+          .optional()
+          .isLength({ max: 20 }),
+        body("gender", "gender is invalid")
+          .optional()
+          .isLength({ max: 20 }),
+        body("design", "design is invalid")
+          .optional()
+          .isLength({ max: 20 }),
+        body("feature", "feature is invalid")
+          .exists()
+          .isLength({ max: 20 }),
+        body("purchase_price", "Purchase Price is required").exists(),
+        body("selling_price", "Selling Price is required").exists(),
+        body("purchase_date", "Purchase date is required")
+          .exists()
+          .isDate(),
+        body("condition", "Condition is required")
+          .exists()
+          .isLength({ max: 20 }),
+        body("category", "Category is required")
+          .exists()
+          .isLength({ max: 20 }),
+        body("measurement", "Measurement invalid")
+          .optional()
+          .isLength({ max: 20 }),
+        body("fabric", "Fabric invalid")
+          .optional()
+          .isLength({ max: 20 }),
+        body("color", "Color is invalid")
+          .optional()
+          .isLength({ max: 20 })
+      ];
+    }
   }
 };
 
