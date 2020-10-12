@@ -84,6 +84,7 @@ router.patch("/:orderId", async (req, res) => {
   }
 
   try {
+
     const updateOrder = await Order.findOneAndUpdate(
       { _id: req.params.orderId },
       { $set: orderUpdateDestructure }
@@ -128,6 +129,7 @@ router.get("/to/:UserId", async (req, res) => {
   try {
     const getUsers = await User.find();
     //console.log(getUsers)
+
     //await Order.find({buyer: User._id}).populate("clothes").exec((err, docs) => {
     const buyerOrders = await Order.find({
       $or: [{ buyer: User._id }, { seller: User._id }]
@@ -144,3 +146,4 @@ router.get("/cancelorder", (req, res) => {
 });
 
 module.exports = router;
+

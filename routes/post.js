@@ -1,14 +1,19 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose")
 // const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 
 const router = express.Router();
-const Post = require("../models/Post");
-const Users = require("../models/Users");
-const archievePost = require("../models/archievePosts");
+
+const Users = require("../models/Users"); 
+const  Post = require("../models/Post")
+//const archievePost = require("../models/Post")
+//const archievePosts = require("../models/Post")
+//const archievePost = require("../models/archievePosts")
+
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
 const limiter = require("./rateLimiter");

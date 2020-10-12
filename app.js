@@ -56,7 +56,6 @@ app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);
 
 
-
 app.get("/", (req, res) => {
   res.send("this the main page");
 });
@@ -74,6 +73,6 @@ mongoose.connect(
   }
 );
 
-app.listen(3005, () => {
-  console.log("server started at 3005");
+app.listen(3000, () => {
+  console.log("server started at 3000");
 });
