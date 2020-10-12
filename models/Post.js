@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const express = require("express");
+const router = express.Router();
 
 const PostSchema = mongoose.Schema({
   listing_name: {
@@ -102,3 +104,4 @@ const PostSchema = mongoose.Schema({
 module.exports = mongoose.model("archievePosts", PostSchema);
 
 module.exports = mongoose.model("Posts", PostSchema);
+
