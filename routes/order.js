@@ -1,17 +1,24 @@
 const express = require('express')
 const Order = require('../models/Orders')
 const User = require('../models/Users')
+const mailOrder = require('../pagination/nodemailer')
+const AuthController = require("../controllers/authController");
+
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
     // res.send('I am in order.js')
+    
     try{
-    const getAllOrder = await Order.find()
-        res.json(getAllOrder)
+        console.log("this")
+    const getAllOrder = await Order.find().populate("clothes")
+   // console.log(getAllOrder)
+        res.status(200).json(getAllOrder)
+        console.log("getAllOrder")
     }
     catch(err) {
-        res.json(err)
+        res.status(404).json(err)
     }
 })
 
@@ -20,15 +27,15 @@ router.get('/:orderId', async (req, res) => {
     const order_status = "pending";
     try{
     const getOrderById = await Order.findById({_id: req.params.orderId})
-        res.json({getOrderById})
+        res.status(200).json({getOrderById})
     }
     catch(err) {
-        res.json(err)
+        res.status(404).json(err)
     }
 })
 
 
-router.post('/', async (req, res) => {
+router.post('/',  async (req, res) => {
     
     const  {
         buyer,
@@ -176,6 +183,12 @@ catch(err) {
     res.json(err)
 }
 
+})
+
+router.post('/getorder', async (req, res) =>  {
+    console.log("mailOrder")
+    mailOrder("sapkotarambbo@gmail.com", "nodemailer running")
+    res.json(mailOrder)
 })
 
 

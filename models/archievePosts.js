@@ -1,13 +1,15 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const PostArchieveSchema = mongoose.Schema({
-
-  
-  listing_name: [{
+const PostArchieveSchema = mongoose.Schema({ 
+  _id: {
     type: String,
     required: false
-  }],
+  },
+  listing_name: {
+    type: String,
+    required: false
+  },
   listing_type: {
     type: String,
     required: false

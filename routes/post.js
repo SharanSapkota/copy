@@ -1,12 +1,17 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose")
 // const pagination = require('../pagination/pagination');
 // const verifyToken = require('../controllers/jwtVerify')
 
 const router = express.Router();
-const Post = require("../models/Post");
-const Users = require("../models/Users");
-const archievePost = require("../models/archievePosts");
+
+const Users = require("../models/Users"); 
+const  Post = require("../models/Post")
+//const archievePost = require("../models/Post")
+//const archievePosts = require("../models/Post")
+//const archievePost = require("../models/archievePosts")
+
 // const multer = require('multer')
 const AuthController = require("../controllers/authController");
 
@@ -192,24 +197,37 @@ router.get("/seller/:username", async (req, res) => {
 //DELETE
 router.delete("/:postId", async (req, res) => {
 
-  const archievePosts = await Post.findById(req.params.postId).populate(
-    "seller",
-    "username"
-  )
-    console.log(archievePosts)
-    const savedArchievePosts =  new archievePost(archievePosts)
-    console.log(savedArchievePosts)
-    try {
-      const abc = await savedArchievePosts.save()
-  
-    
-  
-  
-    console.log(abc)
-  }
-    catch(err) {
-      console.log(err)
-    }
+
+ await mongoose.model('Posts').findById({ _id:req.params.postId }, function(err, result) {
+    console.log(result)
+
+    let swap =   new (mongoose.model('archievePosts'))(result.toJSON()) //or result.toObject
+   
+    result.remove()
+    swap.save()
+    res.json(swap)
+
+ })
+
+//   const archievePosts = await Post.findById({_id: req.params.postId})
+//   // .populate(
+//   //   "seller",
+//   //   "username"
+//   // )
+//   console.log(archievePosts)
+// //const objectassign = Object.assign({},archievePosts)
+//   //  console.log(objectassign)
+//     const savedArchievePosts = new archievePost(archievePosts)
+   
+//    console.log(savedArchievePosts)
+//     try {
+//       const abc =  savedArchievePosts.save(savedArchievePosts)
+//      // delete req.body.__v;
+//    console.log(savedArchievePosts._id)
+//   }
+//     catch(err) {
+//       console.log(err)
+//     }
    
 
 

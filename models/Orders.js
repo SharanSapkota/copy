@@ -12,7 +12,7 @@ const orderSchema = mongoose.Schema({
     },
     clothes: {
         type: Schema.Types.ObjectId,
-        ref: 'Post'
+        ref: 'Posts'
     },
     total_amount: {
         type: Number,

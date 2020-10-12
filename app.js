@@ -28,6 +28,7 @@ var uploadRoute = require("./routes/upload")
 var uploadImagesRoute = require("./routes/uploadImages")
 const productLikes = require("./routes/productLikes")
 
+
 // const loginRouter = require('./controllers/authController')
 
 app.use(bodyParser.json());
@@ -53,7 +54,6 @@ app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
 app.use(productLikes)
-
 
 
 // app.use(uploadForm.single('myImages'));
