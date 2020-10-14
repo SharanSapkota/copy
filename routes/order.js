@@ -124,32 +124,30 @@ router.patch("/:orderId/complete", async (req, res) => {
 });
 
 router.get("/to/:UserId", async (req, res) => {
-  // try {
-  //   const buyerOrders = await Order.find({
-  //     $or: [{ buyer: User._id }, { seller: User._id }]
-  //   }).populate("clothes");
+  let ordersArr = [];
 
-  //   res.json(buyerOrders);
-  // } catch (err) {
-  //   res.json(err);
-  // }
-
-  // const a = await Order.find().populate({
-  //   path: "clothes",
-  //   match: {
-  //     seller: req.params.UserId
-  //   }
-  // });
-
-  const a = await Order.find()
-    .populate("clothes")
-    .exec(function(err, order) {
-      console.log(order.clothes);
-      // if (order.clothes.seller === req.params.UserId) console.log("yes");
-      // else console.log("no");
+  Order.find()
+    .populate({
+      path: "clothes"
+    })
+    .exec(function(err, orders) {
+      orders.forEach(order => {
+        if (
+          order.clothes.seller == req.params.UserId ||
+          order.buyer == req.params.UserId
+        ) {
+          ordersArr.push(order);
+        }
+      });
+      if (ordersArr.length > 0) {
+        return res.status(200).json({ orders: ordersArr, success: true });
+      } else {
+        return res.status(404).json({
+          success: false,
+          errors: { msg: "No orders found for seller." }
+        });
+      }
     });
-
-  res.json(a);
 });
 
 router.get("/cancelorder", (req, res) => {
