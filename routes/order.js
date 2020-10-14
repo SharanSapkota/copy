@@ -134,13 +134,20 @@ router.get("/to/:UserId", async (req, res) => {
   //   res.json(err);
   // }
 
-  const a = await Order.find().populate({
-    path: "clothes",
-    match: {
-      seller: req.params.UserId
-    }
-  });
-  console.log(a);
+  // const a = await Order.find().populate({
+  //   path: "clothes",
+  //   match: {
+  //     seller: req.params.UserId
+  //   }
+  // });
+
+  const a = await Order.find()
+    .populate("clothes")
+    .exec(function(err, order) {
+      console.log(order.clothes);
+      // if (order.clothes.seller === req.params.UserId) console.log("yes");
+      // else console.log("no");
+    });
 
   res.json(a);
 });

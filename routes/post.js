@@ -1,20 +1,12 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose")
-// const pagination = require('../pagination/pagination');
-// const verifyToken = require('../controllers/jwtVerify')
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
-const Users = require("../models/Users"); 
-const  Post = require("../models/Post")
-//const archievePost = require("../models/Post")
-//const archievePosts = require("../models/Post")
-//const archievePost = require("../models/archievePosts")
-
-// const multer = require('multer')
+const Users = require("../models/Users");
+const Post = require("../models/Post");
 const AuthController = require("../controllers/authController");
 const limiter = require("./rateLimiter");
 
@@ -26,7 +18,6 @@ router.get("/", async (req, res) => {
 
   try {
     const getAll = await Post.find().populate("seller", "username");
-    // res.status(200).json(getAll);
 
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
@@ -51,7 +42,6 @@ router.get("/", async (req, res) => {
     }
 
     result.resultUsers = getAll.slice(startIndex, endIndex);
-
     res.status(200).json(result);
   } catch (err) {
     res.status(404).json({ message: err });
@@ -71,7 +61,7 @@ router.post(
       occassion,
       gender,
       design,
-      feature,
+      feature_image,
       purchase_price,
       images,
       selling_price,
@@ -82,6 +72,8 @@ router.post(
       fabric,
       color
     } = req.body;
+
+    console.log(req.body);
 
     const errors = validationResult(req);
 
@@ -116,8 +108,8 @@ router.post(
     if (design) {
       postClothings.design = design;
     }
-    if (feature) {
-      postClothings.feature = feature;
+    if (feature_image) {
+      postClothings.feature_image = feature_image;
     }
     if (purchase_price) {
       postClothings.purchase_price = purchase_price;
@@ -167,20 +159,11 @@ router.get("/:postId", async (req, res) => {
 });
 
 //GET ALL POSTS BY SELLER
-router.get("/seller/:username", async (req, res) => {
-  let username = req.params.username;
-
+router.get("/seller/:userId", async (req, res) => {
   try {
-    const user = await Users.findOne({ username: username }).select(
-      "-password"
+    const posts = await Post.find({ seller: req.params.userId }).select(
+      "-seller"
     );
-
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, error: { msg: "Seller not found." } });
-    }
-    const posts = await Post.find({ seller: user.id }).select("-seller");
 
     if (!posts.length > 0) {
       return res.status(400).json({
@@ -189,7 +172,33 @@ router.get("/seller/:username", async (req, res) => {
       });
     }
 
-    return res.status(200).json({ success: true, posts });
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const result = {};
+
+    if (endIndex < posts.length) {
+      result.next = {
+        page: page + 1,
+        limit: limit
+      };
+      console.log("here");
+    }
+
+    if (startIndex > 0) {
+      result.previous = {
+        page: page - 1,
+        limit: limit
+      };
+      console.log("here0");
+    }
+
+    result.resultUsers = posts.slice(startIndex, endIndex);
+
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({ error: error });
   }
@@ -226,7 +235,7 @@ router.patch("/:postId", async (req, res) => {
       occassion,
       gender,
       design,
-      feature,
+      feature_image,
       purchase_price,
 
       selling_price,
@@ -258,8 +267,8 @@ router.patch("/:postId", async (req, res) => {
     if (design) {
       update.design = req.body.design;
     }
-    if (feature) {
-      update.feature = req.body.feature;
+    if (feature_image) {
+      update.feature_image = req.body.feature_image;
     }
     if (purchase_price) {
       update.purchase_price = req.body.purchase_price;

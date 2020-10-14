@@ -65,7 +65,7 @@ const validate = method => {
       return [
         body("listing_name", "Listing name is invalid")
           .exists()
-          .isLength({ max: 10 }),
+          .isLength({ max: 50 }),
         body("listing_type", "Listing tpye is required")
           .optional()
           .isLength({ max: 20 }),
@@ -78,16 +78,16 @@ const validate = method => {
         body("design", "design is invalid")
           .optional()
           .isLength({ max: 20 }),
-        body("feature", "feature is invalid")
+        body("feature_image", "feature is invalid")
           .exists()
-          .isLength({ max: 20 }),
+          .isLength({ max: 100 }),
         body("purchase_price", "Purchase Price is required").exists(),
         body("selling_price", "Selling Price is required").exists(),
         body("purchase_date", "Purchase date is required")
-          .exists()
+          .optional()
           .isDate(),
         body("condition", "Condition is required")
-          .exists()
+          .optional()
           .isLength({ max: 20 }),
         body("category", "Category is required")
           .exists()
