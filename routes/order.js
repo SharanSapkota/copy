@@ -17,11 +17,11 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:orderId", async (req, res) => {
-  // res.send('I am in order.js')
-  const order_status = "pending";
   try {
-    const getOrderById = await Order.findById({ _id: req.params.orderId });
-    res.json({ getOrderById });
+    const getOrderById = await Order.findById({
+      _id: req.params.orderId
+    }).populate("clothes");
+    res.json(getOrderById);
   } catch (err) {
     res.json(err);
   }

@@ -55,13 +55,15 @@ router.patch("/:username/redeem", async (req, res) => {
   const username = req.params.username;
 
   const customerUser = await UsersModel.findOne({ username: username });
-  console.log(username);
 
   const user = await UserDetailModel.findOne({
     user: customerUser._id
   }).populate({
     path: "user"
   });
+  console.log(user);
+
+  res.end();
 
   if (!user) {
     res.status(400).json({ error: { msg: "Customer not found." } });
