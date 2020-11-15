@@ -23,8 +23,11 @@ const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
 const productLikes = require("./routes/productLikes");
 
+const adminRoute = require("./routes/admin");
+
 const s3uploadRoute = require("./routes/s3upload");
 const validateFields = require("./routes/validateFields");
+const { ApiGatewayManagementApi } = require("aws-sdk");
 
 app.use(bodyParser.json());
 
@@ -43,6 +46,9 @@ app.use("/api/post", likesRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
+
+//Admin route
+app.use("/api/admin", adminRoute);
 
 app.use(productLikes);
 
