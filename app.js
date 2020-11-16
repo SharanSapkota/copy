@@ -23,7 +23,7 @@ const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
 const productLikes = require("./routes/productLikes");
 
-const adminRoute = require("./routes/admin");
+const adminRoute = require("./routes/admin/admin");
 
 const s3uploadRoute = require("./routes/s3upload");
 const validateFields = require("./routes/validateFields");

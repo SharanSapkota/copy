@@ -2,15 +2,15 @@ const mongoose = require("mongoose");
 // const Schema = mongoose.Schema;
 
 const SellerSchema = mongoose.Schema({
-  username: {
+  name: {
     type: String,
     required: true,
     trim: true,
     unique: true
   },
-  email: {
+  usercode: {
     type: String,
-    // required: true,
+    required: true,
     trim: true,
     unique: true
   }

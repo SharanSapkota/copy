@@ -1,19 +1,17 @@
 const express = require("express");
-const mongoose = require("mongoose");
-
-
 const router = express.Router();
-const Seller = require('../models/Seller')
-const Post = require('../models/Post')
+const Seller = require('../../models/admin/Seller')
+const Post = require('../../models/Post')
 
-router.get("/", (req,res) => {
-    res.status(200).json("Success")
+router.get("/seller", async(req,res) => {
+    const seller = await Seller.find({})
+    res.status(200).json(seller)
 })
 
 router.post("/seller", async (req,res) =>{
-    const seller = new Seller(req.body)
+    const sellers = new Seller(req.body)
     try {
-        const savedSeller = await seller.save();
+        const savedSeller = await sellers.save();
         res.json(savedSeller);
       } catch (err) {
         res.json({ message: err });
