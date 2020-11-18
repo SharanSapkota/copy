@@ -2,8 +2,14 @@ const mongoose = require("mongoose");
 // const Schema = mongoose.Schema;
 
 const SellerSchema = mongoose.Schema({
-  name: {
+  username: {
     type: String,
+    required: true,
+    trim: true,
+    unique: true
+  },
+  phone_number: {  
+    type: Number,
     required: true,
     trim: true,
     unique: true
