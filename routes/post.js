@@ -16,8 +16,19 @@ const postValidator = require("../controllers/validate");
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
 
+  const abc = req.query.search;
+
   try {
-    const getAll = await Post.find().populate("seller", "username");
+    let getAll;
+    if (!abc) {
+      getAll = await Post.find()
+        .populate("seller", "username")
+        .sort({ date: -1 });
+    } else {
+      getAll = await Post.find({ listing_name: { $regex: abc, $options: "i" } })
+        .populate("seller", "username")
+        .sort({ date: -1 });
+    }
 
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
@@ -193,7 +204,6 @@ router.get("/seller/:userId", async (req, res) => {
         page: page - 1,
         limit: limit
       };
-      console.log("here0");
     }
 
     result.resultUsers = posts.slice(startIndex, endIndex);

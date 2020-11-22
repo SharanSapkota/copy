@@ -37,7 +37,7 @@ const getSingleUser = async (req, res) => {
     const userProfile = await Profiles.findOne({ user: user._id });
     res.status(200).json({ success: true, user, userProfile });
   } catch (e) {
-    console.log(e);
+    res.status(401).json({ success: false });
   }
 };
 
@@ -99,6 +99,98 @@ const registerSeller = async (req, res, next) => {
     res.status(400).json({ success: false, error: { msg: "Server error." } });
   }
 };
+
+const registerFinal = async (req, res, next) => {
+  const {
+    username,
+    password,
+    phone,
+    email,
+    city,
+    address,
+    dob,
+    bank_name,
+    account_number,
+    account_holder_name,
+    branch,
+    profileimage
+  } = req.body;
+
+  // const errors = validationResult(req);
+
+  // if (!errors.isEmpty()) {
+  //   res.status(422).json({ success: false, errors: errors.array() });
+  // }
+
+  const userDetailsFields = {};
+  const userFields = {};
+
+  if (username) userFields.username = username;
+  if (phone) userFields.phone_number = phone;
+  if (email) userFields.email = email;
+  userFields.role = 2;
+
+  if (city) userDetailsFields.city = city;
+  if (address) userDetailsFields.address = address;
+  if (dob) userDetailsFields.dob = dob;
+
+  const bank_details = {};
+
+  if (bank_name) bank_details.bank_name = bank_name;
+  if (branch) bank_details.branch = branch;
+  if (account_holder_name)
+    bank_details.account_holder_name = account_holder_name;
+  if (account_number) bank_details.account_number = account_number;
+
+  userDetailsFields.bank_details = bank_details;
+
+  const profile_fields = {};
+  if (profileimage) profile_fields.profile_picture = profileimage;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  if (hashedPassword) userFields.password = hashedPassword;
+  userFields.credits = 0;
+
+  let user = await userModel.findOne({ email });
+
+  if (user) {
+    return res.status(400).json({ errors: { msg: "User already exists." } });
+  }
+
+  user = new userModel(userFields);
+  user.save().then(user => {
+    userDetailsFields.user = user.id;
+    profile_fields.user = user.id;
+    let userDetails = new userDetailsModel(userDetailsFields);
+    userDetails.save().then(userDetails => {
+      const payload = {
+        user: {
+          id: user.id
+        }
+      };
+
+      let profile = new Profiles(profile_fields);
+      profile.save();
+
+      jwt.sign(
+        payload,
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "4h"
+        },
+        (err, token) => {
+          if (err) throw err;
+          res.status(200).json({
+            success: true,
+            message: "Registered New User",
+            token
+          });
+        }
+      );
+    });
+  });
+};
+
 const registerBuyer = async (req, res, next) => {
   const {
     username,
@@ -265,6 +357,7 @@ module.exports = {
   getUserDetails,
   registerSeller,
   registerBuyer,
+  registerFinal,
   login,
   loginPartner,
   authUser

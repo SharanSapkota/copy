@@ -9,11 +9,16 @@ const UserDetailsSchema = mongoose.Schema({
 
   name: {
     type: String,
-    required: true
+    required: false
   },
 
   dob: {
     type: Date,
+    required: true,
+    trim: true
+  },
+  city: {
+    type: String,
     required: true,
     trim: true
   },
