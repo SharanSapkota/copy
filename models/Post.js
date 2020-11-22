@@ -96,6 +96,10 @@ const PostSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "Profiles"
   },
+  testSeller: {
+    type: String,
+    required: false
+  },
   date: {
     type: Date,
     default: Date.now
