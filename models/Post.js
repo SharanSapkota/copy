@@ -96,8 +96,8 @@ const PostSchema = mongoose.Schema({
     ref: "Profiles"
   },
   testSeller: {
-    type: String,
-    required: false
+    type: Schema.Types.ObjectId,
+    ref: 'Sellers'
   },
   date: {
     type: Date,
