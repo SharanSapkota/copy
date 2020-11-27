@@ -1,11 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const Seller = require('../../models/admin/Seller')
+const Seller = require('../../models/admin/Seller');
+const Orders = require("../../models/Orders");
 const Post = require('../../models/Post')
 
 router.get("/seller", async(req,res) => {
     const seller = await Seller.find({})
     res.status(200).json(seller)
+})
+
+router.get('/posts', async(req,res) =>{
+    const allPosts = await Post.find({testSeller : {  $exists : true}})
+    res.status(200).json(allPosts)
 })
 
 router.post("/seller", async (req,res) =>{
@@ -43,7 +49,6 @@ router.post("/seller", async (req,res) =>{
 
   }
 
-
   data.usercode = usercode.concat(tempCodeEnd)
 
   console.log(data)
@@ -69,6 +74,26 @@ router.post("/post", async (req,res) =>{
       } catch (err) {
         res.json({ message: err });
       }
+})
+
+// router.post('/orders', async (req,res) =>{
+//   console.log(req.body)
+//   const order = new Orders(req.body)
+//   order.save().then((res) =>{
+//     res.json(res.status)
+//   })
+// })
+
+router.patch('/orders/:orderId', async(req,res) =>{
+  try {
+    const updateStatus = await Orders.findOneAndUpdate(
+      { _id: req.params.orderId },
+      { $set: req.body }
+    );
+    res.status(201).json(updateStatus);
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
 })
 
 module.exports = router;
