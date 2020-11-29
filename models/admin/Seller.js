@@ -14,6 +14,13 @@ const SellerSchema = mongoose.Schema({
     trim: true,
     unique: true
   },
+
+  address: { 
+    type: String,
+    required: true,
+    trim: true,
+    
+  },
   usercode: {
     type: String,
     required: true,
