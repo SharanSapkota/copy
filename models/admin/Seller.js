@@ -21,6 +21,12 @@ const SellerSchema = mongoose.Schema({
     type: Number,
     required: true
   },
+  credits:{
+    type: Number,
+    required: true,
+    trim: true,
+    default: 0
+  },
   date:{
     type: Date,
     default: Date.now
