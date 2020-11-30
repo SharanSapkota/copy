@@ -48,8 +48,11 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: false,
     default: "pending"
+  },
+  date: {
+    type: Date,
+    default: Date.now
   }
 });
-
 
 module.exports = mongoose.model("Orders", orderSchema);

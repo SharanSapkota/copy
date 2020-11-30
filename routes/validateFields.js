@@ -5,9 +5,7 @@ const Users = require("../models/Users");
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  const { username, email, phone, step } = req.body;
-
-  console.log(phone);
+  const { username, email, phone_number, step } = req.body;
   try {
     if (step == 1) {
       const user = await Users.findOne({ username: username });
@@ -23,7 +21,7 @@ router.post("/", async (req, res) => {
     }
     if (step == 3) {
       const user1 = await Users.findOne({ email: email });
-      const user2 = await Users.findOne({ phone_number: phone });
+      const user2 = await Users.findOne({ phone_number: phone_number });
       if (user1 && user2) {
         return res.json({
           success: false,
@@ -32,7 +30,7 @@ router.post("/", async (req, res) => {
               field: "email",
               msg: "Email already in use."
             },
-            { field: "phone", msg: "Phone number already in use." }
+            { field: "phone_number", msg: "Phone number already in use." }
           ]
         });
       } else if (user1) {
@@ -50,7 +48,7 @@ router.post("/", async (req, res) => {
           success: false,
           errors: [
             {
-              field: "phone",
+              field: "phone_number",
               msg: "Phone number already in use."
             }
           ]
@@ -62,12 +60,6 @@ router.post("/", async (req, res) => {
   } catch (error) {
     res.status(500).json(error);
   }
-  // try {
-  //   const user = await Users.findById(req.user.id).select("-password");
-  //   res.json(user);
-  // } catch (err) {
-  //   res.status(500).send("Server Error");
-  // }
 });
 
 module.exports = router;

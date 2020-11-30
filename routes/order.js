@@ -126,11 +126,17 @@ router.patch("/:orderId/complete", async (req, res) => {
 
 router.get("/to/:UserId", async (req, res) => {
   let ordersArr = [];
+  console.log(req.params.UserId);
 
   Order.find()
     .populate({
       path: "clothes"
     })
+    .populate({
+      path: "buyer",
+      select: "username"
+    })
+    .sort({ date: -1 })
     .exec(function(err, orders) {
       orders.forEach(order => {
         if (

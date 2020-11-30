@@ -19,7 +19,6 @@ const validate = method => {
           .isLength({ min: 6, max: 25 }),
         body("email", "Email is invalid. Please try again.")
           .exists()
-          .normalizeEmail()
           .isEmail(),
         body(
           "phone",
@@ -85,7 +84,7 @@ const validate = method => {
         body("selling_price", "Selling Price is required").exists(),
         body("purchase_date", "Purchase date is required")
           .optional()
-          .isDate(),
+          .isISO8601(),
         body("condition", "Condition is required")
           .optional()
           .isLength({ max: 20 }),

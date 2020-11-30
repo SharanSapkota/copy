@@ -18,14 +18,29 @@ router.get("/", async (req, res) => {
 
   const abc = req.query.search;
 
+  const filters = req.query.filters;
+
+  var customQuery = {};
+  if (filters && filters.length > 0) {
+    let parsed = JSON.parse(filters);
+    if (parsed.gender && parsed.gender.length > 0)
+      customQuery.gender = { $in: parsed.gender };
+    if (parsed.category && parsed.category.length > 0)
+      customQuery.category = { $in: parsed.category };
+  }
+
+  console.log(customQuery);
+  customQuery.status = "Available";
+
   try {
     let getAll;
     if (!abc) {
-      getAll = await Post.find()
+      getAll = await Post.find(customQuery)
         .populate("seller", "username")
         .sort({ date: -1 });
     } else {
-      getAll = await Post.find({ listing_name: { $regex: abc, $options: "i" } })
+      customQuery.listing_name = { $regex: abc, $options: "i" };
+      getAll = await Post.find(customQuery)
         .populate("seller", "username")
         .sort({ date: -1 });
     }
@@ -89,68 +104,74 @@ router.post(
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.status(422).json({ success: false, errors: errors.array() });
-    }
+      console.log(errors);
+      res.end();
+      // res.status(422).json({ success: false, errors: errors.array() });
+    } else {
+      const postClothings = {};
 
-    const postClothings = {};
+      postClothings.seller = req.user.id;
+      postClothings.platform_fee = selling_price * 0.3;
+      postClothings.commission = selling_price * 0.7;
 
-    postClothings.seller = req.user.id;
-    postClothings.platform_fee = selling_price * 0.3;
-    postClothings.commission = selling_price * 0.7;
+      if (listing_name) {
+        postClothings.listing_name = listing_name;
+      }
+      if (listing_type) {
+        postClothings.listing_type = listing_type;
+      }
+      if (occassion) {
+        postClothings.occassion = occassion;
+      }
+      if (gender) {
+        postClothings.gender = gender;
+      }
+      if (category) {
+        postClothings.category = category;
+      }
+      if (images) {
+        postClothings.images = images;
+      }
+      if (design) {
+        postClothings.design = design;
+      }
+      if (feature_image) {
+        postClothings.feature_image = feature_image;
+      }
+      if (purchase_price) {
+        postClothings.purchase_price = purchase_price;
+      }
+      if (selling_price) {
+        postClothings.selling_price = selling_price;
+      }
+      if (purchase_date) {
+        postClothings.purchase_date = purchase_date;
+      }
+      if (condition) {
+        postClothings.condition = condition;
+      }
+      if (measurement) {
+        postClothings.measurement = measurement;
+      }
+      if (fabric) {
+        postClothings.fabric = fabric;
+      }
+      if (color) {
+        postClothings.color = color;
+      }
 
-    if (listing_name) {
-      postClothings.listing_name = listing_name;
-    }
-    if (listing_type) {
-      postClothings.listing_type = listing_type;
-    }
-    if (occassion) {
-      postClothings.occassion = occassion;
-    }
-    if (gender) {
-      postClothings.gender = gender;
-    }
-    if (category) {
-      postClothings.category = category;
-    }
-    if (images) {
-      postClothings.images = images;
-    }
-    if (design) {
-      postClothings.design = design;
-    }
-    if (feature_image) {
-      postClothings.feature_image = feature_image;
-    }
-    if (purchase_price) {
-      postClothings.purchase_price = purchase_price;
-    }
-    if (selling_price) {
-      postClothings.selling_price = selling_price;
-    }
-    if (purchase_date) {
-      postClothings.purchase_date = purchase_date;
-    }
-    if (condition) {
-      postClothings.condition = condition;
-    }
-    if (measurement) {
-      postClothings.measurement = measurement;
-    }
-    if (fabric) {
-      postClothings.fabric = fabric;
-    }
-    if (color) {
-      postClothings.color = color;
-    }
+      const posts = new Post(postClothings);
+      try {
+        const savedPost = await posts.save();
 
-    const posts = new Post(postClothings);
-    try {
-      const savedPost = await posts.save();
-
-      res.json(savedPost);
-    } catch (err) {
-      res.json({ message: err });
+        if (savedPost) {
+          console.log("here");
+          res.send(savedPost);
+        }
+        res.end();
+      } catch (err) {
+        console.log("err");
+      }
     }
   }
 );
@@ -172,9 +193,9 @@ router.get("/:postId", async (req, res) => {
 //GET ALL POSTS BY SELLER
 router.get("/seller/:userId", async (req, res) => {
   try {
-    const posts = await Post.find({ seller: req.params.userId }).select(
-      "-seller"
-    );
+    const posts = await Post.find({ seller: req.params.userId })
+      .select("-seller")
+      .sort({ date: -1 });
 
     if (!posts.length > 0) {
       return res.status(400).json({

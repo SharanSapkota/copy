@@ -128,7 +128,7 @@ const registerFinal = async (req, res, next) => {
   if (username) userFields.username = username;
   if (phone) userFields.phone_number = phone;
   if (email) userFields.email = email;
-  userFields.role = 2;
+  userFields.role = 1;
 
   if (city) userDetailsFields.city = city;
   if (address) userDetailsFields.address = address;
@@ -198,6 +198,7 @@ const registerBuyer = async (req, res, next) => {
     name,
     phone_number,
     email,
+    city,
     address,
     dob
   } = req.body;
@@ -217,6 +218,7 @@ const registerBuyer = async (req, res, next) => {
   userFields.role = 2;
 
   if (name) userDetailsFields.name = name;
+  if (city) userDetailsFields.city = city;
   if (address) userDetailsFields.address = address;
   if (dob) userDetailsFields.dob = dob;
 
