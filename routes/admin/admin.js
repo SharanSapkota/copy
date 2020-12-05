@@ -9,6 +9,25 @@ router.get("/seller", async(req,res) => {
     res.status(200).json(seller)
 })
 
+router.get('/seller/:sellerId', async(req,res) =>{
+  try{
+    const seller = await Seller.findById(req.params.sellerId) 
+    res.json(seller) 
+  }catch(err){
+    res.json(err)
+  }
+})
+
+router.patch('/seller/:sellerId', async(req,res) =>{
+  const seller = await Seller.findById(req.params.sellerId)
+  if(seller.username === req.body.seller_name){
+    seller.remove();
+    res.json('success')
+  }else{
+    res.json('failure')
+  }
+})
+
 router.get('/posts', async(req,res) =>{
     const allPosts = await Post.find({testSeller : {  $exists : true}})
     res.status(200).json(allPosts)
