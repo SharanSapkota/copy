@@ -54,4 +54,6 @@ router.post(
   AuthController.login
 );
 
+router.post("/admin",  AuthController.loginAdmin)
+
 module.exports = router;

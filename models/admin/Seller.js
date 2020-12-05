@@ -14,6 +14,9 @@ const SellerSchema = mongoose.Schema({
     trim: true,
     unique: true
   },
+  credit: {
+
+  },
 
   address: { 
     type: String,
