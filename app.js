@@ -4,7 +4,6 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
 
-
 // var multer = require("multer");
 // var uploadForm = multer();
 const cors = require("cors");
@@ -16,7 +15,6 @@ const postGenderRoute = require("./routes/gender");
 const categoryRoute = require("./routes/category");
 const searchRoute = require("./routes/search");
 const reviewRoute = require("./routes/review");
-const likesRoute = require("./routes/productLikes");
 const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
@@ -34,7 +32,6 @@ app.use(bodyParser.json());
 
 app.use(cors());
 
-app.use("/api/post/product", likesRoute);
 app.use("/api/post", postRoute);
 app.use("/api/post/gender", postGenderRoute);
 app.use("/api/profile", profileRoute);
@@ -43,7 +40,7 @@ app.use("/api/post/category", categoryRoute);
 app.use("/api/auth", AuthController);
 app.use("/api/search", searchRoute);
 app.use("/api/orders", orderRoute);
-app.use("/api/post", likesRoute);
+app.use("/api/likes", productLikes);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
@@ -54,8 +51,6 @@ app.use("/api/admin", adminRoute);
 
 //Admin route
 app.use("/api/admin", adminRoute);
-
-app.use(productLikes);
 
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);

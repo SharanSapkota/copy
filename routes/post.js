@@ -269,7 +269,6 @@ router.patch("/:postId", async (req, res) => {
       design,
       feature_image,
       purchase_price,
-
       selling_price,
       commission,
       platform_fee,
