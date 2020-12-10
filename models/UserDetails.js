@@ -33,10 +33,12 @@ const UserDetailsSchema = mongoose.Schema({
       type: String,
       required: false
     },
+    
     branch: {
       type: String,
       required: false
     },
+
     account_number: {
       type: String,
       required: false,
@@ -47,12 +49,14 @@ const UserDetailsSchema = mongoose.Schema({
       required: false
     }
   },
+
   credits: {
     type: Number,
     required: true,
     trim: true,
     default: 0
   },
+
   pincode: {
     type: Number,
     required: false,

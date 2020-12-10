@@ -180,7 +180,6 @@ router.post(
 
 //GET BY ID
 router.get("/:postId", async (req, res) => {
-  console.log(req.params.postId);
   try {
     const posts = await Post.findById(req.params.postId).populate(
       "seller",

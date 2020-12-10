@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
 
-const loginController = require("./routes/login");
+
 // var multer = require("multer");
 // var uploadForm = multer();
 const cors = require("cors");
@@ -21,6 +21,7 @@ const orderRoute = require("./routes/order");
 const partnersRoute = require("./routes/partners");
 const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
+const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
 
 const adminRoute = require("./routes/admin/admin");
@@ -46,6 +47,10 @@ app.use("/api/post", likesRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
+app.use("/api/sellers", sellers);
+
+//Admin route
+app.use("/api/admin", adminRoute);
 
 //Admin route
 app.use("/api/admin", adminRoute);
