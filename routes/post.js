@@ -29,7 +29,9 @@ router.get("/", async (req, res) => {
       customQuery.category = { $in: parsed.category };
   }
 
-  console.log(customQuery);
+  if (customQuery.gender)
+    customQuery.gender.$in = [...customQuery.gender.$in, "both"];
+
   customQuery.status = "Available";
 
   try {
