@@ -7,19 +7,24 @@ const SellerSchema = mongoose.Schema({
     required: true,
     trim: true
   },
-  address: {
+  phone_number: {  
+    type: Number,
+    required: true,
+    trim: true,
+    unique: true
+  },
+
+  address: { 
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    
   },
+  
   usercode: {
     type: String,
     trim: true,
     unique: true
-  },
-  phone_number: {
-    type: Number,
-    required: true
   },
   credits:{
     type: Number,

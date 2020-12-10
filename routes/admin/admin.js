@@ -28,6 +28,7 @@ router.patch('/seller/:sellerId', async(req,res) =>{
   }
 })
 
+
 router.get('/posts', async(req,res) =>{
     const allPosts = await Post.find({testSeller : {  $exists : true}})
     res.status(200).json(allPosts)
@@ -115,8 +116,6 @@ router.patch('/orders/:orderId', async(req,res) =>{
   }
 })
 
-
-
 router.post("/orders", async (req, res) => {
 
   const { buyerTest, clothes, delivery_location } = req.body;
@@ -164,5 +163,4 @@ router.post("/orders", async (req, res) => {
     console.log(err);
   }
 });
-
 module.exports = router;

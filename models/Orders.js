@@ -17,41 +17,41 @@ const orderSchema = mongoose.Schema({
   },
   total_amount: {
     type: Number,
-    required: false
+    required: true
   },
   discount: {
     type: Number,
-    required: false,
+    required: true,
     default: 0
   },
   total_after_discount: {
     type: Number,
-    required: false
+    required: true
   },
   delivery_charge: {
     type: Number,
-    required: false
+    required: true
   },
   total_order_amount: {
     type: Number,
-    required: false
+    required: true
   },
   pickup_location: {
     type: String,
-    required: false
+    required: true
   },
   delivery_location: {
     type: String,
-    required: false
+    required: true
   },
   payment_status: {
     type: String,
-    required: false,
+    required: true,
     default: "pending"
   },
   order_status: {
     type: String,
-    required: false,
+    required: true,
     default: "pending"
   }
 });
