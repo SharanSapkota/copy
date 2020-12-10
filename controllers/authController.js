@@ -1,6 +1,6 @@
 const userDetailsModel = require("../models/UserDetails");
 const userModel = require("../models/Users");
-const adminModel = require("../models/AdminModel")
+const adminModel = require("../models/AdminModel");
 const partnerModel = require("../models/Partners");
 const Profiles = require("../models/Profiles");
 const bcrypt = require("bcrypt");
