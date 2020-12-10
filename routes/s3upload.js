@@ -32,7 +32,10 @@ router.post("/", upload.single("files"), async (req, res) => {
   };
 
   const buffer = await Sharp(file.buffer)
-    .resize(width, height)
+    .resize(width, height, {
+      fit: "contain",
+      background: { r: 255, g: 255, b: 255, alpha: 1 }
+    })
     .toBuffer();
 
   params.Body = buffer;

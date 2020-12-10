@@ -52,6 +52,9 @@ app.use("/api/sellers", sellers);
 //Admin route
 app.use("/api/admin", adminRoute);
 
+//Admin route
+app.use("/api/admin", adminRoute);
+
 app.use(productLikes);
 
 app.use("/api/s3upload", s3uploadRoute);
@@ -74,6 +77,6 @@ mongoose.connect(
   }
 );
 
-app.listen(3003, () => {
-  console.log("server started at 3003");
+app.listen(5000, () => {
+  console.log("server started at 5000");
 });
