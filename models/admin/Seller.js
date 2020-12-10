@@ -5,8 +5,7 @@ const SellerSchema = mongoose.Schema({
   username: {
     type: String,
     required: true,
-    trim: true,
-    unique: true
+    trim: true
   },
   phone_number: {  
     type: Number,
@@ -21,11 +20,21 @@ const SellerSchema = mongoose.Schema({
     trim: true,
     
   },
+  
   usercode: {
     type: String,
-    required: true,
     trim: true,
     unique: true
+  },
+  credits:{
+    type: Number,
+    required: true,
+    trim: true,
+    default: 0
+  },
+  date:{
+    type: Date,
+    default: Date.now
   }
 });
 

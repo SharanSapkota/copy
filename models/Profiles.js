@@ -27,6 +27,12 @@ const profileSchema = mongoose.Schema({
       type: String,
       required: false
     }
+  ],
+  liked_items: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Posts"
+    }
   ]
 });
 

@@ -1,14 +1,12 @@
 const userDetailsModel = require("../models/UserDetails");
 const userModel = require("../models/Users");
+const adminModel = require("../models/AdminModel")
 const partnerModel = require("../models/Partners");
 const Profiles = require("../models/Profiles");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 require("dotenv/config");
-// const router = require('../routes/login')
-// const express = require('express')
-// const router = express.Router()
 
 const authUser = (req, res, next) => {
   // Get token from header
@@ -222,6 +220,27 @@ const login = async (req, res) => {
   }
 };
 
+const loginAdmin = async(req, res) => {
+  const { username, password } = req.body;
+try{ 
+  if (!username || !password) {
+    res.status(400).json({ msg: "Username and password are required." });
+  }
+
+  const data = await adminModel.findOne({ username: username });
+
+  if (data.username == username && data.password == password) {
+    res.status(200).json({
+      success: true
+    });
+  } else {
+    res.status(400).json({ msg: "Invalid Credentials." });
+  }
+} catch (err) {
+  res.json({ msg: "Admin not found" });
+}
+};
+
 const loginPartner = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -267,5 +286,6 @@ module.exports = {
   registerBuyer,
   login,
   loginPartner,
-  authUser
+  authUser,
+  loginAdmin
 };
