@@ -9,6 +9,26 @@ router.get("/seller", async(req,res) => {
     res.status(200).json(seller)
 })
 
+router.get('/seller/:sellerId', async(req,res) =>{
+  try{
+    const seller = await Seller.findById(req.params.sellerId) 
+    res.json(seller) 
+  }catch(err){
+    res.json(err)
+  }
+})
+
+router.patch('/seller/:sellerId', async(req,res) =>{
+  const seller = await Seller.findById(req.params.sellerId)
+  if(seller.username === req.body.seller_name){
+    seller.remove();
+    res.json('success')
+  }else{
+    res.json('failure')
+  }
+})
+
+
 router.get('/posts', async(req,res) =>{
     const allPosts = await Post.find({testSeller : {  $exists : true}})
     res.status(200).json(allPosts)
@@ -96,4 +116,51 @@ router.patch('/orders/:orderId', async(req,res) =>{
   }
 })
 
+router.post("/orders", async (req, res) => {
+
+  const { buyerTest, clothes, delivery_location } = req.body;
+  orderDestructure = {};
+
+  if (buyerTest) {
+    orderDestructure.buyerTest = buyerTest;
+  }
+  if (clothes) {
+    orderDestructure.clothes = clothes;
+  }
+  if (delivery_location) {
+    orderDestructure.delivery_location = delivery_location;
+  }
+  orderDestructure.delivery_charge = 100;
+
+  try {
+    const orderClothes = await Post.findById(clothes);
+
+    orderDestructure.total_amount = orderClothes.selling_price;
+
+    orderDestructure.total_order_amount =
+      orderDestructure.delivery_charge + orderDestructure.total_amount;
+
+    const seller = await Seller.findById(orderClothes.testSeller);
+
+    orderDestructure.pickup_location = seller.address;
+
+    const orderPost = new Orders(orderDestructure);
+
+    try {
+      orderPost.save().then(async(res) =>{
+        await Seller.findByIdAndUpdate({_id : orderClothes.testSeller}, {$inc : {credits: orderClothes.selling_price}})
+
+        res.status(200).json({ success: true, msg: "Order placed successfully!" });
+      }).catch(err => res.status(400).json(err))
+
+    } catch (err) {
+      console.log(err);
+      res
+        .status(400)
+        .json({ success: false, errors: { msg: "Order failed." } });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
 module.exports = router;

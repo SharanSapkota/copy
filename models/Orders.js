@@ -10,6 +10,11 @@ const orderSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "Posts"
   },
+  buyerTest:{
+    type: String,
+    required: true,
+    trim: true,
+  },
   total_amount: {
     type: Number,
     required: true

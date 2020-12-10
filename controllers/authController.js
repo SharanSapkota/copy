@@ -7,9 +7,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 require("dotenv/config");
-// const router = require('../routes/login')
-// const express = require('express')
-// const router = express.Router()
 
 const authUser = (req, res, next) => {
   // Get token from header
@@ -223,11 +220,6 @@ const login = async (req, res) => {
   }
 };
 
-
-
-
-
-
 const loginAdmin = async(req, res) => {
   const { username, password } = req.body;
 try{ 
@@ -239,7 +231,6 @@ try{
 
   if (data.username == username && data.password == password) {
     res.status(200).json({
-     
       success: true
     });
   } else {
@@ -249,8 +240,6 @@ try{
   res.json({ msg: "Admin not found" });
 }
 };
-
-
 
 const loginPartner = async (req, res) => {
   try {
@@ -297,6 +286,6 @@ module.exports = {
   registerBuyer,
   login,
   loginPartner,
-  loginAdmin,
-  authUser
+  authUser,
+  loginAdmin
 };
