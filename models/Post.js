@@ -85,7 +85,8 @@ const PostSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    required: false
+    required: false,
+    default: "Available"
   },
   seller: {
     type: Schema.Types.ObjectId,
@@ -108,4 +109,3 @@ const PostSchema = mongoose.Schema({
 module.exports = mongoose.model("archievePosts", PostSchema);
 
 module.exports = mongoose.model("Posts", PostSchema);
-

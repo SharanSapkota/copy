@@ -45,6 +45,8 @@ router.post(
   AuthController.registerBuyer
 );
 
+router.post("/register/final", AuthController.registerFinal);
+
 router.post(
   "/login",
   [

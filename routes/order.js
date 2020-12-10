@@ -28,18 +28,17 @@ router.get("/:orderId", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { buyer, clothes, delivery_location } = req.body;
+  const { buyer, clothes } = req.body;
   orderDestructure = {};
 
   if (buyer) {
     orderDestructure.buyer = buyer;
+    orderDestructure.delivery_location = buyer.address;
   }
   if (clothes) {
     orderDestructure.clothes = clothes;
   }
-  if (delivery_location) {
-    orderDestructure.delivery_location = delivery_location;
-  }
+
   orderDestructure.delivery_charge = 100;
 
   try {
@@ -57,6 +56,8 @@ router.post("/", async (req, res) => {
     const orderPost = new Order(orderDestructure);
     try {
       orderPost.save();
+      orderClothes.status = "Processing";
+      orderClothes.save();
       res
         .status(200)
         .json({ success: true, msg: "Order placed successfully!" });
