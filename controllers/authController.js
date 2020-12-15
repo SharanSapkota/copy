@@ -80,20 +80,19 @@ const registerSeller = async (req, res, next) => {
 
   let user = await userModel.findOne({ email });
 
-  console.log(user)
-
   if (user && user.role == 2) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       {
         bank_details: bank_details
-      }
+      },
+      {new: true}
     );
 
     if (updatedUser) {
       user.role = 1;
       user.save();
-      res.status(200).json({ success: true, msg: "bank details updated" });
+      res.status(200).json({ success: true, msg: "bank details updated", user: updatedUser });
     } else {
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
