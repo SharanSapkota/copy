@@ -80,12 +80,13 @@ const registerSeller = async (req, res, next) => {
 
   let user = await userModel.findOne({ email });
 
+  console.log(user)
+
   if (user && user.role == 2) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       {
-        bank_details: bank_details,
-        role: 1
+        bank_details: bank_details
       }
     );
 
@@ -370,6 +371,7 @@ const forgotPassword = async(req,res) =>{
       const token = crypto.randomBytes(20).toString('hex')  
       user.resetPasswordToken= token,
       user.resetPasswordExpired= Date.now() + 3600000
+      user.resetToken();
       user.save();
 
       const mailBody = GenerateResetLink(user.username, token)

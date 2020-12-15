@@ -40,4 +40,12 @@ const UserSchema = mongoose.Schema({
   }
 });
 
+UserSchema.methods.resetToken = function(){
+  setTimeout(()=>{
+    this.resetPasswordToken = undefined;
+    this.resetPasswordExpired = undefined;
+    this.save();
+  }, 3600000)
+};
+
 module.exports = mongoose.model("Users", UserSchema);
