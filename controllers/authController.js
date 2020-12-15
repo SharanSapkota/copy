@@ -5,7 +5,10 @@ const partnerModel = require("../models/Partners");
 const Profiles = require("../models/Profiles");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto')
 const { validationResult } = require("express-validator");
+const SendMail = require('../pagination/nodemailer');
+const {GenerateResetLink} = require("../lib/generate.js");
 require("dotenv/config");
 
 const authUser = (req, res, next) => {
@@ -359,6 +362,31 @@ const loginPartner = async (req, res) => {
   }
 };
 
+const forgotPassword = async(req,res) =>{
+  userModel.findOne({email: req.body.email}).then((user) =>{
+    if(user === null){
+      res.send('email not in database');
+    }else{
+      const token = crypto.randomBytes(20).toString('hex')  
+      user.resetPasswordToken= token,
+      user.resetPasswordExpired= Date.now() + 3600000
+      user.save();
+
+      const mailBody = GenerateResetLink(user.username, token)
+
+      SendMail(user.email,{
+        subject: 'Reset Password Link',
+        html:mailBody
+      });
+      res.send('recovery mail sent')
+      console.log('done')
+    }
+  }).catch(err =>{
+    console.log(err)
+  })
+}
+
+
 // router.post('/login', (req, res) => {
 //     try{
 //         var username = req.body.username,
@@ -382,5 +410,6 @@ module.exports = {
   login,
   loginPartner,
   authUser,
-  loginAdmin
+  loginAdmin,
+  forgotPassword
 };
