@@ -85,6 +85,8 @@ router.put("/changePassword", (req,res) =>{
     if(user!==null){
       const hashedPassword = await bcrypt.hash(req.body.password, 10)
       user.password = hashedPassword;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpired = undefined;
       user.save().then(() =>{
         console.log('password updated')
         res.status(200).send({message: 'password updated'})
