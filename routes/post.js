@@ -344,6 +344,33 @@ router.patch("/:postId", async (req, res) => {
   } catch (err) {
     res.status(404).json({ message: err });
   }
+
+})
+
+  router.patch('/unpublish/:postId', async (req, res) => {
+    
+    const posts = await Post.findById(req.params.postId)
+    console.log(posts.status)
+    const updateStatus = {}
+  
+    if (posts.status == "Available") {
+  
+       updateStatus.status = "notAvailable"
+    }
+     else{
+  
+        updateStatus.status = "Available"
+     
+      }
+      const updatedStatus = await Post.findOneAndUpdate (
+        {_id: req.params.postId}, 
+        { $set: updateStatus}
+        )
+        // console.log(updatedStatus)
+        
+        if(updatedStatus) res.json({...updateStatus})
+       
+      
 });
 
 module.exports = router;
