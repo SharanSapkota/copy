@@ -84,15 +84,15 @@ const registerSeller = async (req, res, next) => {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       {
-        bank_details: bank_details,
-        role: 1
-      }
+        bank_details: bank_details
+      },
+      {new: true}
     );
 
     if (updatedUser) {
       user.role = 1;
       user.save();
-      res.status(200).json({ success: true, msg: "bank details updated" });
+      res.status(200).json({ success: true, msg: "bank details updated", user: updatedUser });
     } else {
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
@@ -370,6 +370,7 @@ const forgotPassword = async(req,res) =>{
       const token = crypto.randomBytes(20).toString('hex')  
       user.resetPasswordToken= token,
       user.resetPasswordExpired= Date.now() + 3600000
+      user.resetToken();
       user.save();
 
       const mailBody = GenerateResetLink(user.username, token)
