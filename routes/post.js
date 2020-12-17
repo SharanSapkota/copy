@@ -11,6 +11,7 @@ const AuthController = require("../controllers/authController");
 const limiter = require("./rateLimiter");
 
 const postValidator = require("../controllers/validate");
+const { CostExplorer } = require("aws-sdk");
 
 //GET ALL
 router.get("/", async (req, res) => {
@@ -76,11 +77,12 @@ router.get("/", async (req, res) => {
   }
 });
 
+
 // POST
 router.post(
   "/",
-  AuthController.authUser,
-  postValidator("createPostValidation"),
+   AuthController.authUser,
+  // postValidator("createPostValidation"),
   limiter,
   async (req, res) => {
     const {
@@ -98,11 +100,11 @@ router.post(
       category,
       measurement,
       fabric,
-      color
+      color,
+      testSeller
     } = req.body;
 
     console.log(req.body);
-
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -112,7 +114,6 @@ router.post(
     } else {
       const postClothings = {};
 
-      postClothings.seller = req.user.id;
       postClothings.platform_fee = selling_price * 0.3;
       postClothings.commission = selling_price * 0.7;
 
@@ -162,12 +163,20 @@ router.post(
         postClothings.color = color;
       }
 
-      const posts = new Post(postClothings);
-      try {
-        const savedPost = await posts.save();
+console.log(req.user.id)
 
+      if(testSeller) {
+        postClothings.seller = req.user.id
+      }
+     
+      const posts = new Post(postClothings);
+       
+      
+      try {
+      
+        const savedPost = await posts.save();
+        
         if (savedPost) {
-          console.log("here");
           res.send(savedPost);
         }
         res.end();

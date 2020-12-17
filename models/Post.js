@@ -1,38 +1,44 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const express = require("express");
-const router = express.Router();
+
 
 const PostSchema = mongoose.Schema({
   listing_name: {
     type: String,
     required: false
   },
+
   listing_type: {
     type: String,
     required: false
   },
+
   category: {
     type: String,
-
     required: false
   },
+
   occassion: {
     type: String,
     required: false
   },
+
   gender: {
     type: String,
     required: false
   },
+
   design: {
     type: String,
     required: false
   },
+
   feature_image: {
     type: String,
     required: false
   },
+
   images: [
     {
       type: String,
@@ -43,26 +49,32 @@ const PostSchema = mongoose.Schema({
     type: Number,
     required: false
   },
+
   selling_price: {
     type: Number,
     required: false
   },
+
   commission: {
     type: Number,
     required: false
   },
+
   platform_fee: {
     type: Number,
     required: false
   },
+
   purchase_date: {
     type: Date,
     required: false
   },
+
   condition: {
     type: String,
     required: false
   },
+
   likes: [
     {
       type: Schema.Types.ObjectId,
@@ -70,36 +82,39 @@ const PostSchema = mongoose.Schema({
       required: false
     }
   ],
+
   measurement: {
     type: Schema.Types.Mixed,
     required: false,
     default: {}
   },
+
   fabric: {
     type: String,
     required: false
   },
+
   color: {
     type: String,
     required: false
   },
+
   status: {
     type: String,
     required: false,
     default: "Available"
   },
+
   seller: {
     type: Schema.Types.ObjectId,
     ref: "Users"
   },
-  seller_profile: {
-    type: Schema.Types.ObjectId,
-    ref: "Profiles"
-  },
+
   testSeller: {
     type: Schema.Types.ObjectId,
-    ref: 'Sellers'
+    ref: 'Seller'
   },
+
   date: {
     type: Date,
     default: Date.now

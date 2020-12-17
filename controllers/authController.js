@@ -280,6 +280,8 @@ const login = async (req, res) => {
       $or: [{ email: email }, { username: username }]
     });
 
+    
+      
     if (!user) {
       return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
@@ -319,23 +321,52 @@ const login = async (req, res) => {
 
 const loginAdmin = async(req, res) => {
   const { username, password } = req.body;
-try{ 
-  if (!username || !password) {
-    res.status(400).json({ msg: "Username and password are required." });
+
+  console.log(req.body)
+  if(username == "info@antidotenepal.com") {
+    try {
+      console.log("here")
+          const data = await userModel.findOne({email:username})
+          console.log(data)
+          console.log(data.password, password); 
+  
+         
+            const bpassword = await bcrypt.compare(password, data.password)
+
+              if (data.email == username && bpassword) {
+                const payload = {
+                  user: {
+                    id: data.id
+                  }
+                };
+          
+                jwt.sign(
+                  payload,
+                  process.env.SECRET_KEY,
+                  {
+                    expiresIn: "4h"
+                  },
+                  (err, token) => {
+                    if (err) throw err;
+                    res.status(200).json({
+                      message: "login successfully",
+                      token
+                    });
+                  }
+                );
+              }
+
+          
+    }
+
+    catch(err) {
+      console.log(err)
+      res.status(404).json({success: false})
+    }
+  }else{
+    res.json({message: "not Admin"})
   }
 
-  const data = await adminModel.findOne({ username: username });
-
-  if (data.username == username && data.password == password) {
-    res.status(200).json({
-      success: true
-    });
-  } else {
-    res.status(400).json({ msg: "Invalid Credentials." });
-  }
-} catch (err) {
-  res.json({ msg: "Admin not found" });
-}
 };
 
 const loginPartner = async (req, res) => {
