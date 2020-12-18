@@ -97,7 +97,7 @@ router.patch("/:orderId", async (req, res) => {
   if (pickup_location) {
     orderUpdateDestructure.pickup_location = pickup_location;
   }
-  if (delivery_location) {
+  if (delivery_location) {  
     orderUpdateDestructure.delivery_location = delivery_location;
   }
 

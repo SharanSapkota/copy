@@ -10,6 +10,7 @@ const profileSchema = mongoose.Schema({
     type: String,
     required: false
   },
+  
   followers: [
     {
       type: Schema.Types.ObjectId,

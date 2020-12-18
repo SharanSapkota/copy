@@ -9,6 +9,7 @@ require("dotenv/config");
 const cors = require("cors");
 
 const postRoute = require("./routes/post");
+const evaluationRoute = require("./routes/admin/evaluation");
 const profileRoute = require("./routes/profile");
 const creditsRoute = require("./routes/credit");
 const postGenderRoute = require("./routes/gender");
@@ -48,9 +49,8 @@ app.use("/api/sellers", sellers);
 
 //Admin route
 app.use("/api/admin", adminRoute);
+app.use("/api/admin/evaluation", evaluationRoute);
 
-//Admin route
-app.use("/api/admin", adminRoute);
 
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);
