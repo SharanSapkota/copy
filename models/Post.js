@@ -92,10 +92,6 @@ const PostSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "Users"
   },
-  seller_profile: {
-    type: Schema.Types.ObjectId,
-    ref: "Profiles"
-  },
   testSeller: {
     type: Schema.Types.ObjectId,
     ref: 'Sellers'

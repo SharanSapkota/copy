@@ -30,6 +30,26 @@ const authUser = (req, res, next) => {
   }
 };
 
+const authAdmin = (req, res, next) =>{
+  const token = req.header('Authorization');
+
+  if(!token){
+    return res.status(401).json({ msg: "No token, authorization denied." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
+    req.user = decoded.user;
+    if(req.user.id == '5fd9b20457412e6a880ed55a'){
+      
+      next();
+    }
+    
+  } catch (err) {
+    res.status(401).json({ msg: "Token is not valid." });
+  }
+}
+
 const getSingleUser = async (req, res) => {
   try {
     const user = await userModel
@@ -320,18 +340,37 @@ const login = async (req, res) => {
 const loginAdmin = async(req, res) => {
   const { username, password } = req.body;
 try{ 
-  if (!username || !password) {
-    res.status(400).json({ msg: "Username and password are required." });
-  }
+  if(username === 'info@antidotenepal.com'){
 
-  const data = await adminModel.findOne({ username: username });
+    let user = await userModel.findOne({email : username})
+    
+    const comparisonResult = await bcrypt.compare(password, user.password)
 
-  if (data.username == username && data.password == password) {
-    res.status(200).json({
-      success: true
-    });
-  } else {
-    res.status(400).json({ msg: "Invalid Credentials." });
+    if(comparisonResult){
+      const payload = {
+        user :{
+          id: user.id
+        }
+      }
+
+      jwt.sign(
+        payload,
+        process.env.ADMIN_SECRET_KEY,
+        {
+          expiresIn : '4h'
+        },
+        (err, token) =>{
+          if (err) throw err;
+          res.status(200).json({
+            message: 'login successfully',
+            token
+          })
+        }
+      )
+    }
+
+  }else{
+    res.status(404).json({msg: 'Admin not valid'})
   }
 } catch (err) {
   res.json({ msg: "Admin not found" });
@@ -411,6 +450,7 @@ module.exports = {
   login,
   loginPartner,
   authUser,
+  authAdmin,
   loginAdmin,
   forgotPassword
 };

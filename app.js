@@ -23,7 +23,8 @@ const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
 
 const adminRoute = require("./routes/admin/admin");
-
+const evaluationRoute = require('./routes/admin/evaluation')
+  
 const s3uploadRoute = require("./routes/s3upload");
 const validateFields = require("./routes/validateFields");
 const { ApiGatewayManagementApi } = require("aws-sdk");
@@ -48,9 +49,8 @@ app.use("/api/sellers", sellers);
 
 //Admin route
 app.use("/api/admin", adminRoute);
+app.use("/api/admin/evaluation", evaluationRoute)
 
-//Admin route
-app.use("/api/admin", adminRoute);
 
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);

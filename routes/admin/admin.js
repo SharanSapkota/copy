@@ -3,13 +3,18 @@ const router = express.Router();
 const Seller = require('../../models/admin/Seller');
 const Orders = require("../../models/Orders");
 const Post = require('../../models/Post')
+const { validationResult } = require("express-validator");
 
-router.get("/seller", async(req,res) => {
+const {postNewItem} = require('../../functions/postFunctions');
+
+const AuthController = require("../../controllers/authController");
+
+router.get("/seller", AuthController.authAdmin, async(req,res) => {
     const seller = await Seller.find({})
     res.status(200).json(seller)
 })
 
-router.get('/seller/:sellerId', async(req,res) =>{
+router.get('/seller/:sellerId', AuthController.authAdmin,async(req,res) =>{
   try{
     const seller = await Seller.findById(req.params.sellerId) 
     res.json(seller) 
@@ -18,7 +23,7 @@ router.get('/seller/:sellerId', async(req,res) =>{
   }
 })
 
-router.patch('/seller/:sellerId', async(req,res) =>{
+router.patch('/seller/:sellerId',AuthController.authAdmin, async(req,res) =>{
   const seller = await Seller.findById(req.params.sellerId)
   if(seller.username === req.body.seller_name){
     seller.remove();
@@ -29,12 +34,12 @@ router.patch('/seller/:sellerId', async(req,res) =>{
 })
 
 
-router.get('/posts', async(req,res) =>{
+router.get('/posts',AuthController.authAdmin, async(req,res) =>{
     const allPosts = await Post.find({testSeller : {  $exists : true}})
     res.status(200).json(allPosts)
 })
 
-router.post("/seller", async (req,res) =>{
+router.post("/seller",AuthController.authAdmin, async (req,res) =>{
 
   const data = req.body;
   let usercode = req.body.username.split(' ').map((x) =>{
@@ -84,39 +89,111 @@ router.post("/seller", async (req,res) =>{
       }
 })
 
-router.post("/post", async (req,res) =>{
-    console.log(req.body)
+router.post("/post",AuthController.authAdmin, async (req,res) =>{
 
-    const post = new Post(req.body)
-    try{
-        const savedPost = await post.save();
-        res.json(savedPost);
-      } catch (err) {
-        res.json({ message: err });
+    const {
+      listing_name,
+      listing_type,
+      occassion,
+      gender,
+      design,
+      feature_image,
+      purchase_price,
+      images,
+      selling_price,
+      purchase_date,
+      condition,
+      category,
+      measurement,
+      fabric,
+      color,
+      testSeller
+    } = req.body;
+
+    console.log(req.body);
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      res.end();
+      // res.status(422).json({ success: false, errors: errors.array() });
+    } else {
+      const postClothings = {};
+
+      postClothings.seller = req.user.id;
+      postClothings.platform_fee = selling_price * 0.3;
+      postClothings.commission = selling_price * 0.7;
+
+      if (listing_name) {
+        postClothings.listing_name = listing_name;
       }
+      if (listing_type) {
+        postClothings.listing_type = listing_type;
+      }
+      if (occassion) {
+        postClothings.occassion = occassion;
+      }
+      if (gender) {
+        postClothings.gender = gender;
+      }
+      if (category) {
+        postClothings.category = category;
+      }
+      if (images) {
+        postClothings.images = images;
+      }
+      if (design) {
+        postClothings.design = design;
+      }
+      if (feature_image) {
+        postClothings.feature_image = feature_image;
+      }
+      if (purchase_price) {
+        postClothings.purchase_price = purchase_price;
+      }
+      if (selling_price) {
+        postClothings.selling_price = selling_price;
+      }
+      if (purchase_date) {
+        postClothings.purchase_date = purchase_date;
+      }
+      if (condition) {
+        postClothings.condition = condition;
+      }
+      if (measurement) {
+        postClothings.measurement = measurement;
+      }
+      if (fabric) {
+        postClothings.fabric = fabric;
+      }
+      if (color) {
+        postClothings.color = color;
+      }
+      if(testSeller){
+        postClothings.testSeller = testSeller
+      }
+
+       const asd = postNewItem(postClothings)
+       res.send(asd);
+    }
+
 })
 
-// router.post('/orders', async (req,res) =>{
-//   console.log(req.body)
-//   const order = new Orders(req.body)
-//   order.save().then((res) =>{
-//     res.json(res.status)
-//   })
-// })
 
-router.patch('/orders/:orderId', async(req,res) =>{
+router.patch('/orders/:orderId',AuthController.authAdmin, async(req,res) =>{
   try {
     const updateStatus = await Orders.findOneAndUpdate(
       { _id: req.params.orderId },
       { $set: req.body }
     );
-    res.status(201).json(updateStatus);
+    res.status(200).json(updateStatus);
   } catch (err) {
     res.status(400).json({ message: err });
   }
 })
 
-router.post("/orders", async (req, res) => {
+router.post("/orders",AuthController.authAdmin, async (req, res) => {
 
   const { buyerTest, clothes, delivery_location } = req.body;
   orderDestructure = {};

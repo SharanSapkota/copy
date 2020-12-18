@@ -4,9 +4,11 @@ const User = require("../models/Users");
 const Post = require("../models/Post");
 const UserDetails = require("../models/UserDetails");
 
+const AuthController = require("../controllers/authController");
+
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", AuthController.authAdmin, async (req, res) => {
   // res.send('I am in order.js')
   try {
     const getAllOrder = await Order.find().populate("clothes");

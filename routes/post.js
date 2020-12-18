@@ -12,6 +12,8 @@ const limiter = require("./rateLimiter");
 
 const postValidator = require("../controllers/validate");
 
+const {postNewItem} = require('../functions/postFunctions');
+
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -162,18 +164,8 @@ router.post(
         postClothings.color = color;
       }
 
-      const posts = new Post(postClothings);
-      try {
-        const savedPost = await posts.save();
-
-        if (savedPost) {
-          console.log("here");
-          res.send(savedPost);
-        }
-        res.end();
-      } catch (err) {
-        console.log("err");
-      }
+       const result = postNewItem(postClothings)
+       res.send(result);
     }
   }
 );
