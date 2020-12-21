@@ -29,13 +29,29 @@ const EvaluationSchema = Schema ({
         type: String,
         default: "pending"
     },
-    maintanance: {
-            type: Boolean,
-            default: false
+    maintenance: {
+        status:{
+             type: Boolean,
+             default: false
+        },
+        receivedDate: {
+            type: Date
+        },
+        sentDate: {
+            type: Date
+        }
     },
     dry_cleaning: {
+        status:{
             type: Boolean,
             default: false
+       },
+        receivedDate: {
+            type: Date
+        },
+        sentDate: {
+            type: Date
+        }
     }
 })
 module.exports = mongoose.model("evaluation", EvaluationSchema)
