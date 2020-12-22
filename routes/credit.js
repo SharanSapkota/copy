@@ -3,6 +3,9 @@ const router = express.Router();
 const UserDetailModel = require("../models/UserDetails");
 const UsersModel = require("../models/Users");
 const updateCredits = require("../controllers/updateCredits");
+
+// const functions = require("../functions/credits")
+
 const nodemailer = require("nodemailer");
 require("dotenv/config");
 
@@ -10,13 +13,23 @@ const mailing = require("../pagination/nodemailer");
 const GenerateMailBody = require("../lib/generate.js");
 
 router.get("/", async (req, res) => {
-  const users = await UserDetailModel.find().populate("user");
-  if (users) res.status(200).json({ users });
 
-  res.end();
+  try {
+    const users = await UserDetailModel.find().populate("user");
+
+  // const getAllCredits = await functions.getAllCredits()
+  //Sconsole.log(users.credit)
+  res.status(200).json( users);
+
+} catch(err) {
+  res.status(500).json({message: err.message})
+}
+
+
 });
 
 router.get("/:customer", async (req, res) => {
+  
   const username = req.params.customer;
   const customerUser = await UsersModel.findOne({ username: username });
 
@@ -26,14 +39,17 @@ router.get("/:customer", async (req, res) => {
     path: "user"
   });
 
+
   if (!customer) {
     res.status(400).json({ error: "User not found.", success: false });
   } else {
     res.status(200).json({
+      
       userId: customer.id,
       username: customerUser.username,
       name: customer.name,
       credits: customer.credits,
+  
       success: true
     });
   }

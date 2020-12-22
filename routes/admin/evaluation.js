@@ -1,5 +1,6 @@
 const express = require('express');
 const Evaluation = require('../../models/admin/Evaluation')
+const evalFunctions = require('./functions/evaluations')
 
 const router = express.Router();
 
@@ -7,7 +8,8 @@ const router = express.Router();
 router.get('/', async(req, res) => {
   
    try{
-    const getAllEvaluation = await Evaluation.find()
+    const getAllEvaluation = await evalFunctions.getAllEvaluations()
+    console.log(getAllEvaluation)
     res.status(200).json(getAllEvaluation)
    }
    catch (err) {
@@ -53,7 +55,6 @@ router.post('/', async(req, res) => {
 
     const postEvaluation = new Evaluation(evaluationDestructure)
 
-    
 
     try {
         await postEvaluation.save()
@@ -67,11 +68,13 @@ router.post('/', async(req, res) => {
 })
 
 
-//Get By Id
+//Get Evaluation By Id
 router.get('/:evaluationId', async (req, res) => {
 
+    const id = req.params.evaluationId
+    
     try{
-        const getById = await Evaluation.findById({_id: req.params.evaluationId})
+        const getById = await evalFunctions.getEvalById(id)
         res.status(200).json(getById)
     }
 
@@ -92,7 +95,9 @@ router.patch('/:evaluationId', async(req, res) => {
         color,
         detail,
         purchase_price,
-        status
+        status,
+        dry_cleaning,
+        maintenance
         
     } = req.body
 
@@ -116,6 +121,12 @@ router.patch('/:evaluationId', async(req, res) => {
     if(status){
         evaluationDestructure.status = req.body.status
     }
+    if(dry_cleaning){
+        evaluationDestructure.dry_cleaning = req.body.dry_cleaning
+    }
+    if(maintenance){
+        evaluationDestructure.maintenance = req.body.maintenance
+    }
 
 try{
     const patchAll = await Evaluation.findOneAndUpdate({_id: req.params.evaluationId},{$set: evaluationDestructure})
@@ -124,16 +135,18 @@ try{
     res.status(404).json({ message: err })
 }
 
-
 })
 
 
-//Delete 
+//Delete evaluation
 
 router.delete('/:evaluationId', async (req, res) => {
+    id= req.params.evaluationId
     
     try{
-    const deleteEvaluation = await Evaluation.findById({_id: req.params.evaluationId})
+         
+    const deleteEvaluation = await evalFunctions.getEvalById(id)
+    console.log(deleteEvaluation)
     deleteEvaluation.remove()
     res.status(200).json({success: true})
     }

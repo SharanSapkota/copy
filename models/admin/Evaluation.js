@@ -2,6 +2,12 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const EvaluationSchema = Schema ({
+
+    post: {
+        type: Schema.Types.ObjectId,
+        ref: 'Post'
+    },
+
     seller: {
         type: Schema.Types.ObjectId,
         ref: 'Seller'
@@ -31,21 +37,47 @@ const EvaluationSchema = Schema ({
         type: Date,
         default: Date.now
     },
-
     status: {
         type: String,
         default: "pending"
     },
 
     
-    maintanance: {
-            type: Boolean,
-            default: false
+    maintenance: {
+        status:{
+             type: Boolean,
+                default: false
+        },
+
+        receivedDate: {
+            type: Date
+            
+        },
+        sentDate: {
+            type: Date
+            
+        }
 
     },
     dry_cleaning: {
+        status:{
             type: Boolean,
-            default: false
+               default: false
+       },
+
+       status:{
+        type: Boolean,
+           default: false
+   },
+
+   receivedDate: {
+       type: Date
+       
+   },
+   sentDate: {
+       type: Date
+       
+   }
     }
 
 })

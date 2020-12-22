@@ -349,6 +349,7 @@ const loginAdmin = async(req, res) => {
                   (err, token) => {
                     if (err) throw err;
                     res.status(200).json({
+                      success: true,
                       message: "login successfully",
                       token
                     });

@@ -9,6 +9,7 @@ const Users = require("../models/Users");
 const Post = require("../models/Post");
 const AuthController = require("../controllers/authController");
 const limiter = require("./rateLimiter");
+const functions = require("../functions/posts")
 
 const postValidator = require("../controllers/validate");
 const { CostExplorer } = require("aws-sdk");
@@ -16,6 +17,7 @@ const { CostExplorer } = require("aws-sdk");
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
+  console.log("this is the all post")
 
   const abc = req.query.search;
 
@@ -163,15 +165,14 @@ router.post(
         postClothings.color = color;
       }
 
-console.log(req.user.id)
+        console.log(req.user.id)
 
       if(testSeller) {
         postClothings.seller = req.user.id
       }
      
       const posts = new Post(postClothings);
-       
-      
+
       try {
       
         const savedPost = await posts.save();
@@ -187,13 +188,20 @@ console.log(req.user.id)
   }
 );
 
+
 //GET BY ID
 router.get("/:postId", async (req, res) => {
+
+  console.log("this is the post by id")
   try {
-    const posts = await Post.findById(req.params.postId).populate(
-      "seller",
-      "username"
-    );
+
+    
+    const posts = await functions.getPostById(req.params.postId)
+    // const posts = await Post.findById(req.params.postId).populate(
+    //   "seller",
+    //   "username"
+    // );
+    console.log(posts)
     res.status(200).json(posts);
   } catch (error) {
     res.status(404).json({ message: "Product Not Found!" });

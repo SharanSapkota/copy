@@ -4,6 +4,7 @@ const express = require("express");
 
 
 const PostSchema = mongoose.Schema({
+
   listing_name: {
     type: String,
     required: false
