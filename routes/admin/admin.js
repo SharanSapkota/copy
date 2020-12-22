@@ -8,6 +8,7 @@ const { validationResult } = require("express-validator");
 const {postNewItem} = require('../../functions/postFunctions');
 
 const AuthController = require("../../controllers/authController");
+const { AlexaForBusiness } = require("aws-sdk");
 
 router.get("/seller", AuthController.authAdmin, async(req,res) => {
     const seller = await Seller.find({})
@@ -107,10 +108,13 @@ router.post("/post",AuthController.authAdmin, async (req,res) =>{
       measurement,
       fabric,
       color,
-      testSeller
+      testSeller,
+      boxNumber
     } = req.body;
 
-    console.log(req.body);
+    const seller = await Seller.findOne({usercode : req.body.testSeller})
+
+    const categoryCode = req.body.category.slice(0,2).toUpperCase();
 
     const errors = validationResult(req);
 
@@ -171,11 +175,47 @@ router.post("/post",AuthController.authAdmin, async (req,res) =>{
         postClothings.color = color;
       }
       if(testSeller){
-        postClothings.testSeller = testSeller
+        postClothings.testSeller = seller.id
+        
+        var asd = testSeller.concat(categoryCode)
+
+        asd = asd.concat('-')
+        
+        const data = await Post.find({ item_code : {$regex : "^" + asd + "[0-9]*\-[0-9]*$"}}).sort({date: -1})
+
+        let tempCode ;
+
+        if(data.length == 0){
+          tempCode = '001'
+        }else{
+          let temp =  data[0].item_code.match(/\d+/g)
+
+          let tempCodeEndA = parseInt(temp[1], 10)
+
+          tempCodeEndA ++
+
+          if(tempCodeEndA < 10 ){
+            tempCodeEndA = '00' + tempCodeEndA 
+          }
+          if(tempCodeEndA > 9 && tempCodeEndA < 100){
+            tempCodeEndA = '0' + tempCodeEndA
+          }
+
+          tempCode = tempCodeEndA
+        }
+
+        asd = asd.concat(tempCode)
+
+        asd = asd.concat('-')
+
+        asd = asd.concat(boxNumber)
+        
+        postClothings.item_code = asd
+
       }
 
-       const asd = postNewItem(postClothings)
-       res.send(asd);
+       const post = postNewItem(postClothings)
+       res.send(post);
     }
 
 })

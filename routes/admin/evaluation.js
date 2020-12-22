@@ -6,7 +6,7 @@ const router = express.Router();
 const AuthController = require("../../controllers/authController");
 
 router.get('/',AuthController.authAdmin, async(req, res) => {
-   const getAllEvaluation = await Evaluation.find()
+   const getAllEvaluation = await Evaluation.find().populate('seller')
    res.status(200).json(getAllEvaluation)
 })
 
@@ -121,6 +121,7 @@ router.patch('/:evaluationId',AuthController.authAdmin, async(req, res) => {
             evaluationDestructure.dry_cleaning = req.body.dry_cleaning
             if(data.dry_cleaning.status == true && dry_cleaning.status == true) {
                 evaluationDestructure.dry_cleaning.sentDate = data.dry_cleaning.sentDate
+                evaluationDestructure.dry_cleaning.receivedDate = data.dry_cleaning.receivedDate
             }else{
                 if(dry_cleaning.status == 'true'){
                     evaluationDestructure.dry_cleaning.sentDate = Date.now();
@@ -135,6 +136,7 @@ router.patch('/:evaluationId',AuthController.authAdmin, async(req, res) => {
             evaluationDestructure.maintenance = req.body.maintenance
             if(data.maintenance.status == true && maintenance.status == true){
                 evaluationDestructure.maintenance.sentDate = data.maintenance.sentDate;
+                evaluationDestructure.maintenance.receivedDate = data.maintenance.receivedDate;
             }else{
                 if(maintenance.status == 'true'){
                     evaluationDestructure.maintenance.sentDate = Date.now()

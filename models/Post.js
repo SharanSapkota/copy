@@ -96,6 +96,10 @@ const PostSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: 'Sellers'
   },
+  item_code:{
+      type: String,
+      required: false
+  },
   date: {
     type: Date,
     default: Date.now

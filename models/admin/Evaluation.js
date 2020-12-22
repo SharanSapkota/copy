@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 const EvaluationSchema = Schema ({
     seller: {
         type: Schema.Types.ObjectId,
-        ref: 'Seller'
+        ref: 'Sellers'
     },
     listing_type: {
         type: String,
