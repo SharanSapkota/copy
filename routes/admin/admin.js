@@ -3,7 +3,14 @@ const router = express.Router();
 const Seller = require('../../models/admin/Seller');
 const Orders = require("../../models/Orders");
 const Post = require('../../models/Post')
+const Evaluation = require('../../models/admin/Evaluation')
 const { validationResult } = require("express-validator");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+
+const upload = multer({ storage: storage });
+
+const {s3Upload} = require('../../functions/s3upload')
 
 const {postNewItem} = require('../../functions/postFunctions');
 
@@ -77,7 +84,7 @@ router.post("/seller",AuthController.authAdmin, async (req,res) =>{
 
   data.usercode = usercode.concat(tempCodeEnd)
 
-  console.log(data)
+    
 
     const sellers = new Seller(data)
     
@@ -90,33 +97,31 @@ router.post("/seller",AuthController.authAdmin, async (req,res) =>{
       }
 })
 
-router.post("/post",AuthController.authAdmin, async (req,res) =>{
+router.post("/post",AuthController.authAdmin, upload.fields([{name: 'images'}, {name: 'featured'}, {name : 'data'}]), async (req,res,next) =>{
 
-    const {
-      listing_name,
-      listing_type,
-      occassion,
-      gender,
-      design,
-      feature_image,
-      purchase_price,
-      images,
-      selling_price,
-      purchase_date,
-      condition,
-      category,
-      measurement,
-      fabric,
-      color,
-      testSeller,
-      boxNumber
-    } = req.body;
+    const featured = req.files['featured']
 
-    const seller = await Seller.findOne({usercode : req.body.testSeller})
+    const images = req.files['images']
 
-    const categoryCode = req.body.category.slice(0,2).toUpperCase();
+    const data = JSON.parse(req.body.data)
 
-    const errors = validationResult(req);
+    let tempArr = []
+
+    data.feature_image = await s3Upload(featured[0])
+
+    if(images!== undefined){
+      for(let i = 0; i< images.length; i++){
+        tempArr.push(await s3Upload(images[i]))
+      }
+    }
+
+    data.images = tempArr
+
+    const seller = await Seller.findOne({usercode : data.testSeller})
+
+    const categoryCode = data.category.slice(0,2).toUpperCase();
+
+    const errors = validationResult(data);
 
     if (!errors.isEmpty()) {
       console.log(errors);
@@ -126,69 +131,70 @@ router.post("/post",AuthController.authAdmin, async (req,res) =>{
       const postClothings = {};
 
       postClothings.seller = req.user.id;
-      postClothings.platform_fee = selling_price * 0.3;
-      postClothings.commission = selling_price * 0.7;
+      postClothings.platform_fee = data.selling_price * 0.3;
+      postClothings.commission = data.selling_price * 0.7;
 
-      if (listing_name) {
-        postClothings.listing_name = listing_name;
+      if(data.images){
+        postClothings.images = data.images
       }
-      if (listing_type) {
-        postClothings.listing_type = listing_type;
+      if(data.feature_image){
+        postClothings.feature_image = data.feature_image
       }
-      if (occassion) {
-        postClothings.occassion = occassion;
+
+      if (data.listing_name) {
+        postClothings.listing_name = data.listing_name;
       }
-      if (gender) {
-        postClothings.gender = gender;
+      if (data.listing_type) {
+        postClothings.listing_type = data.listing_type;
       }
-      if (category) {
-        postClothings.category = category;
+      if (data.occassion) {
+        postClothings.occassion = data.occassion;
       }
-      if (images) {
-        postClothings.images = images;
+      if (data.gender) {
+        postClothings.gender = data.gender;
       }
-      if (design) {
-        postClothings.design = design;
+      if (data.category) {
+        postClothings.category = data.category;
       }
-      if (feature_image) {
-        postClothings.feature_image = feature_image;
+      if (data.design) {
+        postClothings.design = data.design;
       }
-      if (purchase_price) {
-        postClothings.purchase_price = purchase_price;
+      if (data.purchase_price) {
+        postClothings.purchase_price = data.purchase_price;
       }
-      if (selling_price) {
-        postClothings.selling_price = selling_price;
+      if (data.selling_price) {
+        postClothings.selling_price = data.selling_price;
       }
-      if (purchase_date) {
-        postClothings.purchase_date = purchase_date;
+      if (data.purchase_date) {
+        postClothings.purchase_date = data.purchase_date;
       }
-      if (condition) {
-        postClothings.condition = condition;
+      if (data.condition) {
+        postClothings.condition = data.condition;
       }
-      if (measurement) {
-        postClothings.measurement = measurement;
+      if (data.measurement) {
+        postClothings.measurement = data.measurement;
       }
-      if (fabric) {
-        postClothings.fabric = fabric;
+      if (data.fabric) {
+        postClothings.fabric = data.fabric;
       }
-      if (color) {
-        postClothings.color = color;
+      if (data.color) {
+        postClothings.color = data.color;
       }
-      if(testSeller){
+      if(data.testSeller){
         postClothings.testSeller = seller.id
         
-        var asd = testSeller.concat(categoryCode)
+        var asd = data.testSeller.concat(categoryCode)
 
         asd = asd.concat('-')
         
-        const data = await Post.find({ item_code : {$regex : "^" + asd + "[0-9]*\-[0-9]*$"}}).sort({date: -1})
+        const dataz = await Post.find({ item_code : {$regex : "^" + asd + "[0-9]*\-[0-9]*$"}}).sort({date: -1})
 
         let tempCode ;
 
-        if(data.length == 0){
+        if(dataz.length == 0){
           tempCode = '001'
         }else{
-          let temp =  data[0].item_code.match(/\d+/g)
+          let temp =  dataz[0].item_code.match(/\d+/g)
 
           let tempCodeEndA = parseInt(temp[1], 10)
 
@@ -208,14 +214,15 @@ router.post("/post",AuthController.authAdmin, async (req,res) =>{
 
         asd = asd.concat('-')
 
-        asd = asd.concat(boxNumber)
+        asd = asd.concat(data.boxNumber)
         
         postClothings.item_code = asd
 
       }
 
        const post = postNewItem(postClothings)
-       res.send(post);
+       const ePost = Evaluation.findByIdAndUpdate(data.evId, {status: 'completed'})
+       res.send({success: true});
     }
 
 })
