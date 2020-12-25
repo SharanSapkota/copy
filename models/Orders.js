@@ -12,7 +12,7 @@ const orderSchema = mongoose.Schema({
   },
   buyerTest:{
     type: String,
-    required: true,
+    required: false,
     trim: true,
   },
   total_amount: {
@@ -26,7 +26,7 @@ const orderSchema = mongoose.Schema({
   },
   total_after_discount: {
     type: Number,
-    required: true
+    required: false
   },
   delivery_charge: {
     type: Number,
@@ -42,7 +42,7 @@ const orderSchema = mongoose.Schema({
   },
   delivery_location: {
     type: String,
-    required: true
+    required: false
   },
   payment_status: {
     type: String,

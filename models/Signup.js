@@ -1,9 +1,6 @@
 const mongoose = require('mongoose')
 // const Schema = mongoose.Schema
 
-
-    
-    
     const signUpSchema = mongoose.Schema({
         fullname: {
             type: String,

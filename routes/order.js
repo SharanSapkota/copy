@@ -3,6 +3,7 @@ const Order = require("../models/Orders");
 const User = require("../models/Users");
 const Post = require("../models/Post");
 const UserDetails = require("../models/UserDetails");
+const mail = require ("../pagination/nodemailer")
 
 const AuthController = require("../controllers/authController");
 
@@ -44,12 +45,15 @@ router.post("/", async (req, res) => {
   orderDestructure.delivery_charge = 100;
 
   try {
-    const orderClothes = await Post.findById(clothes);
-
+    const orderClothes = await Post.findById(clothes).populate('seller')
+    console.log(orderDestructure.discount)
     orderDestructure.total_amount = orderClothes.selling_price;
 
     orderDestructure.total_order_amount =
       orderDestructure.delivery_charge + orderDestructure.total_amount;
+
+      console.log(orderDestructure.total_order_amount)
+
 
     const seller = await UserDetails.findOne({ user: orderClothes.seller });
 
@@ -63,6 +67,15 @@ router.post("/", async (req, res) => {
       res
         .status(200)
         .json({ success: true, msg: "Order placed successfully!" });
+
+        console.log(orderClothes.feature_image)
+
+        const sellerEmail = orderClothes.seller.email
+       
+
+        const mailt = {subject:"New Order Alert!", html :`<h2> wants </h2> to buy ${orderClothes.listing_name}`}
+
+     mail (sellerEmail, mailt)
     } catch (err) {
       console.log(err);
       res
@@ -72,6 +85,10 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+  
+
+    
+
 });
 
 router.patch("/:orderId", async (req, res) => {
@@ -82,7 +99,7 @@ router.patch("/:orderId", async (req, res) => {
   if (pickup_location) {
     orderUpdateDestructure.pickup_location = pickup_location;
   }
-  if (delivery_location) {
+  if (delivery_location) {  
     orderUpdateDestructure.delivery_location = delivery_location;
   }
 

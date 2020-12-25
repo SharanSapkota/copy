@@ -11,6 +11,7 @@ const AuthController = require("../controllers/authController");
 const limiter = require("./rateLimiter");
 
 const postValidator = require("../controllers/validate");
+const { CostExplorer } = require("aws-sdk");
 
 const {postNewItem} = require('../functions/postFunctions');
 
@@ -78,11 +79,12 @@ router.get("/", async (req, res) => {
   }
 });
 
+
 // POST
 router.post(
   "/",
-  AuthController.authUser,
-  postValidator("createPostValidation"),
+   AuthController.authUser,
+  // postValidator("createPostValidation"),
   limiter,
   async (req, res) => {
     const {
@@ -100,11 +102,11 @@ router.post(
       category,
       measurement,
       fabric,
-      color
+      color,
+      testSeller
     } = req.body;
 
     console.log(req.body);
-
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -114,7 +116,6 @@ router.post(
     } else {
       const postClothings = {};
 
-      postClothings.seller = req.user.id;
       postClothings.platform_fee = selling_price * 0.3;
       postClothings.commission = selling_price * 0.7;
 
@@ -163,7 +164,6 @@ router.post(
       if (color) {
         postClothings.color = color;
       }
-
        const result = postNewItem(postClothings)
        res.send(result);
     }
@@ -336,6 +336,33 @@ router.patch("/:postId", async (req, res) => {
   } catch (err) {
     res.status(404).json({ message: err });
   }
+
+})
+
+  router.patch('/unpublish/:postId', async (req, res) => {
+    
+    const posts = await Post.findById(req.params.postId)
+    console.log(posts.status)
+    const updateStatus = {}
+  
+    if (posts.status == "Available") {
+  
+       updateStatus.status = "notAvailable"
+    }
+     else{
+  
+        updateStatus.status = "Available"
+     
+      }
+      const updatedStatus = await Post.findOneAndUpdate (
+        {_id: req.params.postId}, 
+        { $set: updateStatus}
+        )
+        // console.log(updatedStatus)
+        
+        if(updatedStatus) res.json({...updateStatus})
+       
+      
 });
 
 module.exports = router;

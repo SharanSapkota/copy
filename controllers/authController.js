@@ -300,6 +300,8 @@ const login = async (req, res) => {
       $or: [{ email: email }, { username: username }]
     });
 
+    
+      
     if (!user) {
       return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
@@ -373,9 +375,7 @@ try{
   }else{
     res.status(404).json({msg: 'Admin not valid'})
   }
-} catch (err) {
-  res.json({ msg: "Admin not found" });
-}
+
 };
 
 const loginPartner = async (req, res) => {

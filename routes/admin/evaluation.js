@@ -1,5 +1,6 @@
 const express = require('express');
 const Evaluation = require('../../models/admin/Evaluation')
+
 const router = express.Router();
 
 
@@ -30,7 +31,6 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
         detail,
         purchase_price
     } = req.body
-
     const evaluationDestructure = {}
 
     if(seller){
@@ -48,11 +48,11 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
     if(purchase_price){
         evaluationDestructure.purchase_price = req.body.purchase_price
     }
-
     const postEvaluation = new Evaluation(evaluationDestructure)
     try {
         await postEvaluation.save()
         res.status(200).json({success: true})
+
     }
     catch( err) {
         res.status(404).json({message: err})
@@ -96,7 +96,6 @@ router.patch('/:evaluationId',AuthController.authAdmin, async(req, res) => {
     } = req.body
 
     var data = await Evaluation.findById(req.params.evaluationId)
-
     const evaluationDestructure = {}
 
     if(seller){
@@ -167,5 +166,6 @@ router.delete('/:evaluationId',AuthController.authAdmin, async(req,res) =>{
     }
 }
 )
+
 
 module.exports = router;
