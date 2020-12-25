@@ -77,11 +77,10 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 // POST
 router.post(
   "/",
-   AuthController.authUser,
+  AuthController.authUser,
   // postValidator("createPostValidation"),
   limiter,
   async (req, res) => {
@@ -163,19 +162,17 @@ router.post(
         postClothings.color = color;
       }
 
-console.log(req.user.id)
+      console.log(req.user.id);
 
-      if(testSeller) {
-        postClothings.seller = req.user.id
+      if (testSeller) {
+        postClothings.seller = req.user.id;
       }
-     
+
       const posts = new Post(postClothings);
-       
-      
+
       try {
-      
         const savedPost = await posts.save();
-        
+
         if (savedPost) {
           res.send(savedPost);
         }
@@ -346,40 +343,32 @@ router.patch("/:postId", async (req, res) => {
 
     const updatedPost = await Post.findOneAndUpdate(
       { _id: req.params.postId },
-
-      { $set: update }
+      { $set: update },
+      { new: true }
     );
     res.status(200).json(updatedPost);
   } catch (err) {
     res.status(404).json({ message: err });
   }
+});
 
-})
+router.patch("/unpublish/:postId", async (req, res) => {
+  const posts = await Post.findById(req.params.postId);
+  console.log(posts.status);
+  const updateStatus = {};
 
-  router.patch('/unpublish/:postId', async (req, res) => {
-    
-    const posts = await Post.findById(req.params.postId)
-    console.log(posts.status)
-    const updateStatus = {}
-  
-    if (posts.status == "Available") {
-  
-       updateStatus.status = "notAvailable"
-    }
-     else{
-  
-        updateStatus.status = "Available"
-     
-      }
-      const updatedStatus = await Post.findOneAndUpdate (
-        {_id: req.params.postId}, 
-        { $set: updateStatus}
-        )
-        // console.log(updatedStatus)
-        
-        if(updatedStatus) res.json({...updateStatus})
-       
-      
+  if (posts.status == "Available") {
+    updateStatus.status = "notAvailable";
+  } else {
+    updateStatus.status = "Available";
+  }
+  const updatedStatus = await Post.findOneAndUpdate(
+    { _id: req.params.postId },
+    { $set: updateStatus }
+  );
+  // console.log(updatedStatus)
+
+  if (updatedStatus) res.json({ ...updateStatus });
 });
 
 module.exports = router;
