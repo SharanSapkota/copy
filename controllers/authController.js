@@ -30,6 +30,26 @@ const authUser = (req, res, next) => {
   }
 };
 
+const authAdmin = (req, res, next) =>{
+  const token = req.header('Authorization');
+
+  if(!token){
+    return res.status(401).json({ msg: "No token, authorization denied." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
+    req.user = decoded.user;
+    if(req.user.id == '5fd9b20457412e6a880ed55a'){
+      
+      next();
+    }
+    
+  } catch (err) {
+    res.status(401).json({ msg: "Token is not valid." });
+  }
+}
+
 const getSingleUser = async (req, res) => {
   try {
     const user = await userModel
@@ -321,50 +341,39 @@ const login = async (req, res) => {
 
 const loginAdmin = async(req, res) => {
   const { username, password } = req.body;
-
-  console.log(req.body)
-  if(username == "info@antidotenepal.com") {
-    try {
-      console.log("here")
-          const data = await userModel.findOne({email:username})
-          console.log(data)
-          console.log(data.password, password); 
   
-         
-            const bpassword = await bcrypt.compare(password, data.password)
+try{ 
+  if(username === 'info@antidotenepal.com'){
 
-              if (data.email == username && bpassword) {
-                const payload = {
-                  user: {
-                    id: data.id
-                  }
-                };
-          
-                jwt.sign(
-                  payload,
-                  process.env.SECRET_KEY,
-                  {
-                    expiresIn: "4h"
-                  },
-                  (err, token) => {
-                    if (err) throw err;
-                    res.status(200).json({
-                      message: "login successfully",
-                      token
-                    });
-                  }
-                );
-              }
+    let user = await userModel.findOne({email : username})
+    
+    const comparisonResult = await bcrypt.compare(password, user.password)
 
-          
+    if(comparisonResult){
+      const payload = {
+        user :{
+          id: user.id
+        }
+      }
+
+      jwt.sign(
+        payload,
+        process.env.ADMIN_SECRET_KEY,
+        {
+          expiresIn : '4h'
+        },
+        (err, token) =>{
+          if (err) throw err;
+          res.status(200).json({
+            message: 'login successfully',
+            token
+          })
+        }
+      )
     }
 
-    catch(err) {
-      console.log(err)
-      res.status(404).json({success: false})
-    }
   }else{
-    res.json({message: "not Admin"})
+    res.status(404).json({msg: 'Admin not valid'})
   }
 
 };
@@ -442,6 +451,7 @@ module.exports = {
   login,
   loginPartner,
   authUser,
+  authAdmin,
   loginAdmin,
   forgotPassword
 };

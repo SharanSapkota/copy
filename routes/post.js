@@ -13,6 +13,8 @@ const limiter = require("./rateLimiter");
 const postValidator = require("../controllers/validate");
 const { CostExplorer } = require("aws-sdk");
 
+const {postNewItem} = require('../functions/postFunctions');
+
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -162,27 +164,8 @@ router.post(
       if (color) {
         postClothings.color = color;
       }
-
-console.log(req.user.id)
-
-      if(testSeller) {
-        postClothings.seller = req.user.id
-      }
-     
-      const posts = new Post(postClothings);
-       
-      
-      try {
-      
-        const savedPost = await posts.save();
-        
-        if (savedPost) {
-          res.send(savedPost);
-        }
-        res.end();
-      } catch (err) {
-        console.log("err");
-      }
+       const result = postNewItem(postClothings)
+       res.send(result);
     }
   }
 );
