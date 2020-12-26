@@ -5,10 +5,10 @@ const partnerModel = require("../models/Partners");
 const Profiles = require("../models/Profiles");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const crypto = require('crypto')
+const crypto = require("crypto");
 const { validationResult } = require("express-validator");
-const SendMail = require('../pagination/nodemailer');
-const {GenerateResetLink} = require("../lib/generate.js");
+const SendMail = require("../pagination/nodemailer");
+const { GenerateResetLink } = require("../lib/generate.js");
 require("dotenv/config");
 
 const authUser = (req, res, next) => {
@@ -30,25 +30,23 @@ const authUser = (req, res, next) => {
   }
 };
 
-const authAdmin = (req, res, next) =>{
-  const token = req.header('Authorization');
+const authAdmin = (req, res, next) => {
+  const token = req.header("Authorization");
 
-  if(!token){
+  if (!token) {
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    if(req.user.id == '5fd9b20457412e6a880ed55a'){
-      
+    if (req.user.id == "5fd9b20457412e6a880ed55a") {
       next();
     }
-    
   } catch (err) {
     res.status(401).json({ msg: "Token is not valid." });
   }
-}
+};
 
 const getSingleUser = async (req, res) => {
   try {
@@ -106,13 +104,17 @@ const registerSeller = async (req, res, next) => {
       {
         bank_details: bank_details
       },
-      {new: true}
+      { new: true }
     );
 
     if (updatedUser) {
       user.role = 1;
       user.save();
-      res.status(200).json({ success: true, msg: "bank details updated", user: updatedUser });
+      res.status(200).json({
+        success: true,
+        msg: "bank details updated",
+        user: updatedUser
+      });
     } else {
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
@@ -300,8 +302,6 @@ const login = async (req, res) => {
       $or: [{ email: email }, { username: username }]
     });
 
-    
-      
     if (!user) {
       return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
     }
@@ -339,43 +339,43 @@ const login = async (req, res) => {
   }
 };
 
-const loginAdmin = async(req, res) => {
+const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
-  
-try{ 
-  if(username === 'info@antidotenepal.com'){
 
-    let user = await userModel.findOne({email : username})
-    
-    const comparisonResult = await bcrypt.compare(password, user.password)
+  try {
+    if (username === "info@antidotenepal.com") {
+      let user = await userModel.findOne({ email: username });
 
-    if(comparisonResult){
-      const payload = {
-        user :{
-          id: user.id
-        }
+      const comparisonResult = await bcrypt.compare(password, user.password);
+
+      if (comparisonResult) {
+        const payload = {
+          user: {
+            id: user.id
+          }
+        };
+
+        jwt.sign(
+          payload,
+          process.env.ADMIN_SECRET_KEY,
+          {
+            expiresIn: "4h"
+          },
+          (err, token) => {
+            if (err) throw err;
+            res.status(200).json({
+              message: "login successfully",
+              token
+            });
+          }
+        );
       }
-
-      jwt.sign(
-        payload,
-        process.env.ADMIN_SECRET_KEY,
-        {
-          expiresIn : '4h'
-        },
-        (err, token) =>{
-          if (err) throw err;
-          res.status(200).json({
-            message: 'login successfully',
-            token
-          })
-        }
-      )
+    } else {
+      res.status(404).json({ msg: "Admin not valid" });
     }
-
-  }else{
-    res.status(404).json({msg: 'Admin not valid'})
+  } catch (err) {
+    res.json({ msg: "Admin not found" });
   }
-
 };
 
 const loginPartner = async (req, res) => {
@@ -402,31 +402,33 @@ const loginPartner = async (req, res) => {
   }
 };
 
-const forgotPassword = async(req,res) =>{
-  userModel.findOne({email: req.body.email}).then((user) =>{
-    if(user === null){
-      res.send('email not in database');
-    }else{
-      const token = crypto.randomBytes(20).toString('hex')  
-      user.resetPasswordToken= token,
-      user.resetPasswordExpired= Date.now() + 3600000
-      user.resetToken();
-      user.save();
+const forgotPassword = async (req, res) => {
+  userModel
+    .findOne({ email: req.body.email })
+    .then(user => {
+      if (user === null) {
+        res.send("email not in database");
+      } else {
+        const token = crypto.randomBytes(20).toString("hex");
+        (user.resetPasswordToken = token),
+          (user.resetPasswordExpired = Date.now() + 3600000);
+        user.resetToken();
+        user.save();
 
-      const mailBody = GenerateResetLink(user.username, token)
+        const mailBody = GenerateResetLink(user.username, token);
 
-      SendMail(user.email,{
-        subject: 'Reset Password Link',
-        html:mailBody
-      });
-      res.send('recovery mail sent')
-      console.log('done')
-    }
-  }).catch(err =>{
-    console.log(err)
-  })
-}
-
+        SendMail(user.email, {
+          subject: "Reset Password Link",
+          html: mailBody
+        });
+        res.send("recovery mail sent");
+        console.log("done");
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
 
 // router.post('/login', (req, res) => {
 //     try{
