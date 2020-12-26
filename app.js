@@ -24,7 +24,8 @@ const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
 
 const adminRoute = require("./routes/admin/admin");
-
+const evaluationRoute = require('./routes/admin/evaluation')
+  
 const s3uploadRoute = require("./routes/s3upload");
 const validateFields = require("./routes/validateFields");
 const { ApiGatewayManagementApi } = require("aws-sdk");
