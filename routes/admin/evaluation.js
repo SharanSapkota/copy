@@ -8,12 +8,15 @@ const router = express.Router();
 router.get('/', async(req, res) => {
   
    try{
-    const getAllEvaluation = await evalFunctions.getAllEvaluations()
+       console.log("hessre")
+    // const getAllEvaluation = await evalFunctions.getAllEvaluations()
+    const getAllEvaluation = await Evaluation.find().populate('seller')
     console.log(getAllEvaluation)
+    
     res.status(200).json(getAllEvaluation)
    }
    catch (err) {
-       res.status(404).json(err)
+       res.status(404).json({message: err.message})
    }
 })
 
@@ -23,7 +26,7 @@ router.post('/', async(req, res) => {
 
     const {
         seller,
-        listing_type,
+        
         color,
         detail,
         purchase_price,
@@ -37,9 +40,7 @@ router.post('/', async(req, res) => {
     if(seller){
         evaluationDestructure.seller = req.body.seller
     }
-    if(listing_type){
-        evaluationDestructure.listing_type = req.body.listing_type
-    }
+   
     if(color){
         evaluationDestructure.color = req.body.color
     }
@@ -91,7 +92,6 @@ router.patch('/:evaluationId', async(req, res) => {
     console.log("heree")
     const {
         seller,
-        listing_type,
         color,
         detail,
         purchase_price,
@@ -106,9 +106,7 @@ router.patch('/:evaluationId', async(req, res) => {
     if(seller){
         evaluationDestructure.seller = req.body.seller
     }
-    if(listing_type){
-        evaluationDestructure.listing_type = req.body.listing_type
-    }
+    
     if(color){
         evaluationDestructure.color = req.body.color
     }

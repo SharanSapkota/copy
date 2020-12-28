@@ -89,10 +89,10 @@ router.post(
   async (req, res) => {
     const {
       listing_name,
-      listing_type,
+      
       occassion,
       gender,
-      design,
+      
       feature_image,
       purchase_price,
       images,
@@ -122,9 +122,7 @@ router.post(
       if (listing_name) {
         postClothings.listing_name = listing_name;
       }
-      if (listing_type) {
-        postClothings.listing_type = listing_type;
-      }
+     
       if (occassion) {
         postClothings.occassion = occassion;
       }
@@ -137,9 +135,7 @@ router.post(
       if (images) {
         postClothings.images = images;
       }
-      if (design) {
-        postClothings.design = design;
-      }
+      
       if (feature_image) {
         postClothings.feature_image = feature_image;
       }
@@ -280,10 +276,10 @@ router.patch("/:postId", async (req, res) => {
   try {
     const {
       listing_name,
-      listing_type,
+      
       occassion,
       gender,
-      design,
+      
       feature_image,
       purchase_price,
       selling_price,
@@ -303,18 +299,14 @@ router.patch("/:postId", async (req, res) => {
     if (listing_name) {
       update.listing_name = req.body.listing_name;
     }
-    if (listing_type) {
-      update.listing_type = req.body.listing_type;
-    }
+   
     if (occassion) {
       update.occasion = req.body.occasion;
     }
     if (gender) {
       update.gender = req.body.gender;
     }
-    if (design) {
-      update.design = req.body.design;
-    }
+   
     if (feature_image) {
       update.feature_image = req.body.feature_image;
     }

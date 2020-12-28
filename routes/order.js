@@ -166,29 +166,27 @@ const id = req.params.orderId;
 
 
 router.get("/to/:UserId", async (req, res) => {
-  let ordersArr = [];
-  console.log(req.params.UserId);
+  // console.log(req.params.UserId);
 
   Order.find()
     .populate({
       path: "clothes"
     })
-    .populate({
-      path: "buyer",
-      select: "username"
-    })
     .sort({ date: -1 })
     .exec(function(err, orders) {
+      let ordersArr = [];
       orders.forEach(order => {
-        console.log(order)
+        if(order.clothes){
         if (
           order.clothes.seller == req.params.UserId ||
           order.buyer == req.params.UserId
         ) {
           ordersArr.push(order);
         }
+      }
       });
       if (ordersArr.length > 0) {
+        
         return res.status(200).json({ orders: ordersArr, success: true });
       } else {
         return res.status(404).json({

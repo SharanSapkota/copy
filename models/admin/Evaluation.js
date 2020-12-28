@@ -10,12 +10,7 @@ const EvaluationSchema = Schema ({
 
     seller: {
         type: Schema.Types.ObjectId,
-        ref: 'Seller'
-    },
-
-    listing_type: {
-        type: String,
-        required: false
+        ref: 'Sellers'
     },
 
     color: {

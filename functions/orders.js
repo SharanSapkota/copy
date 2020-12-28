@@ -13,7 +13,7 @@ const getAllOrders = async() => {
 
 const getOrderById = async(id, clothes) => {
     try{
-        const getOrderById = await Order.findById(id ).populate(clothes);
+        const getOrderById = await Order.findById(id).populate(clothes);
         console.log(getOrderById)
           return getOrderById
     } catch (err) {
