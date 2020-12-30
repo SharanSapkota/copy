@@ -102,12 +102,14 @@ const PostSchema = mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "Users"
   },
-
   testSeller: {
     type: Schema.Types.ObjectId,
     ref: 'Seller'
   },
-
+  item_code:{
+      type: String,
+      required: false
+  },
   date: {
     type: Date,
     default: Date.now

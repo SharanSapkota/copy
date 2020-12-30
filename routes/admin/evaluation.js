@@ -5,36 +5,33 @@ const evalFunctions = require('./functions/evaluations')
 const router = express.Router();
 
 // Get All Evaluation
-router.get('/', async(req, res) => {
-  
-   try{
-       console.log("hessre")
-    // const getAllEvaluation = await evalFunctions.getAllEvaluations()
-    const getAllEvaluation = await Evaluation.find().populate('seller')
-    console.log(getAllEvaluation)
-    
-    res.status(200).json(getAllEvaluation)
-   }
-   catch (err) {
-       res.status(404).json({message: err.message})
-   }
+const AuthController = require("../../controllers/authController");
+
+router.get('/',AuthController.authAdmin, async(req, res) => {
+   const getAllEvaluation = await Evaluation.find().populate('seller')
+   res.status(200).json(getAllEvaluation)
 })
 
-// Post Evaluation
+router.get('/maintenance',AuthController.authAdmin, async(req, res) => {
+    const getAllMaintenance = await Evaluation.find({'maintenance.status' : true})
+    res.status(200).json(getAllMaintenance)
+ })
 
-router.post('/', async(req, res) => {
+ router.get('/dryclean',AuthController.authAdmin, async(req, res) => {
+    const getAllDryClean = await Evaluation.find({'dry_cleaning.status' : true})
+    res.status(200).json(getAllDryClean)
+ })
+
+
+router.post('/',AuthController.authAdmin, async(req, res) => {
 
     const {
         seller,
         
         color,
         detail,
-        purchase_price,
-        recondition
-     
+        purchase_price
     } = req.body
-
-
     const evaluationDestructure = {}
 
     if(seller){
@@ -50,18 +47,11 @@ router.post('/', async(req, res) => {
     if(purchase_price){
         evaluationDestructure.purchase_price = req.body.purchase_price
     }
-    if(recondition){
-        evaluationDestructure.recondition = req.body.recondition
-    }
-
     const postEvaluation = new Evaluation(evaluationDestructure)
-
-
     try {
         await postEvaluation.save()
         res.status(200).json({success: true})
-        console.log(postEvaluation)
-        
+
     }
     catch( err) {
         res.status(404).json({message: err})
@@ -78,18 +68,31 @@ router.get('/:evaluationId', async (req, res) => {
         const getById = await evalFunctions.getEvalById(id)
         res.status(200).json(getById)
     }
+router.patch('/maintenancecomplete/:evaluationId', AuthController.authAdmin, async(req,res) =>{
+    try{
+        const data = await Evaluation.findOneAndUpdate({_id : req.params.evaluationId}, {
+            'maintenance.receivedDate' : Date.now()
+        })
+        res.status(200).json({success: true});
 
-    catch(err) {
-        res.status(500).json({message: err})
+    }catch(err) {
+        res.status(200).send(err)
     }
-
 })
 
+router.patch('/drycleaningcomplete/:evaluationId', AuthController.authAdmin, async(req,res) =>{
+    try{
+        const data = await Evaluation.findOneAndUpdate({_id : req.params.evaluationId}, {
+            'dry_cleaning.receivedDate' : Date.now()
+        })
+        res.status(200).json({success: true});
 
-// Update Evaluation
+    }catch(err) {
+        res.status(200).send(err)
+    }
+})
 
-router.patch('/:evaluationId', async(req, res) => {
-    console.log("heree")
+router.patch('/:evaluationId',AuthController.authAdmin, async(req, res) => {
     const {
         seller,
         color,
@@ -98,9 +101,9 @@ router.patch('/:evaluationId', async(req, res) => {
         status,
         dry_cleaning,
         maintenance
-        
     } = req.body
 
+    var data = await Evaluation.findById(req.params.evaluationId)
     const evaluationDestructure = {}
 
     if(seller){
@@ -120,40 +123,55 @@ router.patch('/:evaluationId', async(req, res) => {
         evaluationDestructure.status = req.body.status
     }
     if(dry_cleaning){
-        evaluationDestructure.dry_cleaning = req.body.dry_cleaning
+            evaluationDestructure.dry_cleaning = req.body.dry_cleaning
+            if(data.dry_cleaning.status == true && dry_cleaning.status == true) {
+                evaluationDestructure.dry_cleaning.sentDate = data.dry_cleaning.sentDate
+                evaluationDestructure.dry_cleaning.receivedDate = data.dry_cleaning.receivedDate
+            }else{
+                if(dry_cleaning.status == 'true'){
+                    evaluationDestructure.dry_cleaning.sentDate = Date.now();
+                }else if(dry_cleaning.status == 'false'){
+                    evaluationDestructure.dry_cleaning.sentDate = undefined
+                }
+            }
+            
     }
     if(maintenance){
-        evaluationDestructure.maintenance = req.body.maintenance
-    }
-
-try{
-    const patchAll = await Evaluation.findOneAndUpdate({_id: req.params.evaluationId},{$set: evaluationDestructure})
-        res.status(200).json(patchAll)
-} catch(err){
-    res.status(404).json({ message: err })
-}
-
-})
-
-
-//Delete evaluation
-
-router.delete('/:evaluationId', async (req, res) => {
-    id= req.params.evaluationId
     
-    try{
-         
-    const deleteEvaluation = await evalFunctions.getEvalById(id)
-    console.log(deleteEvaluation)
-    deleteEvaluation.remove()
-    res.status(200).json({success: true})
+            evaluationDestructure.maintenance = req.body.maintenance
+            if(data.maintenance.status == true && maintenance.status == true){
+                evaluationDestructure.maintenance.sentDate = data.maintenance.sentDate;
+                evaluationDestructure.maintenance.receivedDate = data.maintenance.receivedDate;
+            }else{
+                if(maintenance.status == 'true'){
+                    evaluationDestructure.maintenance.sentDate = Date.now()
+                } else if (maintenance.status == 'false'){
+                    evaluationDestructure.maintenance.sentDate = undefined
+                }
+            }        
     }
 
-    catch(err){
-        res.status(200).json({ message: err})
+
+    try{
+        const patchAll = await Evaluation.findOneAndUpdate({_id: req.params.evaluationId},{$set: evaluationDestructure},{new: true})
+            res.status(200).json(patchAll)
+    } catch(err){
+        res.status(404).json({ message: err })
     }
 })
 
+router.delete('/:evaluationId',AuthController.authAdmin, async(req,res) =>{
+    const deleteId = req.params.evaluationId
+    console.log(deleteId)
+    const data = await Evaluation.findById(deleteId)
+    if(data != null){
+        data.remove();
+        res.status(200).json({message: 'deleted'})
+    }else{
+        res.status(400).json({message: err.message})
+    }
+}
+)
 
 
 module.exports = router;

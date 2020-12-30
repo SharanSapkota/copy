@@ -3,13 +3,26 @@ const router = express.Router();
 const Seller = require('../../models/admin/Seller');
 const Orders = require("../../models/Orders");
 const Post = require('../../models/Post')
+const Evaluation = require('../../models/admin/Evaluation')
+const { validationResult } = require("express-validator");
+const multer = require("multer");
+const storage = multer.memoryStorage();
 
-router.get("/seller", async(req,res) => {
+const upload = multer({ storage: storage });
+
+const {s3Upload} = require('../../functions/s3upload')
+
+const {postNewItem} = require('../../functions/postFunctions');
+
+const AuthController = require("../../controllers/authController");
+const { AlexaForBusiness } = require("aws-sdk");
+
+router.get("/seller", AuthController.authAdmin, async(req,res) => {
     const seller = await Seller.find({})
     res.status(200).json(seller)
 })
 
-router.get('/seller/:sellerId', async(req,res) =>{
+router.get('/seller/:sellerId', AuthController.authAdmin,async(req,res) =>{
   try{
     const seller = await Seller.findById(req.params.sellerId) 
     res.json(seller) 
@@ -18,7 +31,7 @@ router.get('/seller/:sellerId', async(req,res) =>{
   }
 })
 
-router.patch('/seller/:sellerId', async(req,res) =>{
+router.patch('/seller/:sellerId',AuthController.authAdmin, async(req,res) =>{
   const seller = await Seller.findById(req.params.sellerId)
   if(seller.username === req.body.seller_name){
     seller.remove();
@@ -29,12 +42,12 @@ router.patch('/seller/:sellerId', async(req,res) =>{
 })
 
 
-router.get('/posts', async(req,res) =>{
+router.get('/posts',AuthController.authAdmin, async(req,res) =>{
     const allPosts = await Post.find({testSeller : {  $exists : true}})
     res.status(200).json(allPosts)
 })
 
-router.post("/seller", async (req,res) =>{
+router.post("/seller",AuthController.authAdmin, async (req,res) =>{
 
   const data = req.body;
   let usercode = req.body.username.split(' ').map((x) =>{
@@ -71,7 +84,7 @@ router.post("/seller", async (req,res) =>{
 
   data.usercode = usercode.concat(tempCodeEnd)
 
-  console.log(data)
+    
 
     const sellers = new Seller(data)
     
@@ -84,39 +97,150 @@ router.post("/seller", async (req,res) =>{
       }
 })
 
-router.post("/post", async (req,res) =>{
-    console.log(req.body)
+router.post("/post",AuthController.authAdmin, upload.fields([{name: 'images'}, {name: 'featured'}, {name : 'data'}]), async (req,res,next) =>{
 
-    const post = new Post(req.body)
-    try{
-        const savedPost = await post.save();
-        res.json(savedPost);
-      } catch (err) {
-        res.json({ message: err });
+    const featured = req.files['featured']
+
+    const images = req.files['images']
+
+    const data = JSON.parse(req.body.data)
+
+    let tempArr = []
+
+    data.feature_image = await s3Upload(featured[0])
+
+    if(images!== undefined){
+      for(let i = 0; i< images.length; i++){
+        tempArr.push(await s3Upload(images[i]))
       }
+    }
+
+    data.images = tempArr
+
+    const seller = await Seller.findOne({usercode : data.testSeller})
+
+    const categoryCode = data.category.slice(0,2).toUpperCase();
+
+    const errors = validationResult(data);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      res.end();
+      // res.status(422).json({ success: false, errors: errors.array() });
+    } else {
+      const postClothings = {};
+
+      postClothings.seller = req.user.id;
+      postClothings.platform_fee = data.selling_price * 0.3;
+      postClothings.commission = data.selling_price * 0.7;
+
+      if(data.images){
+        postClothings.images = data.images
+      }
+      if(data.feature_image){
+        postClothings.feature_image = data.feature_image
+      }
+
+      if (data.listing_name) {
+        postClothings.listing_name = data.listing_name;
+      }
+      if (data.listing_type) {
+        postClothings.listing_type = data.listing_type;
+      }
+      if (data.occassion) {
+        postClothings.occassion = data.occassion;
+      }
+      if (data.gender) {
+        postClothings.gender = data.gender;
+      }
+      if (data.category) {
+        postClothings.category = data.category;
+      }
+      if (data.design) {
+        postClothings.design = data.design;
+      }
+      if (data.purchase_price) {
+        postClothings.purchase_price = data.purchase_price;
+      }
+      if (data.selling_price) {
+        postClothings.selling_price = data.selling_price;
+      }
+      if (data.purchase_date) {
+        postClothings.purchase_date = data.purchase_date;
+      }
+      if (data.condition) {
+        postClothings.condition = data.condition;
+      }
+      if (data.measurement) {
+        postClothings.measurement = data.measurement;
+      }
+      if (data.fabric) {
+        postClothings.fabric = data.fabric;
+      }
+      if (data.color) {
+        postClothings.color = data.color;
+      }
+      if(data.testSeller){
+        postClothings.testSeller = seller.id
+        
+        var asd = data.testSeller.concat(categoryCode)
+
+        asd = asd.concat('-')
+        
+        const dataz = await Post.find({ item_code : {$regex : "^" + asd + "[0-9]*\-[0-9]*$"}}).sort({date: -1})
+
+        let tempCode ;
+
+        if(dataz.length == 0){
+          tempCode = '001'
+        }else{
+          let temp =  dataz[0].item_code.match(/\d+/g)
+
+          let tempCodeEndA = parseInt(temp[1], 10)
+
+          tempCodeEndA ++
+
+          if(tempCodeEndA < 10 ){
+            tempCodeEndA = '00' + tempCodeEndA 
+          }
+          if(tempCodeEndA > 9 && tempCodeEndA < 100){
+            tempCodeEndA = '0' + tempCodeEndA
+          }
+
+          tempCode = tempCodeEndA
+        }
+
+        asd = asd.concat(tempCode)
+
+        asd = asd.concat('-')
+
+        asd = asd.concat(data.boxNumber)
+        
+        postClothings.item_code = asd
+
+      }
+
+       const post = postNewItem(postClothings)
+       const ePost = Evaluation.findByIdAndUpdate(data.evId, {status: 'completed'})
+       res.send({success: true});
+    }
+
 })
 
-// router.post('/orders', async (req,res) =>{
-//   console.log(req.body)
-//   const order = new Orders(req.body)
-//   order.save().then((res) =>{
-//     res.json(res.status)
-//   })
-// })
 
-router.patch('/orders/:orderId', async(req,res) =>{
+router.patch('/orders/:orderId',AuthController.authAdmin, async(req,res) =>{
   try {
     const updateStatus = await Orders.findOneAndUpdate(
       { _id: req.params.orderId },
       { $set: req.body }
     );
-    res.status(201).json(updateStatus);
+    res.status(200).json(updateStatus);
   } catch (err) {
     res.status(400).json({ message: err });
   }
 })
 
-router.post("/orders", async (req, res) => {
+router.post("/orders",AuthController.authAdmin, async (req, res) => {
 
   const { buyerTest, clothes, delivery_location } = req.body;
   orderDestructure = {};

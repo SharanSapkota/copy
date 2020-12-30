@@ -6,6 +6,8 @@ const UserDetails = require("../models/UserDetails");
 const mail = require ("../pagination/nodemailer")
 const orderFunctions = require("../functions/orders")
 
+const AuthController = require("../controllers/authController");
+
 const router = express.Router();
 var a;
 
@@ -13,8 +15,6 @@ router.get("/",  async(req, res) => {
     const getAllOrder = await orderFunctions.getAllOrders()
 
     res.json(getAllOrder)
-
-  // res.send('I am in order.js')
 });
 
 router.get("/:orderId", async (req, res) => {
