@@ -9,6 +9,7 @@ const Users = require("../models/Users");
 const Post = require("../models/Post");
 const AuthController = require("../controllers/authController");
 const limiter = require("./rateLimiter");
+const functions = require("../functions/posts")
 
 const postValidator = require("../controllers/validate");
 const { CostExplorer } = require("aws-sdk");
@@ -18,6 +19,7 @@ const {postNewItem} = require('../functions/postFunctions');
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
+  console.log("this is the all post")
 
   const abc = req.query.search;
 
@@ -89,10 +91,10 @@ router.post(
   async (req, res) => {
     const {
       listing_name,
-      listing_type,
+      
       occassion,
       gender,
-      design,
+      
       feature_image,
       purchase_price,
       images,
@@ -122,9 +124,7 @@ router.post(
       if (listing_name) {
         postClothings.listing_name = listing_name;
       }
-      if (listing_type) {
-        postClothings.listing_type = listing_type;
-      }
+     
       if (occassion) {
         postClothings.occassion = occassion;
       }
@@ -137,9 +137,7 @@ router.post(
       if (images) {
         postClothings.images = images;
       }
-      if (design) {
-        postClothings.design = design;
-      }
+      
       if (feature_image) {
         postClothings.feature_image = feature_image;
       }
@@ -170,13 +168,20 @@ router.post(
   }
 );
 
+
 //GET BY ID
 router.get("/:postId", async (req, res) => {
+
+  console.log("this is the post by id")
   try {
-    const posts = await Post.findById(req.params.postId).populate(
-      "seller",
-      "username"
-    );
+
+    
+    const posts = await functions.getPostById(req.params.postId)
+    // const posts = await Post.findById(req.params.postId).populate(
+    //   "seller",
+    //   "username"
+    // );
+    console.log(posts)
     res.status(200).json(posts);
   } catch (error) {
     res.status(404).json({ message: "Product Not Found!" });
@@ -255,10 +260,10 @@ router.patch("/:postId", async (req, res) => {
   try {
     const {
       listing_name,
-      listing_type,
+      
       occassion,
       gender,
-      design,
+      
       feature_image,
       purchase_price,
       selling_price,
@@ -278,18 +283,14 @@ router.patch("/:postId", async (req, res) => {
     if (listing_name) {
       update.listing_name = req.body.listing_name;
     }
-    if (listing_type) {
-      update.listing_type = req.body.listing_type;
-    }
+   
     if (occassion) {
       update.occasion = req.body.occasion;
     }
     if (gender) {
       update.gender = req.body.gender;
     }
-    if (design) {
-      update.design = req.body.design;
-    }
+   
     if (feature_image) {
       update.feature_image = req.body.feature_image;
     }

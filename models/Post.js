@@ -1,18 +1,14 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const express = require("express");
-
 
 const PostSchema = mongoose.Schema({
+
   listing_name: {
     type: String,
     required: false
   },
 
-  listing_type: {
-    type: String,
-    required: false
-  },
+ 
 
   category: {
     type: String,
@@ -29,10 +25,7 @@ const PostSchema = mongoose.Schema({
     required: false
   },
 
-  design: {
-    type: String,
-    required: false
-  },
+
 
   feature_image: {
     type: String,

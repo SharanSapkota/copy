@@ -1,9 +1,10 @@
 const express = require('express');
 const Evaluation = require('../../models/admin/Evaluation')
+const evalFunctions = require('./functions/evaluations')
 
 const router = express.Router();
 
-
+// Get All Evaluation
 const AuthController = require("../../controllers/authController");
 
 router.get('/',AuthController.authAdmin, async(req, res) => {
@@ -26,7 +27,7 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
 
     const {
         seller,
-        listing_type,
+        
         color,
         detail,
         purchase_price
@@ -36,9 +37,7 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
     if(seller){
         evaluationDestructure.seller = req.body.seller
     }
-    if(listing_type){
-        evaluationDestructure.listing_type = req.body.listing_type
-    }
+   
     if(color){
         evaluationDestructure.color = req.body.color
     }
@@ -59,6 +58,16 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
     }
 })
 
+
+//Get Evaluation By Id
+router.get('/:evaluationId', async (req, res) => {
+
+    const id = req.params.evaluationId
+    
+    try{
+        const getById = await evalFunctions.getEvalById(id)
+        res.status(200).json(getById)
+    }
 router.patch('/maintenancecomplete/:evaluationId', AuthController.authAdmin, async(req,res) =>{
     try{
         const data = await Evaluation.findOneAndUpdate({_id : req.params.evaluationId}, {
@@ -86,7 +95,6 @@ router.patch('/drycleaningcomplete/:evaluationId', AuthController.authAdmin, asy
 router.patch('/:evaluationId',AuthController.authAdmin, async(req, res) => {
     const {
         seller,
-        listing_type,
         color,
         detail,
         purchase_price,
@@ -101,9 +109,7 @@ router.patch('/:evaluationId',AuthController.authAdmin, async(req, res) => {
     if(seller){
         evaluationDestructure.seller = req.body.seller
     }
-    if(listing_type){
-        evaluationDestructure.listing_type = req.body.listing_type
-    }
+    
     if(color){
         evaluationDestructure.color = req.body.color
     }

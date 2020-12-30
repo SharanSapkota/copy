@@ -10,10 +10,7 @@ const PostArchieveSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  listing_type: {
-    type: String,
-    required: false
-  },
+ 
   category: {
     type: String,
 
@@ -27,10 +24,7 @@ const PostArchieveSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  design: {
-    type: String,
-    required: false
-  },
+ 
   feature_image: {
     type: String,
     required: false
