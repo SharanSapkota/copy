@@ -1,14 +1,15 @@
 const userDetailsModel = require("../models/UserDetails");
 const userModel = require("../models/Users");
-const adminModel = require("../models/AdminModel");
 const partnerModel = require("../models/Partners");
 const Profiles = require("../models/Profiles");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const { registerNotification } = require("../functions/notificationFunctions");
 const { validationResult } = require("express-validator");
 const SendMail = require("../pagination/nodemailer");
 const { GenerateResetLink } = require("../lib/generate.js");
+const { s3Upload } = require("../functions/s3upload");
 require("dotenv/config");
 
 const authUser = (req, res, next) => {
@@ -124,10 +125,14 @@ const registerSeller = async (req, res, next) => {
 };
 
 const registerFinal = async (req, res, next) => {
+  const file = req.file;
+
+  const data = JSON.parse(req.body.data);
+
   const {
     username,
     password,
-    phone,
+    phone_number,
     email,
     city,
     address,
@@ -137,7 +142,7 @@ const registerFinal = async (req, res, next) => {
     account_holder_name,
     branch,
     profileimage
-  } = req.body;
+  } = data;
 
   // const errors = validationResult(req);
 
@@ -145,17 +150,20 @@ const registerFinal = async (req, res, next) => {
   //   res.status(422).json({ success: false, errors: errors.array() });
   // }
 
+  const document = await s3Upload(file, 0, 0);
+
   const userDetailsFields = {};
   const userFields = {};
 
   if (username) userFields.username = username;
-  if (phone) userFields.phone_number = phone;
+  if (phone_number) userFields.phone_number = phone_number;
   if (email) userFields.email = email;
   userFields.role = 1;
 
   if (city) userDetailsFields.city = city;
   if (address) userDetailsFields.address = address;
   if (dob) userDetailsFields.dob = dob;
+  if (document) userDetailsFields.document = document;
 
   const bank_details = {};
 
@@ -171,6 +179,7 @@ const registerFinal = async (req, res, next) => {
   if (profileimage) profile_fields.profile_picture = profileimage;
 
   const hashedPassword = await bcrypt.hash(password, 10);
+
   if (hashedPassword) userFields.password = hashedPassword;
   userFields.credits = 0;
 
@@ -185,7 +194,7 @@ const registerFinal = async (req, res, next) => {
     userDetailsFields.user = user.id;
     profile_fields.user = user.id;
     let userDetails = new userDetailsModel(userDetailsFields);
-    userDetails.save().then(userDetails => {
+    userDetails.save().then(() => {
       const payload = {
         user: {
           id: user.id
@@ -194,6 +203,8 @@ const registerFinal = async (req, res, next) => {
 
       let profile = new Profiles(profile_fields);
       profile.save();
+
+      registerNotification(user.id);
 
       jwt.sign(
         payload,
@@ -268,6 +279,8 @@ const registerBuyer = async (req, res, next) => {
 
       let profile = new Profiles({ user: user.id });
       profile.save();
+
+      registerNotification(user.id);
 
       jwt.sign(
         payload,

@@ -22,6 +22,7 @@ const internalRoute = require("./routes/internal");
 const AuthController = require("./routes/auth");
 const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
+const notificationsRoute = require("./routes/notifications");
 
 const adminRoute = require("./routes/admin/admin");
 
@@ -34,7 +35,7 @@ app.use(cors());
 
 app.use("/api/post", postRoute);
 app.use("/api/post/gender", postGenderRoute);
-app.use("/api/profile", profileRoute);
+app.use("/api/profiles", profileRoute);
 app.use("/api/credits", creditsRoute);
 app.use("/api/post/category", categoryRoute);
 app.use("/api/auth", AuthController);
@@ -45,6 +46,7 @@ app.use("/api/review", reviewRoute);
 app.use("/api/partners", partnersRoute);
 app.use("/api/internal", internalRoute);
 app.use("/api/sellers", sellers);
+app.use("/api/notifications", notificationsRoute);
 
 //Admin route
 app.use("/api/admin", adminRoute);

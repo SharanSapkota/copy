@@ -3,9 +3,10 @@ const Order = require("../models/Orders");
 const User = require("../models/Users");
 const Post = require("../models/Post");
 const UserDetails = require("../models/UserDetails");
-const mail = require ("../pagination/nodemailer")
-
+const mail = require("../pagination/nodemailer");
 const AuthController = require("../controllers/authController");
+
+const { createNotification } = require("../functions/notificationFunctions");
 
 const router = express.Router();
 
@@ -30,52 +31,78 @@ router.get("/:orderId", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
-  const { buyer, clothes } = req.body;
-  orderDestructure = {};
+router.post("/", AuthController.authUser, async (req, res) => {
+  const {
+    product_seller,
+    clothes,
+    delivery_location,
+    delivery_type
+  } = req.body;
 
-  if (buyer) {
-    orderDestructure.buyer = buyer;
-    orderDestructure.delivery_location = buyer.address;
+  orderFields = {};
+  orderFields.buyer = req.user.id;
+
+  if (delivery_location) orderFields.delivery_location = delivery_location;
+  else {
+    res.status(401).json({ error: { msg: "Delivery location is required." } });
   }
+
+  if (delivery_type) orderFields.delivery_type = delivery_type;
+
   if (clothes) {
-    orderDestructure.clothes = clothes;
+    orderFields.clothes = clothes;
   }
 
-  orderDestructure.delivery_charge = 100;
+  if (delivery_type === "Inside Ringroad") {
+    orderFields.delivery_charge = 100;
+  } else if (delivery_type === "Outside Ringroad") {
+    orderFields.delivery_charge = 150;
+  } else if (delivery_type === "Outside Valley") {
+    orderFields.delivery_charge = 250;
+  }
 
   try {
-    const orderClothes = await Post.findById(clothes).populate('seller')
-    console.log(orderDestructure.discount)
-    orderDestructure.total_amount = orderClothes.selling_price;
+    const orderClothes = await Post.findById(clothes).populate("seller");
 
-    orderDestructure.total_order_amount =
-      orderDestructure.delivery_charge + orderDestructure.total_amount;
+    orderFields.total_amount = orderClothes.selling_price;
 
-      console.log(orderDestructure.total_order_amount)
+    orderFields.total_order_amount =
+      orderFields.delivery_charge + orderFields.total_amount;
 
+    const seller = await UserDetails.findOne({ user: product_seller });
+    const sellerEmail = await User.findById(product_seller).select("email");
 
-    const seller = await UserDetails.findOne({ user: orderClothes.seller });
+    orderFields.pickup_location = seller.address;
 
-    orderDestructure.pickup_location = seller.address;
-
-    const orderPost = new Order(orderDestructure);
+    const orderPost = new Order(orderFields);
     try {
       orderPost.save();
       orderClothes.status = "Processing";
       orderClothes.save();
+
+      let notdata = {
+        user: product_seller,
+        title: "Someone wants to buy your item: " + orderClothes.listing_name,
+        image: orderClothes.feature_image,
+        description: "Open to view order details.",
+        actions: {
+          actionType: "orders",
+          actionValue: orderPost._id
+        }
+      };
+
+      await createNotification(notdata);
+
+      const mailt = {
+        subject: "New Order Alert!",
+        html: `<h2>Someone wants to buy your item: ${orderClothes.listing_name}`
+      };
+
+      mail(sellerEmail, mailt);
+
       res
         .status(200)
         .json({ success: true, msg: "Order placed successfully!" });
-
-        console.log(orderClothes.feature_image)
-
-        const sellerEmail = orderClothes.seller.email
-       
-
-        const mailt = {subject:"New Order Alert!", html :`<h2> wants </h2> to buy ${orderClothes.listing_name}`}
-
-     mail (sellerEmail, mailt)
     } catch (err) {
       console.log(err);
       res
@@ -85,10 +112,6 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
-  
-
-    
-
 });
 
 router.patch("/:orderId", async (req, res) => {
@@ -99,7 +122,7 @@ router.patch("/:orderId", async (req, res) => {
   if (pickup_location) {
     orderUpdateDestructure.pickup_location = pickup_location;
   }
-  if (delivery_location) {  
+  if (delivery_location) {
     orderUpdateDestructure.delivery_location = delivery_location;
   }
 
@@ -145,7 +168,6 @@ router.patch("/:orderId/complete", async (req, res) => {
 
 router.get("/to/:UserId", async (req, res) => {
   let ordersArr = [];
-  console.log(req.params.UserId);
 
   Order.find()
     .populate({

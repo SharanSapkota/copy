@@ -8,6 +8,8 @@ const UserDetails = require("../models/UserDetails");
 const Users = require("../models/Users");
 const AWSS3 = require("../lib/aws-s3");
 
+const { getProfileById } = require("../functions/profileFunctions");
+
 router.get("/", async (req, res) => {
   try {
     const getAllProfile = await Profile.find();
@@ -54,38 +56,14 @@ router.post(
   }
 );
 
-router.get("/:username", async (req, res) => {
-  let username = req.params.username;
+//GET PROFILE BY ID
+router.get("/:id", async (req, res) => {
+  const id = req.params.id;
 
-  const getUser = await Users.findOne({ username: username }).select("id");
+  const profile = await getProfileById(id);
+  console.log(profile);
 
-  if (getUser) {
-    const profile = await Profile.findOne({ userId: getUser.id });
-
-    if (profile) {
-      res.status(200).json({
-        success: true,
-        msg: "Profile found.",
-        profile: profile
-      });
-    } else {
-      res.status(400).json({ errors: { msg: "Profile not found." } });
-    }
-  }
-
-  // try {
-  //   const getProfileByUsername = await Profile.findOne({username});
-  //   res.json(getProfileByUsername);
-  // } catch (err) {
-  //   res.json({ message: err });
-  // }
+  if (profile) return res.json(profile);
 });
-
-// router.delete('/:profileId', async(req, res) => {
-
-//     try{
-//         const
-//     }
-// })
 
 module.exports = router;

@@ -8,13 +8,11 @@ let s3bucket = new AWS.S3({
   region: process.env.AWS_S3_REGION
 });
 
-async function s3Upload (file) {
+async function s3Upload(file, width = 750, height = 994) {
   let fileType = file.originalname.substr(
     file.originalname.lastIndexOf(".") + 1
   );
   let fileName = Date.now() + "." + fileType;
-  let width = 750;
-  let height = 994;
 
   let params = {
     Body: file,
@@ -23,11 +21,19 @@ async function s3Upload (file) {
     ContentType: file.mimetype
   };
 
+  let resizeOptions = {};
+
+  if (width === 0 && height === 0) {
+    resizeOptions.fit = "contain";
+  } else {
+    resizeOptions.fit = "contain";
+    resizeOptions.width = width;
+    resizeOptions.height = height;
+  }
+  resizeOptions.background = { r: 255, g: 255, b: 255, alpha: 1 };
+
   const buffer = await Sharp(file.buffer)
-    .resize(width, height, {
-      fit: "contain",
-      background: { r: 255, g: 255, b: 255, alpha: 1 }
-    })
+    .resize(resizeOptions)
     .toBuffer();
 
   params.Body = buffer;
@@ -35,18 +41,15 @@ async function s3Upload (file) {
   params.Key = width + "-" + height + "-" + params.Key;
 
   try {
-    
-    const upload = await s3bucket.upload(params).promise() ;
+    const upload = await s3bucket.upload(params).promise();
 
-    return upload.Location
-
+    return upload.Location;
   } catch (err) {
     return {
       success: false,
       errors: { msg: "Server error", error: err }
     };
   }
-};
+}
 
-module.exports = {s3Upload};
-
+module.exports = { s3Upload };

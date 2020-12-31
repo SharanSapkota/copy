@@ -1,5 +1,4 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 
@@ -8,10 +7,17 @@ const router = express.Router();
 const Users = require("../models/Users");
 const Post = require("../models/Post");
 const AuthController = require("../controllers/authController");
+const { updateItemsListed } = require("../functions/profileFunctions");
 const limiter = require("./rateLimiter");
 
 const postValidator = require("../controllers/validate");
-const { CostExplorer } = require("aws-sdk");
+
+const multer = require("multer");
+const storage = multer.memoryStorage();
+
+const upload = multer({ storage: storage });
+
+const { s3Upload } = require("../functions/s3upload");
 
 const { postNewItem } = require("../functions/postFunctions");
 
@@ -83,89 +89,101 @@ router.get("/", async (req, res) => {
 router.post(
   "/",
   AuthController.authUser,
-  // postValidator("createPostValidation"),
+  upload.fields([
+    { name: "images" },
+    { name: "feature_image" },
+    { name: "data" }
+  ]),
   limiter,
   async (req, res) => {
+    const feature_image = req.files["feature_image"];
+
+    const images = req.files["images"];
+
+    const data = JSON.parse(req.body.data);
+
+    let tempArr = [];
+
     const {
       listing_name,
-      listing_type,
-      occassion,
-      gender,
-      design,
-      feature_image,
-      purchase_price,
-      images,
-      selling_price,
-      purchase_date,
-      condition,
+      description,
       category,
-      measurement,
-      fabric,
+      gender,
+      purchase_price,
+      selling_price,
+      condition,
+      purchase_date,
+      measurements,
+      brand,
       color,
-      testSeller
-    } = req.body;
+      fabric
+    } = data;
 
-    console.log(req.body);
-    const errors = validationResult(req);
+    data.feature_image = await s3Upload(feature_image[0]);
 
-    if (!errors.isEmpty()) {
-      console.log(errors);
-      res.end();
-      // res.status(422).json({ success: false, errors: errors.array() });
-    } else {
-      const postClothings = {};
-
-      postClothings.platform_fee = selling_price * 0.3;
-      postClothings.commission = selling_price * 0.7;
-
-      if (listing_name) {
-        postClothings.listing_name = listing_name;
+    if (images !== undefined) {
+      for (let i = 0; i < images.length; i++) {
+        tempArr.push(await s3Upload(images[i]));
       }
-      if (listing_type) {
-        postClothings.listing_type = listing_type;
-      }
-      if (occassion) {
-        postClothings.occassion = occassion;
-      }
-      if (gender) {
-        postClothings.gender = gender;
-      }
-      if (category) {
-        postClothings.category = category;
-      }
-      if (images) {
-        postClothings.images = images;
-      }
-      if (design) {
-        postClothings.design = design;
-      }
-      if (feature_image) {
-        postClothings.feature_image = feature_image;
-      }
-      if (purchase_price) {
-        postClothings.purchase_price = purchase_price;
-      }
-      if (selling_price) {
-        postClothings.selling_price = selling_price;
-      }
-      if (purchase_date) {
-        postClothings.purchase_date = purchase_date;
-      }
-      if (condition) {
-        postClothings.condition = condition;
-      }
-      if (measurement) {
-        postClothings.measurement = measurement;
-      }
-      if (fabric) {
-        postClothings.fabric = fabric;
-      }
-      if (color) {
-        postClothings.color = color;
-      }
-      const result = postNewItem(postClothings);
-      res.send(result);
     }
+
+    data.images = tempArr;
+
+    const postClothings = {};
+
+    postClothings.platform_fee = selling_price * 0.15;
+    postClothings.commission = selling_price * 0.85;
+
+    postClothings.seller = req.user.id;
+
+    if (listing_name) {
+      postClothings.listing_name = listing_name;
+    }
+    if (description) {
+      postClothings.description = description;
+    }
+    if (gender) {
+      postClothings.gender = gender;
+    }
+    if (category) {
+      postClothings.category = category;
+    }
+    if (data.images) {
+      postClothings.images = data.images;
+    }
+    if (data.feature_image) {
+      postClothings.feature_image = data.feature_image;
+    }
+    if (purchase_price) {
+      postClothings.purchase_price = purchase_price;
+    }
+    if (selling_price) {
+      postClothings.selling_price = selling_price;
+    }
+    if (purchase_date) {
+      postClothings.purchase_date = purchase_date;
+    }
+    if (condition) {
+      postClothings.condition = condition;
+    }
+    if (measurements) {
+      postClothings.measurements = measurements;
+    }
+    if (brand) {
+      postClothings.brand = brand;
+    }
+    if (fabric) {
+      postClothings.fabric = fabric;
+    }
+    if (color) {
+      postClothings.color = color;
+    }
+    const result = await postNewItem(postClothings);
+
+    if (result) {
+      updateItemsListed(req.user.id);
+    }
+    res.send(result);
   }
 );
 
