@@ -1,11 +1,15 @@
 const express = require('express')
 const Users = require('../models/Users')
+const functions = require('../functions/sellers')
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
+    
     try{
-    const getAllSellers = await Users.find()
+        
+    const getAllSellers = await functions.getAllSellers()
+    console.log(getAllSellers)
    
     res.status(200).json(getAllSellers)
 }catch(err) {

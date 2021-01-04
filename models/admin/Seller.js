@@ -17,7 +17,6 @@ const SellerSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    
   },
   
   usercode: {

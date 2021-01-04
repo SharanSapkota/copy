@@ -2,11 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const PostSchema = mongoose.Schema({
+
   listing_name: {
-    type: String,
-    required: false
-  },
-  listing_type: {
     type: String,
     required: false
   },
@@ -23,10 +20,6 @@ const PostSchema = mongoose.Schema({
     required: false
   },
   gender: {
-    type: String,
-    required: false
-  },
-  design: {
     type: String,
     required: false
   },

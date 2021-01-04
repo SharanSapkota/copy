@@ -14,7 +14,6 @@ router.get("/", async (req, res) => {
       function(err, docs) {
         console.log("Partial Search Begins");
 
-      
       }
     );
     
