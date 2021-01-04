@@ -8,11 +8,11 @@ const crypto = require("crypto");
 const { registerNotification } = require("../functions/notificationFunctions");
 const { validationResult } = require("express-validator");
 const SendMail = require("../pagination/nodemailer");
-const { GenerateResetLink } = require("../lib/generate.js");
+const { GenerateResetLink, GenerateOTP } = require("../lib/generate.js");
 const { s3Upload } = require("../functions/s3upload");
 require("dotenv/config");
 
-const authUser = (req, res, next) => {
+const authBuyer = (req, res, next) => {
   // Get token from header
   const token = req.header("x-auth-token");
 
@@ -28,6 +28,52 @@ const authUser = (req, res, next) => {
     next();
   } catch (err) {
     res.status(401).json({ msg: "Token is not valid." });
+  }
+};
+
+const authSeller = async (req, res, next) => {
+  // Get token from header
+  const token = req.header("x-auth-token");
+
+  // Check if no token
+  if (!token) {
+    return res.status(401).json({ msg: "No token, authorization denied." });
+  }
+
+  // Verify token
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const dbuser = await userModel.findById(decoded.user.id);
+    if (dbuser.role === "1") {
+      req.user = dbuser;
+      next();
+    } else {
+      return res.status(401).json({ msg: "User is not authorized." });
+    }
+  } catch (err) {
+    res.status(401).json({ msg: "Token is not valid." });
+  }
+};
+
+const authCheck = async (req, res, next) => {
+  const token = req.header("x-auth-token");
+
+  if (!token) {
+    return res.status(401).json({ msg: "No token, authorization denied." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const dbuser = await userModel.findById(decoded.user.id);
+    req.user = dbuser;
+    if (dbuser.role === "1") {
+      req.verified = true;
+    } else {
+      req.verified = false;
+    }
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: "Token is not valid" });
   }
 };
 
@@ -99,7 +145,7 @@ const registerSeller = async (req, res, next) => {
 
   let user = await userModel.findOne({ email });
 
-  if (user && user.role == 2) {
+  if (user && user.role == 3) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       {
@@ -109,7 +155,6 @@ const registerSeller = async (req, res, next) => {
     );
 
     if (updatedUser) {
-      user.role = 1;
       user.save();
       res.status(200).json({
         success: true,
@@ -146,9 +191,11 @@ const registerFinal = async (req, res, next) => {
 
   // const errors = validationResult(req);
 
-  // if (!errors.isEmpty()) {
-  //   res.status(422).json({ success: false, errors: errors.array() });
-  // }
+  if (!bank_name || !account_holder_name || !account_number || !branch) {
+    return res
+      .status(422)
+      .json({ success: false, error: { msg: "Bank Details are Required" } });
+  }
 
   const document = await s3Upload(file, 0, 0);
 
@@ -158,7 +205,7 @@ const registerFinal = async (req, res, next) => {
   if (username) userFields.username = username;
   if (phone_number) userFields.phone_number = phone_number;
   if (email) userFields.email = email;
-  userFields.role = 1;
+  userFields.role = 2;
 
   if (city) userDetailsFields.city = city;
   if (address) userDetailsFields.address = address;
@@ -249,7 +296,8 @@ const registerBuyer = async (req, res, next) => {
   if (username) userFields.username = username;
   if (phone_number) userFields.phone_number = phone_number;
   if (email) userFields.email = email;
-  userFields.role = 2;
+  if (city === "Others") userFields.role = 4;
+  else userFields.role = 3;
 
   if (name) userDetailsFields.name = name;
   if (city) userDetailsFields.city = city;
@@ -435,7 +483,6 @@ const forgotPassword = async (req, res) => {
           html: mailBody
         });
         res.send("recovery mail sent");
-        console.log("done");
       }
     })
     .catch(err => {
@@ -443,19 +490,53 @@ const forgotPassword = async (req, res) => {
     });
 };
 
-// router.post('/login', (req, res) => {
-//     try{
-//         var username = req.body.username,
-//         password = req.body.password
-//         console.log(username)
+const verifyEmail = (res, name, email) => {
+  try {
+    const OTP = parseInt(Math.random() * 1000000);
+    const ttl = 5 * 60 * 1000;
+    const expires = Date.now() + ttl;
+    const data = `${email}.${OTP}.${expires}`;
+    const hash = crypto
+      .createHmac("sha256", process.env.EMAIL_VERIFY_KEY)
+      .update(data)
+      .digest("hex");
+    const fullHash = `${hash}.${expires}`;
 
-//         const savedpwd = userDetailsModel.findOne({$or: [{email: username}, {username:username}]})
-//         console.log(savedpwd)
-//     }
-//     catch(err) {
-//         res.json({message: err})
-//     }
-// })
+    const mailBody = GenerateOTP(name, OTP);
+    SendMail(email, {
+      subject: "Verify Email Address",
+      html: mailBody
+    });
+    res.json({
+      success: true,
+      msg: "Verification email sent.",
+      hash: fullHash
+    });
+  } catch (err) {
+    console.log(err);
+    res.json({ success: false, msg: "Server Error." });
+  }
+};
+
+const verifyOTP = (email, hash, otp) => {
+  let [hashValue, expires] = hash.split(".");
+
+  let now = Date.now();
+
+  if (now > parseInt(expires)) return false;
+
+  let data = `${email}.${otp}.${expires}`;
+
+  let newCalculatedHash = crypto
+    .createHmac("sha256", process.env.EMAIL_VERIFY_KEY)
+    .update(data)
+    .digest("hex");
+
+  if (newCalculatedHash === hashValue) {
+    return true;
+  }
+  return false;
+};
 
 module.exports = {
   getSingleUser,
@@ -465,8 +546,12 @@ module.exports = {
   registerFinal,
   login,
   loginPartner,
-  authUser,
+  authBuyer,
+  authSeller,
   authAdmin,
+  authCheck,
   loginAdmin,
-  forgotPassword
+  forgotPassword,
+  verifyEmail,
+  verifyOTP
 };

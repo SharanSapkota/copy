@@ -14,13 +14,13 @@ const upload = multer({ storage: storage });
 
 const AuthController = require("../controllers/authController");
 
-router.get("/", AuthController.authUser, AuthController.getUserDetails);
+router.get("/", AuthController.authBuyer, AuthController.getUserDetails);
 
 router.get("/user/:username", AuthController.getSingleUser);
 
 router.post(
   "/register/seller",
-  AuthController.authUser,
+  AuthController.authBuyer,
   validate("createUserStep2"),
   AuthController.registerSeller
 );

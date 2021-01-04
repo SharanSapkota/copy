@@ -31,7 +31,7 @@ router.get("/:orderId", async (req, res) => {
   }
 });
 
-router.post("/", AuthController.authUser, async (req, res) => {
+router.post("/", AuthController.authBuyer, async (req, res) => {
   const {
     product_seller,
     clothes,
@@ -138,10 +138,10 @@ router.patch("/:orderId", async (req, res) => {
   }
 });
 
-router.patch("/:orderId/cancel", async (req, res) => {
+router.patch("/:orderId/cancel", AuthController.authBuyer, async (req, res) => {
   try {
     const updateStatus = await Order.findOneAndUpdate(
-      { _id: req.params.orderId },
+      { _id: req.params.orderId, buyer: req.user._id },
       { $set: { order_status: "cancelled" } }
     );
     res.status(201).json(updateStatus);
@@ -149,24 +149,23 @@ router.patch("/:orderId/cancel", async (req, res) => {
     res.status(400).json({ message: err });
   }
 });
-router.patch("/:orderId/complete", async (req, res) => {
-  //const order_status = "cancelled"
-
-  // const getOrderById = await Order.findById({_id: req.params.orderId})
-  // res.json({getOrderById, order_status})
-
-  try {
-    const updateStatus = await Order.findOneAndUpdate(
-      { _id: req.params.orderId },
-      { $set: { order_status: "completed" } }
-    );
-    res.status(201).json(updateStatus);
-  } catch (err) {
-    res.status(400).json({ message: err });
+router.patch(
+  "/:orderId/complete",
+  AuthController.authAdmin,
+  async (req, res) => {
+    try {
+      const updateStatus = await Order.findOneAndUpdate(
+        { _id: req.params.orderId },
+        { $set: { order_status: "completed" } }
+      );
+      res.status(201).json(updateStatus);
+    } catch (err) {
+      res.status(400).json({ message: err });
+    }
   }
-});
+);
 
-router.get("/to/:UserId", async (req, res) => {
+router.get("/to/", AuthController.authBuyer, async (req, res) => {
   let ordersArr = [];
 
   Order.find()
@@ -180,10 +179,7 @@ router.get("/to/:UserId", async (req, res) => {
     .sort({ date: -1 })
     .exec(function(err, orders) {
       orders.forEach(order => {
-        if (
-          order.clothes.seller == req.params.UserId ||
-          order.buyer == req.params.UserId
-        ) {
+        if (order.clothes.seller == req.user.id || order.buyer == req.user.id) {
           ordersArr.push(order);
         }
       });
@@ -196,10 +192,6 @@ router.get("/to/:UserId", async (req, res) => {
         });
       }
     });
-});
-
-router.get("/cancelorder", (req, res) => {
-  res.send("I am in cancel order.js");
 });
 
 module.exports = router;

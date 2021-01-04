@@ -52,10 +52,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.patch("/bank/:userId", async (req, res) => {
-  console.log(req.params.userId);
-});
-
 router.patch("/pincode/:userId", async (req, res) => {
   const { pincode } = req.body;
   if (!pincode)
@@ -90,13 +86,6 @@ router.patch("/details/:userId", async (req, res) => {
     pincode,
     username
   };
-
-  //   if (credit) update.credit = credit;
-  //   if (name) update.name = name;
-  //   if (pincode) update.pincode = pincode;
-  //   if (username) update.username = username;
-
-  console.log(update);
 
   try {
     const updatedUser = await UserDetails.findOneAndUpdate(

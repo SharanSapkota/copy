@@ -4,8 +4,7 @@ const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
-const Users = require("../models/Users");
-const Post = require("../models/Post");
+const { Post, Archive } = require("../models/Post");
 const AuthController = require("../controllers/authController");
 const { updateItemsListed } = require("../functions/profileFunctions");
 const limiter = require("./rateLimiter");
@@ -19,7 +18,10 @@ const upload = multer({ storage: storage });
 
 const { s3Upload } = require("../functions/s3upload");
 
-const { postNewItem } = require("../functions/postFunctions");
+const {
+  postNewItem,
+  postWithoutPublish
+} = require("../functions/postFunctions");
 
 //GET ALL
 router.get("/", async (req, res) => {
@@ -88,7 +90,7 @@ router.get("/", async (req, res) => {
 // POST
 router.post(
   "/",
-  AuthController.authUser,
+  AuthController.authCheck,
   upload.fields([
     { name: "images" },
     { name: "feature_image" },
@@ -178,12 +180,16 @@ router.post(
     if (color) {
       postClothings.color = color;
     }
-    const result = await postNewItem(postClothings);
-
-    if (result) {
-      updateItemsListed(req.user.id);
+    if (req.verified) {
+      const result = await postNewItem(postClothings);
+      if (result) {
+        updateItemsListed(req.user.id);
+      }
+      res.send(result);
+    } else {
+      const result = await postWithoutPublish(postClothings);
+      res.send(result);
     }
-    res.send(result);
   }
 );
 
@@ -201,9 +207,9 @@ router.get("/:postId", async (req, res) => {
 });
 
 //GET ALL POSTS BY SELLER
-router.get("/seller/:userId", async (req, res) => {
+router.get("/seller/:userId", AuthController.authSeller, async (req, res) => {
   try {
-    const posts = await Post.find({ seller: req.params.userId })
+    const posts = await Post.find({ seller: req.user._id })
       .select("-seller")
       .sort({ date: -1 });
 
@@ -227,7 +233,6 @@ router.get("/seller/:userId", async (req, res) => {
         page: page + 1,
         limit: limit
       };
-      console.log("here");
     }
 
     if (startIndex > 0) {
@@ -246,29 +251,23 @@ router.get("/seller/:userId", async (req, res) => {
 });
 
 //DELETE
-router.delete("/:postId", async (req, res) => {
+router.delete("/:postId", AuthController.authSeller, async (req, res) => {
   await mongoose
     .model("Posts")
-    .findById({ _id: req.params.postId }, function(err, result) {
-      console.log(result);
-
-      let swap = new (mongoose.model("archievePosts"))(result.toJSON()); //or result.toObject
+    .findOne({ _id: req.params.postId, seller: req.user._id }, function(
+      err,
+      result
+    ) {
+      let swap = new Archive(result.toJSON()); //or result.toObject
 
       result.remove();
       swap.save();
       res.json(swap);
     });
-
-  // try {
-  //   const removedPosts = await Post.remove({ _id: req.params.postId });
-  //   res.status(200).json(removedPosts);
-  // } catch (error) {
-  //   res.status(404).json({ message: error });
-  // }
 });
 
 //UPDATE
-router.patch("/:postId", async (req, res) => {
+router.patch("/:postId", AuthController.authSeller, async (req, res) => {
   try {
     const {
       listing_name,
@@ -345,7 +344,7 @@ router.patch("/:postId", async (req, res) => {
     }
 
     const updatedPost = await Post.findOneAndUpdate(
-      { _id: req.params.postId },
+      { _id: req.params.postId, seller: req.user._id },
       { $set: update },
       { new: true }
     );
@@ -355,23 +354,25 @@ router.patch("/:postId", async (req, res) => {
   }
 });
 
-router.patch("/unpublish/:postId", async (req, res) => {
-  const posts = await Post.findById(req.params.postId);
-  console.log(posts.status);
-  const updateStatus = {};
+router.patch(
+  "/unpublish/:postId",
+  AuthController.authSeller,
+  async (req, res) => {
+    const posts = await Post.findById(req.params.postId);
+    const updateStatus = {};
 
-  if (posts.status == "Available") {
-    updateStatus.status = "notAvailable";
-  } else {
-    updateStatus.status = "Available";
+    if (posts.status == "Available") {
+      updateStatus.status = "notAvailable";
+    } else {
+      updateStatus.status = "Available";
+    }
+    const updatedStatus = await Post.findOneAndUpdate(
+      { _id: req.params.postId, seller: req.user._id },
+      { $set: updateStatus }
+    );
+
+    if (updatedStatus) res.json({ ...updateStatus });
   }
-  const updatedStatus = await Post.findOneAndUpdate(
-    { _id: req.params.postId },
-    { $set: updateStatus }
-  );
-  // console.log(updatedStatus)
-
-  if (updatedStatus) res.json({ ...updateStatus });
-});
+);
 
 module.exports = router;

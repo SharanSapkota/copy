@@ -13,7 +13,11 @@ const upload = multer({ storage: storage });
 const { s3Upload } = require("../../functions/s3upload");
 
 const { postNewItem } = require("../../functions/postFunctions");
-
+const {
+  getAllUsers,
+  verifyUser,
+  movePostsToShop
+} = require("../../functions/admin");
 const AuthController = require("../../controllers/authController");
 
 router.get("/seller", AuthController.authAdmin, async (req, res) => {
@@ -98,6 +102,25 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   } catch (err) {
     res.json({ message: err });
   }
+});
+
+router.patch(
+  "/users/verify/:id",
+  AuthController.authAdmin,
+  async (req, res) => {
+    const id = req.params.id;
+
+    const result = await verifyUser(id);
+    await movePostsToShop(id);
+
+    res.json(result);
+  }
+);
+
+router.get("/users/unverified", AuthController.authAdmin, async (req, res) => {
+  const result = await getAllUsers({ role: "2" });
+
+  return res.json(result);
 });
 
 router.post(
