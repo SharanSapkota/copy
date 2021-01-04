@@ -27,13 +27,16 @@ const UserDetailsSchema = mongoose.Schema({
     required: true,
     trim: true
   },
-
+  document: {
+    type: String,
+    required: false
+  },
   bank_details: {
     bank_name: {
       type: String,
       required: false
     },
-    
+
     branch: {
       type: String,
       required: false

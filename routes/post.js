@@ -1,20 +1,28 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
-const Users = require("../models/Users");
-const Post = require("../models/Post");
+const { Post, Archive } = require("../models/Post");
 const AuthController = require("../controllers/authController");
+const { updateItemsListed } = require("../functions/profileFunctions");
 const limiter = require("./rateLimiter");
 const functions = require("../functions/posts")
 
 const postValidator = require("../controllers/validate");
-const { CostExplorer } = require("aws-sdk");
 
-const {postNewItem} = require('../functions/postFunctions');
+const multer = require("multer");
+const storage = multer.memoryStorage();
+
+const upload = multer({ storage: storage });
+
+const { s3Upload } = require("../functions/s3upload");
+
+const {
+  postNewItem,
+  postWithoutPublish
+} = require("../functions/postFunctions");
 
 //GET ALL
 router.get("/", async (req, res) => {
@@ -81,89 +89,109 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 // POST
 router.post(
   "/",
-   AuthController.authUser,
-  // postValidator("createPostValidation"),
+  AuthController.authCheck,
+  upload.fields([
+    { name: "images" },
+    { name: "feature_image" },
+    { name: "data" }
+  ]),
   limiter,
   async (req, res) => {
+    const feature_image = req.files["feature_image"];
+
+    const images = req.files["images"];
+
+    const data = JSON.parse(req.body.data);
+
+    let tempArr = [];
+
     const {
       listing_name,
-      
-      occassion,
-      gender,
-      
-      feature_image,
-      purchase_price,
-      images,
-      selling_price,
-      purchase_date,
-      condition,
+      description,
       category,
-      measurement,
-      fabric,
+      gender,
+      purchase_price,
+      selling_price,
+      condition,
+      purchase_date,
+      measurements,
+      brand,
       color,
-      testSeller
-    } = req.body;
+      fabric
+    } = data;
 
-    console.log(req.body);
-    const errors = validationResult(req);
+    data.feature_image = await s3Upload(feature_image[0]);
 
-    if (!errors.isEmpty()) {
-      console.log(errors);
-      res.end();
-      // res.status(422).json({ success: false, errors: errors.array() });
+    if (images !== undefined) {
+      for (let i = 0; i < images.length; i++) {
+        tempArr.push(await s3Upload(images[i]));
+      }
+    }
+
+    data.images = tempArr;
+
+    const postClothings = {};
+
+    postClothings.platform_fee = selling_price * 0.15;
+    postClothings.commission = selling_price * 0.85;
+
+    postClothings.seller = req.user.id;
+
+    if (listing_name) {
+      postClothings.listing_name = listing_name;
+    }
+    if (description) {
+      postClothings.description = description;
+    }
+    if (gender) {
+      postClothings.gender = gender;
+    }
+    if (category) {
+      postClothings.category = category;
+    }
+    if (data.images) {
+      postClothings.images = data.images;
+    }
+    if (data.feature_image) {
+      postClothings.feature_image = data.feature_image;
+    }
+    if (purchase_price) {
+      postClothings.purchase_price = purchase_price;
+    }
+    if (selling_price) {
+      postClothings.selling_price = selling_price;
+    }
+    if (purchase_date) {
+      postClothings.purchase_date = purchase_date;
+    }
+    if (condition) {
+      postClothings.condition = condition;
+    }
+    if (measurements) {
+      postClothings.measurements = measurements;
+    }
+    if (brand) {
+      postClothings.brand = brand;
+    }
+    if (fabric) {
+      postClothings.fabric = fabric;
+    }
+    if (color) {
+      postClothings.color = color;
+    }
+    if (req.verified) {
+      const result = await postNewItem(postClothings);
+      if (result) {
+        updateItemsListed(req.user.id);
+
+      }
+      res.send(result);
     } else {
-      const postClothings = {};
-
-      postClothings.platform_fee = selling_price * 0.3;
-      postClothings.commission = selling_price * 0.7;
-
-      if (listing_name) {
-        postClothings.listing_name = listing_name;
-      }
-     
-      if (occassion) {
-        postClothings.occassion = occassion;
-      }
-      if (gender) {
-        postClothings.gender = gender;
-      }
-      if (category) {
-        postClothings.category = category;
-      }
-      if (images) {
-        postClothings.images = images;
-      }
-      
-      if (feature_image) {
-        postClothings.feature_image = feature_image;
-      }
-      if (purchase_price) {
-        postClothings.purchase_price = purchase_price;
-      }
-      if (selling_price) {
-        postClothings.selling_price = selling_price;
-      }
-      if (purchase_date) {
-        postClothings.purchase_date = purchase_date;
-      }
-      if (condition) {
-        postClothings.condition = condition;
-      }
-      if (measurement) {
-        postClothings.measurement = measurement;
-      }
-      if (fabric) {
-        postClothings.fabric = fabric;
-      }
-      if (color) {
-        postClothings.color = color;
-      }
-       const result = postNewItem(postClothings)
-       res.send(result);
+      const result = await postWithoutPublish(postClothings);
+      res.send(result);
     }
   }
 );
@@ -189,9 +217,9 @@ router.get("/:postId", async (req, res) => {
 });
 
 //GET ALL POSTS BY SELLER
-router.get("/seller/:userId", async (req, res) => {
+router.get("/seller/:userId", AuthController.authSeller, async (req, res) => {
   try {
-    const posts = await Post.find({ seller: req.params.userId })
+    const posts = await Post.find({ seller: req.user._id })
       .select("-seller")
       .sort({ date: -1 });
 
@@ -215,7 +243,6 @@ router.get("/seller/:userId", async (req, res) => {
         page: page + 1,
         limit: limit
       };
-      console.log("here");
     }
 
     if (startIndex > 0) {
@@ -234,29 +261,23 @@ router.get("/seller/:userId", async (req, res) => {
 });
 
 //DELETE
-router.delete("/:postId", async (req, res) => {
+router.delete("/:postId", AuthController.authSeller, async (req, res) => {
   await mongoose
     .model("Posts")
-    .findById({ _id: req.params.postId }, function(err, result) {
-      console.log(result);
-
-      let swap = new (mongoose.model("archievePosts"))(result.toJSON()); //or result.toObject
+    .findOne({ _id: req.params.postId, seller: req.user._id }, function(
+      err,
+      result
+    ) {
+      let swap = new Archive(result.toJSON()); //or result.toObject
 
       result.remove();
       swap.save();
       res.json(swap);
     });
-
-  // try {
-  //   const removedPosts = await Post.remove({ _id: req.params.postId });
-  //   res.status(200).json(removedPosts);
-  // } catch (error) {
-  //   res.status(404).json({ message: error });
-  // }
 });
 
 //UPDATE
-router.patch("/:postId", async (req, res) => {
+router.patch("/:postId", AuthController.authSeller, async (req, res) => {
   try {
     const {
       listing_name,
@@ -329,41 +350,35 @@ router.patch("/:postId", async (req, res) => {
     }
 
     const updatedPost = await Post.findOneAndUpdate(
-      { _id: req.params.postId },
-
-      { $set: update }
+      { _id: req.params.postId, seller: req.user._id },
+      { $set: update },
+      { new: true }
     );
     res.status(200).json(updatedPost);
   } catch (err) {
     res.status(404).json({ message: err });
   }
-
-})
-
-  router.patch('/unpublish/:postId', async (req, res) => {
-    
-    const posts = await Post.findById(req.params.postId)
-    console.log(posts.status)
-    const updateStatus = {}
-  
-    if (posts.status == "Available") {
-  
-       updateStatus.status = "notAvailable"
-    }
-     else{
-  
-        updateStatus.status = "Available"
-     
-      }
-      const updatedStatus = await Post.findOneAndUpdate (
-        {_id: req.params.postId}, 
-        { $set: updateStatus}
-        )
-        // console.log(updatedStatus)
-        
-        if(updatedStatus) res.json({...updateStatus})
-       
-      
 });
+
+router.patch(
+  "/unpublish/:postId",
+  AuthController.authSeller,
+  async (req, res) => {
+    const posts = await Post.findById(req.params.postId);
+    const updateStatus = {};
+
+    if (posts.status == "Available") {
+      updateStatus.status = "notAvailable";
+    } else {
+      updateStatus.status = "Available";
+    }
+    const updatedStatus = await Post.findOneAndUpdate(
+      { _id: req.params.postId, seller: req.user._id },
+      { $set: updateStatus }
+    );
+
+    if (updatedStatus) res.json({ ...updateStatus });
+  }
+);
 
 module.exports = router;

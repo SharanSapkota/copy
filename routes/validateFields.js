@@ -1,11 +1,11 @@
 const express = require("express");
-const { check } = require("express-validator");
 const Users = require("../models/Users");
+const AuthController = require("../controllers/authController");
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  const { username, email, phone_number, step } = req.body;
+  const { username, name, email, phone_number, hash, otp, step } = req.body;
   try {
     if (step == 1) {
       const user = await Users.findOne({ username: username });
@@ -54,10 +54,28 @@ router.post("/", async (req, res) => {
           ]
         });
       } else {
-        return res.json({ success: true });
+        AuthController.verifyEmail(res, name, email);
+      }
+    }
+    if (step === 4) {
+      const checkOtp = AuthController.verifyOTP(email, hash, otp);
+
+      if (checkOtp) {
+        return res.json({ success: true, msg: "OTP Verified." });
+      } else {
+        return res.json({
+          success: false,
+          errors: [
+            {
+              field: "verifyotp",
+              msg: "OTP incorrect. Please re-check and try again."
+            }
+          ]
+        });
       }
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json(error);
   }
 });

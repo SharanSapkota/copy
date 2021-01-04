@@ -7,31 +7,26 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: false
   },
-
- 
-
+  description: {
+    type: String,
+    required: false
+  },
   category: {
     type: String,
     required: false
   },
-
   occassion: {
     type: String,
     required: false
   },
-
   gender: {
     type: String,
     required: false
   },
-
-
-
   feature_image: {
     type: String,
     required: false
   },
-
   images: [
     {
       type: String,
@@ -42,32 +37,26 @@ const PostSchema = mongoose.Schema({
     type: Number,
     required: false
   },
-
   selling_price: {
     type: Number,
     required: false
   },
-
   commission: {
     type: Number,
     required: false
   },
-
   platform_fee: {
     type: Number,
     required: false
   },
-
   purchase_date: {
     type: Date,
     required: false
   },
-
   condition: {
     type: String,
     required: false
   },
-
   likes: [
     {
       type: Schema.Types.ObjectId,
@@ -75,40 +64,38 @@ const PostSchema = mongoose.Schema({
       required: false
     }
   ],
-
-  measurement: {
+  measurements: {
     type: Schema.Types.Mixed,
-    required: false,
-    default: {}
+    required: false
   },
-
+  brand: {
+    type: String,
+    required: false
+  },
   fabric: {
     type: String,
     required: false
   },
-
   color: {
     type: String,
     required: false
   },
-
   status: {
     type: String,
     required: false,
     default: "Available"
   },
-
   seller: {
     type: Schema.Types.ObjectId,
     ref: "Users"
   },
   testSeller: {
     type: Schema.Types.ObjectId,
-    ref: 'Seller'
+    ref: "Seller"
   },
-  item_code:{
-      type: String,
-      required: false
+  item_code: {
+    type: String,
+    required: false
   },
   date: {
     type: Date,
@@ -116,6 +103,8 @@ const PostSchema = mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model("archievePosts", PostSchema);
-
-module.exports = mongoose.model("Posts", PostSchema);
+module.exports = {
+  Archive: mongoose.model("archievePosts", PostSchema),
+  Post: mongoose.model("Posts", PostSchema),
+  Unverified: mongoose.model("Unverified", PostSchema)
+};
