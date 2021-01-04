@@ -67,7 +67,12 @@ router.get('/:evaluationId', async (req, res) => {
     try{
         const getById = await evalFunctions.getEvalById(id)
         res.status(200).json(getById)
+    }catch(err){
+        res.status(404).json({message: err.message})
     }
+})
+
+
 router.patch('/maintenancecomplete/:evaluationId', AuthController.authAdmin, async(req,res) =>{
     try{
         const data = await Evaluation.findOneAndUpdate({_id : req.params.evaluationId}, {
