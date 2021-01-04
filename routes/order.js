@@ -197,7 +197,7 @@ const id = req.params.orderId;
   } catch (err) {
     res.status(400).json({ message: err });
   }
-);
+});
 
 router.get("/to/", AuthController.authBuyer, async (req, res) => {
   let ordersArr = [];
