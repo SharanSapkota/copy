@@ -4,7 +4,7 @@ const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
-const { Post, Archive } = require("../models/Post");
+const { Post, Archive, Unverified } = require("../models/Post");
 const AuthController = require("../controllers/authController");
 const { updateItemsListed } = require("../functions/profileFunctions");
 const limiter = require("./rateLimiter");
@@ -207,46 +207,39 @@ router.get("/:postId", async (req, res) => {
 });
 
 //GET ALL POSTS BY SELLER
-router.get("/seller/:userId", AuthController.authSeller, async (req, res) => {
-  try {
-    const posts = await Post.find({ seller: req.user._id })
-      .select("-seller")
-      .sort({ date: -1 });
+router.get("/seller/:userId", AuthController.authCheck, async (req, res) => {
+  if (req.verified) {
+    try {
+      const posts = await Post.find({ seller: req.user._id })
+        .select("-seller")
+        .sort({ date: -1 });
 
-    if (!posts.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: { msg: "Seller has no clothes listed." }
-      });
+      if (!posts.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: { msg: "User has no clothes listed." }
+        });
+      }
+      return res.status(200).json(posts);
+    } catch (error) {
+      return res.status(400).json({ error: error });
     }
+  } else {
+    try {
+      const posts = await Unverified.find({ seller: req.user._id })
+        .select("-seller")
+        .sort({ date: -1 });
 
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
-
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-
-    const result = {};
-
-    if (endIndex < posts.length) {
-      result.next = {
-        page: page + 1,
-        limit: limit
-      };
+      if (!posts.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: { msg: "User has no clothes listed." }
+        });
+      }
+      return res.status(200).json(posts);
+    } catch (error) {
+      return res.status(400).json({ error: error });
     }
-
-    if (startIndex > 0) {
-      result.previous = {
-        page: page - 1,
-        limit: limit
-      };
-    }
-
-    result.resultUsers = posts.slice(startIndex, endIndex);
-
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(400).json({ error: error });
   }
 });
 

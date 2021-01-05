@@ -6,30 +6,61 @@ const UserDetails = require("../models/UserDetails");
 const mail = require("../pagination/nodemailer");
 const AuthController = require("../controllers/authController");
 
+const {
+  getPendingOrders,
+  getCompletedOrders
+} = require("../functions/orderFunctions");
 const { createNotification } = require("../functions/notificationFunctions");
 
 const router = express.Router();
 
-router.get("/", AuthController.authAdmin, async (req, res) => {
-  // res.send('I am in order.js')
+// router.get("/", AuthController.authSeller, async (req, res) => {
+//   try {
+//     const getAllOrder = await Order.find().populate("clothes");
+//     res.json(getAllOrder);
+//   } catch (err) {
+//     res.json(err);
+//   }
+// });
+
+router.get("/pending", AuthController.authSeller, async (req, res) => {
   try {
-    const getAllOrder = await Order.find().populate("clothes");
-    res.json(getAllOrder);
+    const result = await getPendingOrders(req.user.id);
+    if (result.length > 0) {
+      res.json({ success: true, orders: result });
+    } else {
+      res.json({ success: false, errors: [{ msg: "No orders pending." }] });
+    }
   } catch (err) {
-    res.json(err);
+    res.json({ success: false, errors: [{ msg: "Server error" }] });
   }
 });
 
-router.get("/:orderId", async (req, res) => {
+router.get("/completed", AuthController.authSeller, async (req, res) => {
   try {
-    const getOrderById = await Order.findById({
-      _id: req.params.orderId
-    }).populate("clothes");
-    res.json(getOrderById);
+    const result = await getCompletedOrders(req.user.id);
+    if (result.length > 0) {
+      res.json({ success: true, orders: result });
+    } else {
+      res.json({ success: false, errors: [{ msg: "No orders completed." }] });
+    }
   } catch (err) {
-    res.json(err);
+    res.json({ success: false, errors: [{ msg: "Server error" }] });
   }
 });
+
+router.get("/orderById/:id", AuthController.authSeller, async (req, res) => {});
+
+// router.get("/:orderId", async (req, res) => {
+//   try {
+//     const getOrderById = await Order.findById({
+//       _id: req.params.orderId
+//     }).populate("clothes");
+//     res.json(getOrderById);
+//   } catch (err) {
+//     res.json(err);
+//   }
+// });
 
 router.post("/", AuthController.authBuyer, async (req, res) => {
   const {
@@ -114,29 +145,29 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
   }
 });
 
-router.patch("/:orderId", async (req, res) => {
-  const { pickup_location, delivery_location } = req.body;
+// router.patch("/:orderId", async (req, res) => {
+//   const { pickup_location, delivery_location } = req.body;
 
-  orderUpdateDestructure = {};
+//   orderUpdateDestructure = {};
 
-  if (pickup_location) {
-    orderUpdateDestructure.pickup_location = pickup_location;
-  }
-  if (delivery_location) {
-    orderUpdateDestructure.delivery_location = delivery_location;
-  }
+//   if (pickup_location) {
+//     orderUpdateDestructure.pickup_location = pickup_location;
+//   }
+//   if (delivery_location) {
+//     orderUpdateDestructure.delivery_location = delivery_location;
+//   }
 
-  try {
-    const updateOrder = await Order.findOneAndUpdate(
-      { _id: req.params.orderId },
-      { $set: orderUpdateDestructure }
-    );
+//   try {
+//     const updateOrder = await Order.findOneAndUpdate(
+//       { _id: req.params.orderId },
+//       { $set: orderUpdateDestructure }
+//     );
 
-    res.status(200).json(updateOrder);
-  } catch (err) {
-    res.json({ message: err });
-  }
-});
+//     res.status(200).json(updateOrder);
+//   } catch (err) {
+//     res.json({ message: err });
+//   }
+// });
 
 router.patch("/:orderId/cancel", AuthController.authBuyer, async (req, res) => {
   try {
@@ -149,49 +180,21 @@ router.patch("/:orderId/cancel", AuthController.authBuyer, async (req, res) => {
     res.status(400).json({ message: err });
   }
 });
-router.patch(
-  "/:orderId/complete",
-  AuthController.authAdmin,
-  async (req, res) => {
-    try {
-      const updateStatus = await Order.findOneAndUpdate(
-        { _id: req.params.orderId },
-        { $set: { order_status: "completed" } }
-      );
-      res.status(201).json(updateStatus);
-    } catch (err) {
-      res.status(400).json({ message: err });
-    }
-  }
-);
 
-router.get("/to/", AuthController.authBuyer, async (req, res) => {
-  let ordersArr = [];
-
-  Order.find()
-    .populate({
-      path: "clothes"
-    })
-    .populate({
-      path: "buyer",
-      select: "username"
-    })
-    .sort({ date: -1 })
-    .exec(function(err, orders) {
-      orders.forEach(order => {
-        if (order.clothes.seller == req.user.id || order.buyer == req.user.id) {
-          ordersArr.push(order);
-        }
-      });
-      if (ordersArr.length > 0) {
-        return res.status(200).json({ orders: ordersArr, success: true });
-      } else {
-        return res.status(404).json({
-          success: false,
-          errors: { msg: "No orders found for seller." }
-        });
-      }
-    });
-});
+// router.patch(
+//   "/:orderId/complete",
+//   AuthController.authAdmin,
+//   async (req, res) => {
+//     try {
+//       const updateStatus = await Order.findOneAndUpdate(
+//         { _id: req.params.orderId },
+//         { $set: { order_status: "completed" } }
+//       );
+//       res.status(201).json(updateStatus);
+//     } catch (err) {
+//       res.status(400).json({ message: err });
+//     }
+//   }
+// );
 
 module.exports = router;
