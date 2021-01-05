@@ -8,6 +8,7 @@ const { Post, Archive, Unverified } = require("../models/Post");
 const AuthController = require("../controllers/authController");
 const { updateItemsListed } = require("../functions/profileFunctions");
 const limiter = require("./rateLimiter");
+const functions = require("../functions/posts")
 
 const postValidator = require("../controllers/validate");
 
@@ -26,6 +27,7 @@ const {
 //GET ALL
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
+  console.log("this is the all post")
 
   const abc = req.query.search;
 
@@ -184,6 +186,7 @@ router.post(
       const result = await postNewItem(postClothings);
       if (result) {
         updateItemsListed(req.user.id);
+
       }
       res.send(result);
     } else {
@@ -193,13 +196,20 @@ router.post(
   }
 );
 
+
 //GET BY ID
 router.get("/:postId", async (req, res) => {
+
+  console.log("this is the post by id")
   try {
-    const posts = await Post.findById(req.params.postId).populate(
-      "seller",
-      "username"
-    );
+
+    
+    const posts = await functions.getPostById(req.params.postId)
+    // const posts = await Post.findById(req.params.postId).populate(
+    //   "seller",
+    //   "username"
+    // );
+    console.log(posts)
     res.status(200).json(posts);
   } catch (error) {
     res.status(404).json({ message: "Product Not Found!" });
@@ -264,10 +274,10 @@ router.patch("/:postId", AuthController.authSeller, async (req, res) => {
   try {
     const {
       listing_name,
-      listing_type,
+      
       occassion,
       gender,
-      design,
+      
       feature_image,
       purchase_price,
       selling_price,
@@ -287,18 +297,14 @@ router.patch("/:postId", AuthController.authSeller, async (req, res) => {
     if (listing_name) {
       update.listing_name = req.body.listing_name;
     }
-    if (listing_type) {
-      update.listing_type = req.body.listing_type;
-    }
+   
     if (occassion) {
       update.occasion = req.body.occasion;
     }
     if (gender) {
       update.gender = req.body.gender;
     }
-    if (design) {
-      update.design = req.body.design;
-    }
+   
     if (feature_image) {
       update.feature_image = req.body.feature_image;
     }
