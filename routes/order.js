@@ -14,7 +14,6 @@ const {
 const { createNotification } = require("../functions/notificationFunctions");
 
 const router = express.Router();
-var a;
 
 // router.get("/", AuthController.authSeller, async (req, res) => {
 //   try {
@@ -154,46 +153,6 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
   }
 });
 
-// router.patch("/:orderId", async (req, res) => {
-//   const { pickup_location, delivery_location } = req.body;
-
-//   orderUpdateDestructure = {};
-
-//   if (pickup_location) {
-//     orderUpdateDestructure.pickup_location = pickup_location;
-//   }
-//   if (delivery_location) {
-//     orderUpdateDestructure.delivery_location = delivery_location;
-//   }
-
-//   try {
-//     const updateOrder = await Order.findOneAndUpdate(
-//       { _id: req.params.orderId },
-//       { $set: orderUpdateDestructure }
-//     );
-
-//     res.status(200).json(updateOrder);
-//   } catch (err) {
-//     res.json({ message: err });
-//   }
-// });
-
-// Change Order
-router.patch("/:orderId/complete", async (req, res) => {
-  var id = req.params.orderId;
-  try {
-    const changeOrder = await orderFunctions.changeOrder(id, "completed");
-
-    if (changeOrder) {
-      changeOrder.save();
-      res.status(201).json(changeOrder);
-    } else {
-      res.status(404).json({ error: "Order not found." });
-    }
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
 
 // Change Order
 router.patch("/:orderId/cancel", async (req, res) => {
@@ -212,22 +171,6 @@ router.patch("/:orderId/cancel", async (req, res) => {
   }
 });
 
-// Change Order
-router.patch("/:orderId/pending", async (req, res) => {
-const id = req.params.orderId;
-  try {
-    const changeOrder = await orderFunctions.changeOrder(id, "pending")
-    if(changeOrder){
-     changeOrder.save();  
-     res.status(201).json(changeOrder);
-    }
-    else {
-      res.status(404).json({error: "Order not found."})
-    }
-  } catch (err) {
-    res.status(400).json({ message: err });
-  }
-});
 
 router.get("/to/", AuthController.authBuyer, async (req, res) => {
   let ordersArr = [];

@@ -81,7 +81,9 @@ const authAdmin = (req, res, next) => {
   const token = req.header("x-auth-token");
 
   if (!token) {
+    console.log("not authorized")
     return res.status(401).json({ msg: "No token, authorization denied." });
+    
   }
 
   try {
@@ -91,6 +93,8 @@ const authAdmin = (req, res, next) => {
       next();
     }
   } catch (err) {
+    
+    console.log("token is invalid")
     res.status(401).json({ msg: "Token is not valid." });
   }
 };

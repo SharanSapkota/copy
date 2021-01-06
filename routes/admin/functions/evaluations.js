@@ -7,7 +7,7 @@ const getAllEvaluations = async () => {
 }
 
 const getEvalById = async (id) => {
-    const getEval = await Evaluation.findById(id).populate('Seller')
+    const getEval = await Evaluation.findById(id)
     console.log(getEval)
     return getEval
 }

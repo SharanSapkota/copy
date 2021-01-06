@@ -18,9 +18,11 @@ const {
   verifyUser,
   movePostsToShop
 } = require("../../functions/admin");
-const AuthController = require("../../controllers/authController");
+  const AuthController = require("../../controllers/authController");
 
-router.get("/seller", AuthController.authAdmin, async (req, res) => {
+router.get("/seller",
+// AuthController.authAdmin,
+  async (req, res) => {
   const seller = await Seller.find({});
   res.status(200).json(seller);
 });
@@ -48,9 +50,19 @@ router.patch(
   }
 );
 
-router.get("/posts", AuthController.authAdmin, async (req, res) => {
-  const allPosts = await Post.find({ testSeller: { $exists: true } });
+router.get("/posts",
+// AuthController.authAdmin, 
+ async (req, res) => {
+   try {
+     
+  const allPosts = await Post.find(
+    // { testSeller: { $exists: true } }
+    );
+  
   res.status(200).json(allPosts);
+}catch(err) {
+  res.status(400).json({message: err.message})
+}
 });
 
 router.post("/seller", AuthController.authAdmin, async (req, res) => {
@@ -92,6 +104,7 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   }
 
   data.usercode = usercode.concat(tempCodeEnd);
+  console.log(data)
 
   const sellers = new Seller(data);
 
@@ -102,11 +115,12 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   } catch (err) {
     res.json({ message: err });
   }
+
 });
 
 router.patch(
   "/users/verify/:id",
-  AuthController.authAdmin,
+  // AuthController.authAdmin,
   async (req, res) => {
     const id = req.params.id;
 
@@ -117,7 +131,9 @@ router.patch(
   }
 );
 
-router.get("/users/unverified", AuthController.authAdmin, async (req, res) => {
+router.get("/users/unverified",
+  AuthController.authAdmin,
+  async (req, res) => {
   const result = await getAllUsers({ role: "2" });
 
   return res.json(result);
@@ -251,9 +267,13 @@ router.post(
       }
 
       const post = postNewItem(postClothings);
-      const ePost = Evaluation.findByIdAndUpdate(data.evId, {
+      console.log(data.evId)
+      const ePost = await Evaluation.findByIdAndUpdate({_id: data.evId}, {
         status: "completed"
+
       });
+    
+      console.log(ePost)
       res.send({ success: true });
     }
   }
@@ -287,6 +307,7 @@ router.post("/orders", AuthController.authAdmin, async (req, res) => {
   orderDestructure.delivery_charge = 100;
 
   try {
+    
     const orderClothes = await Post.findById(clothes);
 
     orderDestructure.total_amount = orderClothes.selling_price;
@@ -294,7 +315,12 @@ router.post("/orders", AuthController.authAdmin, async (req, res) => {
     orderDestructure.total_order_amount =
       orderDestructure.delivery_charge + orderDestructure.total_amount;
 
+      // if(orderClothes.testSeller) {
+      //   console.log(orderClothes.testSeller)
+      // }
+
     const seller = await Seller.findById(orderClothes.testSeller);
+   
 
     orderDestructure.pickup_location = seller.address;
 
