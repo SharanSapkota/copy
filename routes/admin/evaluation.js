@@ -1,6 +1,6 @@
-const express = require('express');
-const Evaluation = require('../../models/admin/Evaluation')
-const evalFunctions = require('./functions/evaluations')
+const express = require("express");
+const Evaluation = require("../../models/admin/Evaluation");
+const evalFunctions = require("./functions/evaluations");
 
 const router = express.Router();
 

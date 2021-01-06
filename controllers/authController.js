@@ -79,9 +79,6 @@ const authCheck = async (req, res, next) => {
 
 const authAdmin = (req, res, next) => {
   const token = req.header("x-auth-token");
-  console.log(token)
-
-
 
   if (!token) {
     console.log("not authorized")
@@ -318,7 +315,7 @@ const registerBuyer = async (req, res, next) => {
   let user = await userModel.findOne({ email });
 
   if (user) {
-    return res.status(400).json({ errors: { msg: "User already exists." } });
+    return res.status(400).json({ errors: [{ msg: "User already exists." }] });
   }
 
   user = new userModel(userFields);
@@ -499,7 +496,7 @@ const forgotPassword = async (req, res) => {
 
 const verifyEmail = (res, name, email) => {
   try {
-    const OTP = parseInt(Math.random() * 1000000);
+    const OTP = Math.floor(100000 + Math.random() * 900000);
     const ttl = 5 * 60 * 1000;
     const expires = Date.now() + ttl;
     const data = `${email}.${OTP}.${expires}`;
