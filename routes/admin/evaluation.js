@@ -7,7 +7,9 @@ const router = express.Router();
 // Get All Evaluation
 const AuthController = require("../../controllers/authController");
 
-router.get('/',AuthController.authAdmin, async(req, res) => {
+router.get('/',
+ AuthController.authAdmin,
+ async(req, res) => {
    const getAllEvaluation = await Evaluation.find().populate('seller')
    res.status(200).json(getAllEvaluation)
 })
@@ -30,12 +32,16 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
         
         color,
         detail,
-        purchase_price
+        purchase_price,
+        selling_price
     } = req.body
     const evaluationDestructure = {}
 
     if(seller){
         evaluationDestructure.seller = req.body.seller
+    }
+    if(selling_price) {
+        evaluationDestructure.selling_price = req.body.selling_price
     }
    
     if(color){
@@ -63,7 +69,7 @@ router.post('/',AuthController.authAdmin, async(req, res) => {
 router.get('/:evaluationId', async (req, res) => {
 
     const id = req.params.evaluationId
-    
+    console.log(id)
     try{
         const getById = await evalFunctions.getEvalById(id)
         res.status(200).json(getById)

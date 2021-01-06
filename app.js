@@ -25,6 +25,7 @@ const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
 const notificationsRoute = require("./routes/notifications");
 
+const adminOrderRoute = require('./routes/admin/adminOrder/adminOrder')
 const adminRoute = require("./routes/admin/admin");
 
 const s3uploadRoute = require("./routes/s3upload");
@@ -52,6 +53,7 @@ app.use("/api/notifications", notificationsRoute);
 //Admin route
 app.use("/api/admin", adminRoute);
 app.use("/api/admin/evaluation", evaluationRoute);
+app.use("/api/admin/order", adminOrderRoute);
 
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);

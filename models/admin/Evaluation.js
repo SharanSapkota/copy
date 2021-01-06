@@ -2,20 +2,11 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const EvaluationSchema = Schema ({
-
-    post: {
-        type: Schema.Types.ObjectId,
-        ref: 'Post'
-    },
-
     seller: {
         type: Schema.Types.ObjectId,
         ref: 'Sellers'
     },
-    listing_type: {
-        type: String,
-        required: false
-    },
+ 
     color: {
         type: String,
         required: false
@@ -25,6 +16,10 @@ const EvaluationSchema = Schema ({
         required: false
     },
     purchase_price: {
+        type: Number,
+        required: false
+    },
+    selling_price: {
         type: Number,
         required: false
     },

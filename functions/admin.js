@@ -1,6 +1,6 @@
 const Users = require("../models/Users");
 const { Post, Unverified } = require("../models/Post");
-const UserDetails = require("../models/UserDetails");
+const userModel = require("../models/UserDetails");
 
 module.exports = {
   getAllUsers: async function(filters = {}) {
@@ -33,11 +33,17 @@ module.exports = {
     }
   },
   verifyUser: async function(id) {
+    console.log(id)
     try {
-      let user = await userModel.findById(id);
+      console.log(id)
+      let user = await Users.findById(id);
+      console.log(user)
       if (user.role === "2") {
+        console.log(user.role)
         user.role = 1;
         user.save();
+
+        console.log(user.role)
 
         return { success: true, msg: "User verified as seller.", user };
       } else if (user.role === "1") {

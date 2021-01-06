@@ -37,8 +37,14 @@ const UserSchema = mongoose.Schema({
   resetPasswordExpired:{
     type: Date,
     required: false
+  },
+
+  date: {
+    type: Date,
+    default: Date.now
   }
 });
+
 
 UserSchema.methods.resetToken = function(){
   setTimeout(()=>{

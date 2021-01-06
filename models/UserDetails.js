@@ -64,6 +64,11 @@ const UserDetailsSchema = mongoose.Schema({
     type: Number,
     required: false,
     trim: true
+  },
+
+  date: {
+    type: Date,
+    default: Date.now
   }
 });
 

@@ -3,9 +3,10 @@ const Post= require('../models/Post')
 
 const getAllOrders = async() => {
     try {
-        const getAllOrder = await Order.find().populate("clothes");
+        const getAllOrder = await Order.find().populate({path: "buyer", select: "phone_number"}).populate('clothes');
+  
         return getAllOrder
-        
+    
       } catch (err) {
         return err
       }
