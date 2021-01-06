@@ -87,7 +87,8 @@ const PostSchema = mongoose.Schema({
   },
   seller: {
     type: Schema.Types.ObjectId,
-    ref: "Users"
+    ref: "Users",
+    required: true
   },
   testSeller: {
     type: Schema.Types.ObjectId,
