@@ -212,20 +212,48 @@ router.patch("/:orderId/cancel", async (req, res) => {
   }
 });
 
-// router.patch(
-//   "/:orderId/complete",
-//   AuthController.authAdmin,
-//   async (req, res) => {
-//     try {
-//       const updateStatus = await Order.findOneAndUpdate(
-//         { _id: req.params.orderId },
-//         { $set: { order_status: "completed" } }
-//       );
-//       res.status(201).json(updateStatus);
-//     } catch (err) {
-//       res.status(400).json({ message: err });
-//     }
-//   }
-// );
+// Change Order
+router.patch("/:orderId/pending", async (req, res) => {
+const id = req.params.orderId;
+  try {
+    const changeOrder = await orderFunctions.changeOrder(id, "pending")
+    if(changeOrder){
+     changeOrder.save();  
+     res.status(201).json(changeOrder);
+    }
+    else {
+      res.status(404).json({error: "Order not found."})
+    }
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
+});
+
+router.get("/to/", AuthController.authBuyer, async (req, res) => {
+  let ordersArr = [];
+
+  Order.find()
+    .populate({
+      path: "clothes"
+    })
+    .sort({ date: -1 })
+    .exec(function(err, orders) {
+      let ordersArr = [];
+      orders.forEach(order => {
+        if (order.clothes.seller == req.user.id || order.buyer == req.user.id) {
+          ordersArr.push(order);
+        }
+      });
+      if (ordersArr.length > 0) {
+        
+        return res.status(200).json({ orders: ordersArr, success: true });
+      } else {
+        return res.status(404).json({
+          success: false,
+          errors: { msg: "No orders found for seller." }
+        });
+      }
+    });
+});
 
 module.exports = router;
