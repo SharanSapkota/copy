@@ -1,9 +1,0 @@
-MONGO_URI=mongodb+srv://antidote-backend:quxWTX2QQKkcSiYM@cluster0.iblpd.mongodb.net/Antidote?retryWrites=true&w=majority
-PASS='tabala123k'
-SECRET_KEY="C0mPlicatedSECretK3Y1"
-ADMIN_SECRET_KEY = "admin_secret"
-
-AWS_S3_ACCESS_KEY_ID=AKIA3HDWYWRYHIHMBKUZ
-AWS_S3_SECRET_ACCESS_KEY=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
-AWS_S3_BUCKET_NAME=antidote-sellers-bucket
-AWS_S3_REGION=us-east-1
