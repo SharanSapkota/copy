@@ -503,9 +503,11 @@ const verifyEmail = (name, email) => {
       .createHmac("sha256", process.env.EMAIL_VERIFY_KEY)
       .update(data)
       .digest("hex");
+
     const fullHash = `${hash}.${expires}`;
 
     const mailBody = GenerateOTP(name, OTP);
+
     sendMail(email, {
       subject: "Verify Email Address",
       html: mailBody

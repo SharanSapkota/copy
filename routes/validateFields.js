@@ -84,22 +84,20 @@ router.post("/", async (req, res) => {
         });
       }
       if (mailformat && phone_number.length === 10) {
-        // const verification = AuthController.verifyEmail(name, email);
-        // return res.json(verification);
-        (response.msg = "Verification email sent."),
-          (response.hash = "fullHash");
+        const verification = AuthController.verifyEmail(name, email);
+        return res.json(verification);
       }
     } else if (step === 4) {
-      // const checkOtp = AuthController.verifyOTP(email, hash, otp);
+      const checkOtp = AuthController.verifyOTP(email, hash, otp);
 
-      // if (checkOtp.success) {
-      //   return res.json({ success: true, msg: "OTP Verified." });
-      // } else {
-      //   errors.push({
-      //     field: "verifyotp",
-      //     msg: checkOtp.msg
-      //   });
-      // }
+      if (checkOtp.success) {
+        return res.json({ success: true, msg: "OTP Verified." });
+      } else {
+        errors.push({
+          field: "verifyotp",
+          msg: checkOtp.msg
+        });
+      }
       return res.json({ success: true, msg: "OTP Verified." });
     } else if (step === 5) {
       var accountHolderCheck = account_holder_name.match(alphabetsOnlyFormat);
