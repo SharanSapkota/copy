@@ -17,5 +17,9 @@ module.exports = {
     const posts = new Unverified(data);
     posts.save();
     return posts;
+  },
+  getPostById: async function(id) {
+    const post = await Post.findById(id).populate("seller", "username");
+    return post;
   }
 };

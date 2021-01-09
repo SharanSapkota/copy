@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { registerNotification } = require("../functions/notificationFunctions");
 const { validationResult } = require("express-validator");
-const SendMail = require("../pagination/nodemailer");
+const { sendMail } = require("../functions/mailing");
 const { GenerateResetLink, GenerateOTP } = require("../lib/generate.js");
 const { s3Upload } = require("../functions/s3upload");
 require("dotenv/config");
@@ -81,9 +81,8 @@ const authAdmin = (req, res, next) => {
   const token = req.header("x-auth-token");
 
   if (!token) {
-    console.log("not authorized")
+    console.log("not authorized");
     return res.status(401).json({ msg: "No token, authorization denied." });
-    
   }
 
   try {
@@ -93,8 +92,7 @@ const authAdmin = (req, res, next) => {
       next();
     }
   } catch (err) {
-    
-    console.log("token is invalid")
+    console.log("token is invalid");
     res.status(401).json({ msg: "Token is not valid." });
   }
 };
@@ -124,20 +122,20 @@ const getUserDetails = async (req, res) => {
   }
 };
 
-const registerSeller = async (req, res, next) => {
-  const {
-    email,
-    account_holder_name,
-    account_number,
-    bank_name,
-    branch
-  } = req.body;
+const registerSeller = async (req, res) => {
+  const file = req.file;
+  const id = req.user.id;
+  const { account_holder_name, account_number, bank_name, branch } = req.body;
 
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    res.status(422).json({ success: false, errors: errors.array() });
+  if (!bank_name || !account_holder_name || !account_number || !branch) {
+    return res
+      .status(422)
+      .json({ success: false, error: { msg: "Bank Details are Required" } });
   }
+
+  const userDetailsFields = {};
+  const document = await s3Upload(file, 0, 0);
+  if (document) userDetailsFields.document = document;
 
   const bank_details = {};
 
@@ -147,18 +145,19 @@ const registerSeller = async (req, res, next) => {
     bank_details.account_holder_name = account_holder_name;
   if (account_number) bank_details.account_number = account_number;
 
-  let user = await userModel.findOne({ email });
+  userDetailsFields.bank_details = bank_details;
+
+  let user = await userModel.findById(id);
 
   if (user && user.role == 3) {
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
-      {
-        bank_details: bank_details
-      },
+      userDetailsFields,
       { new: true }
     );
 
     if (updatedUser) {
+      user.role = 2;
       user.save();
       res.status(200).json({
         success: true,
@@ -482,7 +481,7 @@ const forgotPassword = async (req, res) => {
 
         const mailBody = GenerateResetLink(user.username, token);
 
-        SendMail(user.email, {
+        sendMail(user.email, {
           subject: "Reset Password Link",
           html: mailBody
         });
@@ -494,7 +493,7 @@ const forgotPassword = async (req, res) => {
     });
 };
 
-const verifyEmail = (res, name, email) => {
+const verifyEmail = (name, email) => {
   try {
     const OTP = Math.floor(100000 + Math.random() * 900000);
     const ttl = 5 * 60 * 1000;
@@ -507,18 +506,17 @@ const verifyEmail = (res, name, email) => {
     const fullHash = `${hash}.${expires}`;
 
     const mailBody = GenerateOTP(name, OTP);
-    SendMail(email, {
+    sendMail(email, {
       subject: "Verify Email Address",
       html: mailBody
     });
-    res.json({
+    return {
       success: true,
       msg: "Verification email sent.",
       hash: fullHash
-    });
+    };
   } catch (err) {
-    console.log(err);
-    res.json({ success: false, msg: "Server Error." });
+    return { success: false, msg: "Server Error." };
   }
 };
 
@@ -527,7 +525,11 @@ const verifyOTP = (email, hash, otp) => {
 
   let now = Date.now();
 
-  if (now > parseInt(expires)) return false;
+  if (now > parseInt(expires))
+    return {
+      success: false,
+      msg: "OTP expired."
+    };
 
   let data = `${email}.${otp}.${expires}`;
 
@@ -537,9 +539,14 @@ const verifyOTP = (email, hash, otp) => {
     .digest("hex");
 
   if (newCalculatedHash === hashValue) {
-    return true;
+    return {
+      success: true
+    };
   }
-  return false;
+  return {
+    success: false,
+    msg: "OTP incorrect. Please re-check and try again."
+  };
 };
 
 module.exports = {

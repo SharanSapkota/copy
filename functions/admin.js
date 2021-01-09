@@ -33,17 +33,12 @@ module.exports = {
     }
   },
   verifyUser: async function(id) {
-    console.log(id)
     try {
-      console.log(id)
       let user = await Users.findById(id);
-      console.log(user)
+
       if (user.role === "2") {
-        console.log(user.role)
         user.role = 1;
         user.save();
-
-        console.log(user.role)
 
         return { success: true, msg: "User verified as seller.", user };
       } else if (user.role === "1") {
@@ -68,10 +63,13 @@ module.exports = {
   },
   movePostsToShop: async function(id) {
     try {
-      let unverifiedPosts = Unverified.find({ seller: id });
+      let unverifiedPosts = await Unverified.find({ seller: id });
       if (unverifiedPosts && unverifiedPosts.length > 0) {
         unverifiedPosts.forEach(post => {
-          let swap = new Post(post.toJSON());
+          let newPost = { ...post.toJSON() };
+          delete newPost._id;
+          delete newPost.date;
+          let swap = new Post(newPost);
           swap.save();
           post.remove();
         });
