@@ -83,10 +83,10 @@ router.post("/", async (req, res) => {
           msg: "Date of birth is invalid."
         });
       }
-      if (mailformat && phone_number.length === 10) {
-        const verification = AuthController.verifyEmail(name, email);
-        return res.json(verification);
-      }
+      // if (mailformat && phone_number.length === 10) {
+      //   const verification = AuthController.verifyEmail(name, email);
+      //   return res.json(verification);
+      // }
     } else if (step === 4) {
       const checkOtp = AuthController.verifyOTP(email, hash, otp);
 

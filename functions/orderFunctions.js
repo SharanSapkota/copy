@@ -5,40 +5,43 @@ module.exports = {
     const purchases = Orders.find({ buyer: id }).populate("clothes");
     return purchases;
   },
-  getPendingOrders: async function(id) {
-    let ordersArr = [];
-
-    Orders.find({ buyer: { $ne: id }, order_status: "pending" })
+  getOrdersBySeller: async function(id, filters = {}) {
+    let ordersArr = await Orders.find({
+      buyer: { $ne: id },
+      ...filters
+    })
       .populate({
-        path: "clothes"
+        path: "clothes",
+        match: {
+          seller: id
+        }
       })
       .sort({ date: -1 })
-      .exec(function(err, orders) {
-        orders.forEach(order => {
-          if (order.clothes.seller === id) {
-            ordersArr.push(order);
-          }
-        });
-      });
+      .exec();
 
     return ordersArr;
   },
-  getCompletedOrders: async function(id) {
-    let ordersArr = [];
-
-    Orders.find({ buyer: { $ne: id }, order_status: "completed" })
+  getOrdersBySellerAlt: async function(id, filters = {}) {
+    let ordersArr = await Orders.find({
+      buyer: { $ne: id },
+      ...filters
+    })
       .populate({
-        path: "clothes"
+        path: "clothes",
+        match: {
+          seller: id
+        }
       })
       .sort({ date: -1 })
-      .exec(function(err, orders) {
-        orders.forEach(order => {
-          if (order.clothes.seller === id) {
-            ordersArr.push(order);
-          }
-        });
-      });
+      .exec();
 
     return ordersArr;
+  },
+  getOrderById: async function(id, user) {
+    var order = await Orders.findById(id)
+      .populate({ path: "clothes" })
+      .exec();
+
+    return order;
   }
 };

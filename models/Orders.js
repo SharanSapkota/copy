@@ -17,10 +17,10 @@ const orderSchema = mongoose.Schema({
     required: false
   },
 
-  buyerTest:{
+  buyerTest: {
     type: String,
     required: false,
-    trim: true,
+    trim: true
   },
 
   total_amount: {
@@ -70,7 +70,7 @@ const orderSchema = mongoose.Schema({
     required: true,
     default: "pending"
   },
-  
+
   date: {
     type: Date,
     default: Date.now

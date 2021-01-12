@@ -8,60 +8,67 @@ const orderFunctions = require("../functions/orders");
 const AuthController = require("../controllers/authController");
 
 const {
-  getPendingOrders,
-  getCompletedOrders
+  getOrderById,
+  getOrdersBySeller
 } = require("../functions/orderFunctions");
 const { createNotification } = require("../functions/notificationFunctions");
 
 const router = express.Router();
 
-// router.get("/", AuthController.authSeller, async (req, res) => {
-//   try {
-//     const getAllOrder = await Order.find().populate("clothes");
-//     res.json(getAllOrder);
-//   } catch (err) {
-//     res.json(err);
-//   }
-// });
+router.get("/", AuthController.authSeller, async (req, res) => {
+  try {
+    const result = await getOrdersBySeller(req.user.id);
+    if (result.length > 0) {
+      res.json({ success: true, orders: result });
+    } else {
+      res.json({ success: false, errors: [{ msg: "No orders for seller." }] });
+    }
+  } catch (err) {
+    res.status(404).json({ success: false, errors: [{ msg: "Server error" }] });
+  }
+});
 
 router.get("/pending", AuthController.authSeller, async (req, res) => {
+  let filters = { order_status: "pending" };
   try {
-    const result = await getPendingOrders(req.user.id);
+    const result = await getOrdersBySeller(req.user._id, filters);
     if (result.length > 0) {
       res.json({ success: true, orders: result });
     } else {
       res.json({ success: false, errors: [{ msg: "No orders pending." }] });
     }
   } catch (err) {
-    res.json({ success: false, errors: [{ msg: "Server error" }] });
+    res.status(404).json({ success: false, errors: [{ msg: "Server error" }] });
   }
 });
 
 router.get("/completed", AuthController.authSeller, async (req, res) => {
+  let filters = { order_status: "completed" };
   try {
-    const result = await getCompletedOrders(req.user.id);
+    const result = await getOrdersBySeller(req.user._id, filters);
     if (result.length > 0) {
       res.json({ success: true, orders: result });
     } else {
       res.json({ success: false, errors: [{ msg: "No orders completed." }] });
     }
   } catch (err) {
-    res.json({ success: false, errors: [{ msg: "Server error" }] });
+    res.status(404).json({ success: false, errors: [{ msg: "Server error" }] });
   }
 });
 
-router.get("/orderById/:id", AuthController.authSeller, async (req, res) => {});
+router.get("/orderById/:id", AuthController.authSeller, async (req, res) => {
+  var user = req.user.id;
+  var oid = req.params.id;
+  const result = await getOrderById(oid);
 
-// router.get("/:orderId", async (req, res) => {
-//   try {
-//     const getOrderById = await Order.findById({
-//       _id: req.params.orderId
-//     }).populate("clothes");
-//     res.json(getOrderById);
-//   } catch (err) {
-//     res.json(err);
-//   }
-// });
+  if (String(result.buyer) === user || String(result.clothes.seller) === user) {
+    return res.json({ success: true, order: result });
+  } else {
+    return res
+      .status(404)
+      .json({ success: false, errors: [{ msg: "Order not found." }] });
+  }
+});
 
 router.post("/", AuthController.authBuyer, async (req, res) => {
   const {
@@ -153,7 +160,6 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
   }
 });
 
-
 // Change Order
 router.patch("/:orderId/cancel", async (req, res) => {
   var id = req.params.orderId;
@@ -169,34 +175,6 @@ router.patch("/:orderId/cancel", async (req, res) => {
   } catch (err) {
     res.status(400).json({ message: err });
   }
-});
-
-
-router.get("/to/", AuthController.authBuyer, async (req, res) => {
-  let ordersArr = [];
-
-  Order.find()
-    .populate({
-      path: "clothes"
-    })
-    .sort({ date: -1 })
-    .exec(function(err, orders) {
-      let ordersArr = [];
-      orders.forEach(order => {
-        if (order.clothes.seller == req.user.id || order.buyer == req.user.id) {
-          ordersArr.push(order);
-        }
-      });
-      if (ordersArr.length > 0) {
-        
-        return res.status(200).json({ orders: ordersArr, success: true });
-      } else {
-        return res.status(404).json({
-          success: false,
-          errors: { msg: "No orders found for seller." }
-        });
-      }
-    });
 });
 
 module.exports = router;

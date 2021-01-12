@@ -10,23 +10,23 @@ module.exports = {
       html: mailText.html
     };
 
-    const transporter = mailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // let transporter = nodeMailer.createTransport({
-    //   host: "smtp.gmail.com",
-    //   port: 465,
-    //   secure: true, // use SSL
+    // const transporter = mailer.createTransport({
+    //   service: "gmail",
     //   auth: {
     //     user: process.env.EMAIL_USER,
     //     pass: process.env.EMAIL_PASS
     //   }
     // });
+
+    let transporter = mailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // use SSL
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
 
     // verify connection configuration
     transporter.verify(function(error, success) {
