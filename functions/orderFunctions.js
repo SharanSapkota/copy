@@ -21,10 +21,9 @@ module.exports = {
 
     return ordersArr;
   },
-  getOrdersBySellerAlt: async function(id, filters = {}) {
+  getOrdersBySellerAlt: async function(id, oid) {
     let ordersArr = await Orders.find({
-      buyer: { $ne: id },
-      ...filters
+      _id: oid
     })
       .populate({
         path: "clothes",

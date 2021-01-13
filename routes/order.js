@@ -1,16 +1,24 @@
 const express = require("express");
 const Order = require("../models/Orders");
-const UserDetails = require("../models/UserDetails");
 
 const mail = require("../pagination/nodemailer");
 const orderFunctions = require("../functions/orders");
+const {
+  getUserDetailsById,
+  getUserById,
+  getUserDetails
+} = require("../functions/users");
 
 const AuthController = require("../controllers/authController");
 
 const {
   getOrderById,
-  getOrdersBySeller
+  getOrdersBySeller,
+  getOrdersBySellerAlt
 } = require("../functions/orderFunctions");
+
+const { getPostById } = require("../functions/postFunctions");
+
 const { createNotification } = require("../functions/notificationFunctions");
 
 const router = express.Router();
@@ -28,7 +36,7 @@ router.get("/", AuthController.authSeller, async (req, res) => {
   }
 });
 
-router.get("/pending", AuthController.authSeller, async (req, res) => {
+router.get("/pending", async (req, res) => {
   let filters = { order_status: "pending" };
   try {
     const result = await getOrdersBySeller(req.user._id, filters);
@@ -40,6 +48,14 @@ router.get("/pending", AuthController.authSeller, async (req, res) => {
   } catch (err) {
     res.status(404).json({ success: false, errors: [{ msg: "Server error" }] });
   }
+});
+
+router.get("/testing", async (req, res) => {
+  const result = await getOrdersBySellerAlt(
+    "5fd1f46057412e6a880ed54f",
+    "5fd8a2a595640736bc8877c3"
+  );
+  console.log(result);
 });
 
 router.get("/completed", AuthController.authSeller, async (req, res) => {
@@ -71,25 +87,27 @@ router.get("/orderById/:id", AuthController.authSeller, async (req, res) => {
 });
 
 router.post("/", AuthController.authBuyer, async (req, res) => {
-  const {
-    product_seller,
-    clothes,
-    delivery_location,
-    delivery_type
-  } = req.body;
+  const { clothes, delivery_type, payment_type, discount } = req.body;
+
+  console.log(req.body);
 
   orderFields = {};
   orderFields.buyer = req.user.id;
 
-  if (delivery_location) orderFields.delivery_location = delivery_location;
-  else {
-    res.status(401).json({ error: { msg: "Delivery location is required." } });
+  if (!delivery_type || !clothes || !payment_type) {
+    return res
+      .status(401)
+      .json({ error: { msg: "Delivery details are required." } });
   }
 
-  if (delivery_type) orderFields.delivery_type = delivery_type;
-
-  if (clothes) {
-    orderFields.clothes = clothes;
+  orderFields.delivery_type = delivery_type;
+  orderFields.clothes = clothes;
+  orderFields.payment_type = payment_type;
+  if (discount) {
+    const dis = await getDiscountAmount(discount);
+    orderFields.discount = dis.amount;
+  } else {
+    orderFields.discount = 0;
   }
 
   if (delivery_type === "Inside Ringroad") {
@@ -101,62 +119,58 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
   }
 
   try {
-    const postOrder = await orderFunctions.postOrder(clothes, "seller");
-    console.log(postOrder);
-    //  const postOrder = await Post.findById(clothes).populate('seller')
+    const post = await getPostById(clothes);
+    const seller = await getUserById(post.seller);
+    const sellerDetails = await getUserDetails({ user: seller }, "address");
+    const buyerDetails = await getUserDetails(
+      { user: req.user.id },
+      "address city"
+    );
 
-    // orderDestructure.total_amount = postOrder.selling_price;
+    orderFields.pickup_location = sellerDetails.address;
+    orderFields.total_amount = post.selling_price;
+    orderFields.total_after_discount =
+      orderFields.total_amount +
+      orderFields.delivery_charge -
+      orderFields.discount;
+    orderFields.delivery_location =
+      buyerDetails.address + ", " + buyerDetails.city;
 
-    orderDestructure.total_order_amount =
-      orderDestructure.delivery_charge + orderDestructure.total_amount;
-
-    orderFields.total_amount = orderClothes.selling_price;
-
-    orderFields.total_order_amount =
-      orderFields.delivery_charge + orderFields.total_amount;
-
-    const seller = await UserDetails.findOne({ user: postOrder.seller });
-
-    orderFields.pickup_location = seller.address;
-
-    const orderPost = new Order(orderFields);
     try {
-      orderPost.save();
-
-      postOrder.status = "Processing";
-      postOrder.save();
+      const order = new Order(orderFields);
+      order.save();
 
       let notdata = {
-        user: product_seller,
-        title: "Someone wants to buy your item: " + orderClothes.listing_name,
-        image: orderClothes.feature_image,
+        user: post.seller,
+        title: "Someone wants to buy your item: " + post.listing_name,
+        image: post.feature_image,
         description: "Open to view order details.",
         actions: {
           actionType: "orders",
-          actionValue: orderPost._id
+          actionValue: order._id
         }
       };
 
       await createNotification(notdata);
 
-      const mailt = {
-        subject: "New Order Alert!",
-        html: `<h2>Someone wants to buy your item: ${orderClothes.listing_name}`
-      };
+      // const mailt = {
+      //   subject: "New Order Alert!",
+      //   html: `<h2>Someone wants to buy your item: ${post.listing_name}`
+      // };
 
-      mail(sellerEmail, mailt);
+      // mail(sellerEmail, mailt);
 
-      res
+      return res
         .status(200)
         .json({ success: true, msg: "Order placed successfully!" });
     } catch (err) {
       console.log(err);
-      res
+      return res
         .status(400)
         .json({ success: false, errors: { msg: "Order failed." } });
     }
   } catch (err) {
-    console.log(err);
+    return res.status(404).json({ errors: [{ msg: "Clothes not found." }] });
   }
 });
 

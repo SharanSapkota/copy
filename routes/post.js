@@ -28,7 +28,7 @@ const {
 router.get("/", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
 
-  const abc = req.query.search;
+  const search = req.query.search;
 
   const filters = req.query.filters;
 
@@ -46,43 +46,25 @@ router.get("/", async (req, res) => {
 
   customQuery.status = "Available";
 
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+
   try {
-    let getAll;
-    if (!abc) {
-      getAll = await Post.find(customQuery)
-        .populate("seller", "username")
-        .sort({ date: -1 });
-    } else {
-      customQuery.listing_name = { $regex: abc, $options: "i" };
-      getAll = await Post.find(customQuery)
-        .populate("seller", "username")
-        .sort({ date: -1 });
+    if (search) {
+      customQuery.listing_name = { $regex: search, $options: "i" };
     }
 
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+    getAll = await Post.find(customQuery)
+      .populate("seller", "username")
+      .sort({ date: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-
-    const result = {};
-
-    if (endIndex < getAll.length) {
-      result.next = {
-        page: page + 1,
-        limit: limit
-      };
-    }
-
-    if (startIndex > 0) {
-      result.previous = {
-        page: page - 1,
-        limit: limit
-      };
-    }
-
-    result.resultUsers = getAll.slice(startIndex, endIndex);
-    res.status(200).json(result);
+    res.status(200).json({
+      page: page,
+      limit: limit,
+      resultUsers: getAll
+    });
   } catch (err) {
     res.status(404).json({ message: err });
   }

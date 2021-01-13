@@ -9,7 +9,14 @@ const orderSchema = mongoose.Schema({
 
   clothes: {
     type: Schema.Types.ObjectId,
-    ref: "Posts"
+    refPath: "clothingType",
+    required: true
+  },
+
+  clothingType: {
+    type: String,
+    required: true,
+    default: "Posts"
   },
 
   payment_type: {
@@ -29,7 +36,7 @@ const orderSchema = mongoose.Schema({
   },
 
   discount: {
-    type: Number,
+    type: String,
     required: true,
     default: 0
   },
@@ -59,6 +66,11 @@ const orderSchema = mongoose.Schema({
     required: false
   },
 
+  delivery_type: {
+    type: String,
+    required: true
+  },
+
   payment_status: {
     type: String,
     required: true,
@@ -75,6 +87,11 @@ const orderSchema = mongoose.Schema({
     type: Date,
     default: Date.now
   }
+});
+
+orderSchema.pre("save", async function(next) {
+  const order = this;
+  console.log(order);
 });
 
 module.exports = mongoose.model("Orders", orderSchema);
