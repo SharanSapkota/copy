@@ -22,7 +22,10 @@ router.post(
   "/register/seller",
   AuthController.authBuyer,
   upload.single("file"),
-  AuthController.registerSeller
+  async (req, res) => {
+    const file = req.file;
+    console.log(file);
+  }
 );
 
 router.post(

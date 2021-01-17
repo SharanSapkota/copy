@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { registerNotification } = require("../functions/notificationFunctions");
 const { validationResult } = require("express-validator");
-const { sendMail } = require("../functions/mailing");
+const { sendMailNew } = require("../functions/mailing");
 const { GenerateResetLink, GenerateOTP } = require("../lib/generate.js");
 const { s3Upload } = require("../functions/s3upload");
 require("dotenv/config");
@@ -124,52 +124,53 @@ const getUserDetails = async (req, res) => {
 
 const registerSeller = async (req, res) => {
   const file = req.file;
-  const id = req.user.id;
-  const { account_holder_name, account_number, bank_name, branch } = req.body;
+  console.log(file);
+  // const id = req.user.id;
+  // const { account_holder_name, account_number, bank_name, branch } = req.body;
 
-  if (!bank_name || !account_holder_name || !account_number || !branch) {
-    return res
-      .status(422)
-      .json({ success: false, error: { msg: "Bank Details are Required" } });
-  }
+  // if (!bank_name || !account_holder_name || !account_number || !branch) {
+  //   return res
+  //     .status(422)
+  //     .json({ success: false, error: { msg: "Bank Details are Required" } });
+  // }
 
-  const userDetailsFields = {};
-  const document = await s3Upload(file, 0, 0);
-  if (document) userDetailsFields.document = document;
+  // const userDetailsFields = {};
+  // const document = await s3Upload(file, 0, 0);
+  // if (document) userDetailsFields.document = document;
 
-  const bank_details = {};
+  // const bank_details = {};
 
-  if (bank_name) bank_details.bank_name = bank_name;
-  if (branch) bank_details.branch = branch;
-  if (account_holder_name)
-    bank_details.account_holder_name = account_holder_name;
-  if (account_number) bank_details.account_number = account_number;
+  // if (bank_name) bank_details.bank_name = bank_name;
+  // if (branch) bank_details.branch = branch;
+  // if (account_holder_name)
+  //   bank_details.account_holder_name = account_holder_name;
+  // if (account_number) bank_details.account_number = account_number;
 
-  userDetailsFields.bank_details = bank_details;
+  // userDetailsFields.bank_details = bank_details;
 
-  let user = await userModel.findById(id);
+  // let user = await userModel.findById(id);
 
-  if (user && user.role == 3) {
-    let updatedUser = await userDetailsModel.findOneAndUpdate(
-      { user: user.id },
-      userDetailsFields,
-      { new: true }
-    );
+  // if (user && user.role == 3) {
+  //   let updatedUser = await userDetailsModel.findOneAndUpdate(
+  //     { user: user.id },
+  //     userDetailsFields,
+  //     { new: true }
+  //   );
 
-    if (updatedUser) {
-      user.role = 2;
-      user.save();
-      res.status(200).json({
-        success: true,
-        msg: "bank details updated",
-        user: updatedUser
-      });
-    } else {
-      res.status(400).json({ success: false, error: { msg: "Server error." } });
-    }
-  } else {
-    res.status(400).json({ success: false, error: { msg: "Server error." } });
-  }
+  //   if (updatedUser) {
+  //     user.role = 2;
+  //     user.save();
+  //     res.status(200).json({
+  //       success: true,
+  //       msg: "bank details updated",
+  //       user: updatedUser
+  //     });
+  //   } else {
+  //     res.status(400).json({ success: false, error: { msg: "Server error." } });
+  //   }
+  // } else {
+  //   res.status(400).json({ success: false, error: { msg: "Server error." } });
+  // }
 };
 
 const registerFinal = async (req, res, next) => {
@@ -481,7 +482,7 @@ const forgotPassword = async (req, res) => {
 
         const mailBody = GenerateResetLink(user.username, token);
 
-        sendMail(user.email, {
+        sendMailNew(user.email, {
           subject: "Reset Password Link",
           html: mailBody
         });
@@ -508,7 +509,7 @@ const verifyEmail = (name, email) => {
 
     const mailBody = GenerateOTP(name, OTP);
 
-    sendMail(email, {
+    sendMailNew(email, {
       subject: "Verify Email Address",
       html: mailBody
     });

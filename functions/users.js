@@ -13,5 +13,9 @@ module.exports = {
   getUserById: async function(id) {
     const user = await Users.findById(id);
     return user;
+  },
+  getUserCredits: async function(id) {
+    const credits = await UserDetails.findById(id).select("credits");
+    return credits;
   }
 };

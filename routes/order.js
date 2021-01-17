@@ -2,11 +2,12 @@ const express = require("express");
 const Order = require("../models/Orders");
 
 const mail = require("../pagination/nodemailer");
-const orderFunctions = require("../functions/orders");
+const { sendMailNew } = require("../functions/mailing");
 const {
   getUserDetailsById,
   getUserById,
-  getUserDetails
+  getUserDetails,
+  getUserCredits
 } = require("../functions/users");
 
 const AuthController = require("../controllers/authController");
@@ -14,12 +15,31 @@ const AuthController = require("../controllers/authController");
 const {
   getOrderById,
   getOrdersBySeller,
-  getOrdersBySellerAlt
+  getOrdersBySellerAlt,
+  verifyOrderSeller,
+  createAgreement,
+  placeOrder
 } = require("../functions/orderFunctions");
 
-const { getPostById } = require("../functions/postFunctions");
+const {
+  getOneDiscount,
+  calcDiscount,
+  validateDiscount
+} = require("../functions/discounts");
 
-const { createNotification } = require("../functions/notificationFunctions");
+const {
+  getPostById,
+  getTotalAmount,
+  getTotalCreditDiscount,
+  changeClothingStatus
+} = require("../functions/postFunctions");
+
+const {
+  createNotification,
+  createOrderNotifications
+} = require("../functions/notificationFunctions");
+
+const { createBuyerCredits } = require("../functions/credits");
 
 const router = express.Router();
 
@@ -48,14 +68,6 @@ router.get("/pending", async (req, res) => {
   } catch (err) {
     res.status(404).json({ success: false, errors: [{ msg: "Server error" }] });
   }
-});
-
-router.get("/testing", async (req, res) => {
-  const result = await getOrdersBySellerAlt(
-    "5fd1f46057412e6a880ed54f",
-    "5fd8a2a595640736bc8877c3"
-  );
-  console.log(result);
 });
 
 router.get("/completed", AuthController.authSeller, async (req, res) => {
@@ -89,88 +101,115 @@ router.get("/orderById/:id", AuthController.authSeller, async (req, res) => {
 router.post("/", AuthController.authBuyer, async (req, res) => {
   const { clothes, delivery_type, payment_type, discount } = req.body;
 
-  console.log(req.body);
-
-  orderFields = {};
-  orderFields.buyer = req.user.id;
-
   if (!delivery_type || !clothes || !payment_type) {
     return res
       .status(401)
       .json({ error: { msg: "Delivery details are required." } });
   }
 
-  orderFields.delivery_type = delivery_type;
-  orderFields.clothes = clothes;
-  orderFields.payment_type = payment_type;
+  const user = req.user.id;
+  const buyerDetails = await getUserDetails({ user: user });
+
+  const total_result = await getTotalAmount(clothes);
+  const total_amount = total_result[0].sum;
+  var delivery_charge =
+    delivery_type === "Inside Ringroad"
+      ? 100
+      : delivery_type === "Outside Ringroad"
+      ? 150
+      : delivery_type === "Outside Valley"
+      ? 250
+      : 100;
+
+  var total_order_amount = total_amount + delivery_charge;
+  var total_after_discount = total_order_amount;
+
+  var orderFields = {
+    buyer: user,
+    clothes: clothes,
+    payment_type: payment_type,
+    total_amount: total_amount,
+    delivery_charge: delivery_charge,
+    total_order_amount: total_order_amount
+  };
+
   if (discount) {
-    const dis = await getDiscountAmount(discount);
-    orderFields.discount = dis.amount;
-  } else {
-    orderFields.discount = 0;
-  }
-
-  if (delivery_type === "Inside Ringroad") {
-    orderFields.delivery_charge = 100;
-  } else if (delivery_type === "Outside Ringroad") {
-    orderFields.delivery_charge = 150;
-  } else if (delivery_type === "Outside Valley") {
-    orderFields.delivery_charge = 250;
-  }
-
-  try {
-    const post = await getPostById(clothes);
-    const seller = await getUserById(post.seller);
-    const sellerDetails = await getUserDetails({ user: seller }, "address");
-    const buyerDetails = await getUserDetails(
-      { user: req.user.id },
-      "address city"
-    );
-
-    orderFields.pickup_location = sellerDetails.address;
-    orderFields.total_amount = post.selling_price;
-    orderFields.total_after_discount =
-      orderFields.total_amount +
-      orderFields.delivery_charge -
-      orderFields.discount;
-    orderFields.delivery_location =
-      buyerDetails.address + ", " + buyerDetails.city;
-
-    try {
-      const order = new Order(orderFields);
-      order.save();
-
-      let notdata = {
-        user: post.seller,
-        title: "Someone wants to buy your item: " + post.listing_name,
-        image: post.feature_image,
-        description: "Open to view order details.",
-        actions: {
-          actionType: "orders",
-          actionValue: order._id
-        }
-      };
-
-      await createNotification(notdata);
-
-      // const mailt = {
-      //   subject: "New Order Alert!",
-      //   html: `<h2>Someone wants to buy your item: ${post.listing_name}`
-      // };
-
-      // mail(sellerEmail, mailt);
-
-      return res
-        .status(200)
-        .json({ success: true, msg: "Order placed successfully!" });
-    } catch (err) {
-      console.log(err);
-      return res
-        .status(400)
-        .json({ success: false, errors: { msg: "Order failed." } });
+    const discount_verified = await validateDiscount(discount);
+    orderFields.discount = discount;
+    if (discount_verified) {
+      total_after_discount =
+        total_order_amount -
+        calcDiscount(
+          total_amount + delivery_charge,
+          discount_verified.amount,
+          discount_verified.discount_type
+        );
+    } else {
+      return res.json({
+        success: false,
+        errors: [{ msg: "Discount coupon invalid!" }]
+      });
     }
-  } catch (err) {
-    return res.status(404).json({ errors: [{ msg: "Clothes not found." }] });
+  }
+
+  orderFields.total_after_discount = total_after_discount;
+  orderFields.delivery_location =
+    buyerDetails.address + ", " + buyerDetails.city;
+
+  orderFields.delivery_type = delivery_type;
+
+  if (payment_type === "credits") {
+    const creditsAvailable = await getUserCredits(user);
+
+    var creditDiscount = await getTotalCreditDiscount(clothes);
+    total_after_discount = total_after_discount - creditDiscount;
+
+    if (creditsAvailable < total_after_discount) {
+      return res.json({
+        success: false,
+        errors: [{ msg: "Not enough credits to place order." }]
+      });
+    }
+  }
+
+  const order = await placeOrder(orderFields);
+
+  if (order) {
+    if (payment_type === "credits") {
+      await createBuyerCredits(user, order._id, total_after_discount);
+    }
+    await createBuyerNotification(order._id);
+    await createOrderNotifications(clothes, order._id);
+
+    await changeClothingStatus(clothes, "Unavailable");
+
+    // const mailt = {
+    //   subject: "New Order Alert!",
+    //   html: `<h2>Someone wants to buy your item: ${post.listing_name}`
+    // };
+
+    // sendMailNew(sellerEmail, mailt);
+
+    return res
+      .status(200)
+      .json({ success: true, msg: "Order placed successfully!" });
+  }
+});
+
+router.patch("/:orderId/agree", AuthController.authSeller, async (req, res) => {
+  const user = req.user;
+  const order = req.params.orderId;
+
+  const result = await verifyOrderSeller(order, user);
+
+  if (result) {
+    await createAgreement(user, order);
+    result.order_status = "processing";
+    result.save();
+
+    res.json({ success: true, order: result });
+  } else {
+    res.json({ success: false, errors: [{ msg: "Order not found." }] });
   }
 });
 
@@ -179,15 +218,16 @@ router.patch("/:orderId/cancel", async (req, res) => {
   var id = req.params.orderId;
 
   try {
-    const changeOrder = await orderFunctions.changeOrder(id, "cancelled");
+    const changeOrder = await patchOrder(id, { order_status: "cancelled" });
     if (changeOrder) {
       changeOrder.save();
-      res.status(201).json(changeOrder);
+      changeClothingStatus(changeOrder.clothes, "Available");
+      return res.status(201).json(changeOrder);
     } else {
-      res.status(404).json({ error: "Order not found." });
+      return res.status(404).json({ error: "Order not found." });
     }
   } catch (err) {
-    res.status(400).json({ message: err });
+    return res.status(400).json({ message: err });
   }
 });
 

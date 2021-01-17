@@ -7,17 +7,12 @@ const orderSchema = mongoose.Schema({
     ref: "Users"
   },
 
-  clothes: {
-    type: Schema.Types.ObjectId,
-    refPath: "clothingType",
-    required: true
-  },
-
-  clothingType: {
-    type: String,
-    required: true,
-    default: "Posts"
-  },
+  clothes: [
+    {
+      type: Schema.Types.ObjectId,
+      required: true
+    }
+  ],
 
   payment_type: {
     type: String,
@@ -35,17 +30,6 @@ const orderSchema = mongoose.Schema({
     required: true
   },
 
-  discount: {
-    type: String,
-    required: true,
-    default: 0
-  },
-
-  total_after_discount: {
-    type: Number,
-    required: false
-  },
-
   delivery_charge: {
     type: Number,
     required: true
@@ -56,9 +40,15 @@ const orderSchema = mongoose.Schema({
     required: true
   },
 
-  pickup_location: {
-    type: String,
-    required: true
+  discount: {
+    type: Schema.Types.ObjectId,
+    ref: "Discounts",
+    required: false
+  },
+
+  total_after_discount: {
+    type: Number,
+    required: false
   },
 
   delivery_location: {

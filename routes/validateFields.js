@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
     email,
     phone_number,
     dob,
-    hash,
+    otphash,
     otp,
     account_number,
     account_holder_name,
@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
   let errors = [];
   let response = {};
 
-  var alphabetsOnlyFormat = "^[a-zA-Z]+$";
+  var alphabetsOnlyFormat = "^[a-zA-Z\\s]+$";
   var mixedFormat = "^[A-Za-z0-9]+$";
   var usernameFormat =
     "^(?=.{3,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$";
@@ -76,19 +76,14 @@ router.post("/", async (req, res) => {
           });
         }
       }
-      console.log(checkDob(dob));
       if (!checkDob(dob)) {
         errors.push({
           field: "dob",
           msg: "Date of birth is invalid."
         });
       }
-      // if (mailformat && phone_number.length === 10) {
-      //   const verification = AuthController.verifyEmail(name, email);
-      //   return res.json(verification);
-      // }
     } else if (step === 4) {
-      const checkOtp = AuthController.verifyOTP(email, hash, otp);
+      const checkOtp = AuthController.verifyOTP(email, otphash, otp);
 
       if (checkOtp.success) {
         return res.json({ success: true, msg: "OTP Verified." });
@@ -98,7 +93,6 @@ router.post("/", async (req, res) => {
           msg: checkOtp.msg
         });
       }
-      return res.json({ success: true, msg: "OTP Verified." });
     } else if (step === 5) {
       var accountHolderCheck = account_holder_name.match(alphabetsOnlyFormat);
       var bankNameCheck = bank_name.match(alphabetsOnlyFormat);
@@ -131,13 +125,15 @@ router.post("/", async (req, res) => {
       }
     }
     if (errors.length > 0) {
-      console.log(errors);
       return res.json({ success: false, errors });
     } else {
+      if (step === 3) {
+        const verification = AuthController.verifyEmail(name, email);
+        return res.json({ ...verification });
+      }
       return res.json({ success: true, response });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json(error);
   }
 });
