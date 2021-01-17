@@ -46,6 +46,7 @@ const router = express.Router();
 router.get("/", AuthController.authSeller, async (req, res) => {
   try {
     const result = await getOrdersBySeller(req.user.id);
+    
     if (result.length > 0) {
       res.json({ success: true, orders: result });
     } else {
@@ -59,7 +60,9 @@ router.get("/", AuthController.authSeller, async (req, res) => {
 router.get("/pending", AuthController.authSeller, async (req, res) => {
   let filters = { order_status: "pending" };
   try {
+    
     const result = await getOrdersBySeller(req.user._id, filters);
+    
     if (result.length > 0) {
       res.json({ success: true, orders: result });
     } else {
@@ -178,7 +181,7 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
     if (payment_type === "credits") {
       await createBuyerCredits(user, order._id, total_after_discount);
     }
-    await createBuyerNotification(order._id);
+    // await createBuyerNotification(order._id);
     await createOrderNotifications(clothes, order._id);
 
     await changeClothingStatus(clothes, "Unavailable");
@@ -193,6 +196,8 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
     return res
       .status(200)
       .json({ success: true, msg: "Order placed successfully!" });
+  } else {
+    return res.json({success:false, errors:[{msg: "Order failed."}]})
   }
 });
 
@@ -201,6 +206,7 @@ router.patch("/:orderId/agree", AuthController.authSeller, async (req, res) => {
   const order = req.params.orderId;
 
   const result = await verifyOrderSeller(order, user);
+  
 
   if (result) {
     await createAgreement(user, order);

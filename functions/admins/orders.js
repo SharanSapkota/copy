@@ -1,5 +1,5 @@
 const Order = require("../../models/Orders");
-const Post = require("../../models/Post");
+const {Post} = require("../../models/Post");
 
 const getAllOrders = async () => {
   try {
