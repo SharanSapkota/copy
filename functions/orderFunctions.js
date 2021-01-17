@@ -7,7 +7,9 @@ module.exports = {
     const purchases = Orders.find({ buyer: id }).populate("clothes");
     return purchases;
   },
+
   getOrdersBySeller: async function(id, filters = {}) {
+    
     let ordersArr = await Orders.find({
       buyer: { $ne: id },
       ...filters
@@ -20,10 +22,13 @@ module.exports = {
       })
       .sort({ date: -1 })
       .exec();
+   
 
     return ordersArr;
   },
+
   getOrdersBySellerAlt: async function(id, oid) {
+
     let ordersArr = await Orders.find({
       _id: oid
     })
@@ -35,6 +40,7 @@ module.exports = {
       })
       .sort({ date: -1 })
       .exec();
+      
 
     return ordersArr;
   },
@@ -46,18 +52,21 @@ module.exports = {
     return order;
   },
   verifyOrderSeller: async function(order, user) {
+    console.log(user)
     var order = await module.exports.getOrderById(order);
-
-    if (String(order.clothes.seller) === user) return order;
+    console.log(order.clothes.find(item => item["seller"] === user._id))
+    if (String(order.clothes.seller) === user._id) {console.log("order"); return order} ;
   },
+
   placeOrder: async function(orderFields) {
     try {
-      const order = new Order(orderFields);
+      const order = new Orders(orderFields);
       await order.save();
       if (order) {
         return order;
       }
     } catch (err) {
+      console.log(err);
       return false;
     }
   },

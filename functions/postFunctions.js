@@ -28,6 +28,7 @@ module.exports = {
     return posts;
   },
   getTotalAmount: async function(clothes) {
+    console.log(clothes)
     var clothesArr = clothes.map(item => mongoose.Types.ObjectId(item));
     var result = await Post.aggregate([
       { $match: { _id: { $in: clothesArr } } },
