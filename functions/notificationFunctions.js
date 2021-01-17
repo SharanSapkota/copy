@@ -41,7 +41,9 @@ module.exports = {
   },
   getNotificationsByUser: async function(id) {
     try {
-      const notifications = await Notifications.find({ user: id });
+      const notifications = await Notifications.find({ user: id }).sort({
+        date: -1
+      });
       return notifications;
     } catch (err) {
       return err;

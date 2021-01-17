@@ -56,7 +56,7 @@ router.get("/", AuthController.authSeller, async (req, res) => {
   }
 });
 
-router.get("/pending", async (req, res) => {
+router.get("/pending", AuthController.authSeller, async (req, res) => {
   let filters = { order_status: "pending" };
   try {
     const result = await getOrdersBySeller(req.user._id, filters);
