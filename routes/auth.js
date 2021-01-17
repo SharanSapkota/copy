@@ -21,11 +21,8 @@ router.get("/user/:username", AuthController.getSingleUser);
 router.post(
   "/register/seller",
   AuthController.authBuyer,
-  upload.single("file"),
-  async (req, res) => {
-    const file = req.file;
-    console.log(file);
-  }
+  upload.single("document"),
+  AuthController.registerSeller
 );
 
 router.post(
