@@ -1,17 +1,27 @@
 const mongoose = require("mongoose");
 
 const discountSchema = mongoose.Schema({
-  coupon: {
+  coupon_code: {
     type: String,
+    required: true,
     required: true
   },
   amount: {
     type: Number,
     required: true
   },
-  status: {
-    type: Boolean,
-    default: false
+  discount_type: {
+    type: String,
+    required: true,
+    default: "Flat"
+  },
+  activation_date: {
+    type: Date,
+    default: Date.now,
+    required: true
+  },
+  expiration_date: {
+    type: Date
   }
 });
 

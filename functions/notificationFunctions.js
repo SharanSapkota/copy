@@ -1,4 +1,5 @@
 const Notifications = require("../models/Notifications");
+const { getPostsByIds } = require("./postFunctions");
 
 module.exports = {
   registerNotification: async function(id) {
@@ -22,6 +23,21 @@ module.exports = {
     } catch (err) {
       return err;
     }
+  },
+  createOrderNotifications: async function(clothes, oid) {
+    const posts = await getPostsByIds(clothes);
+    posts.forEach(post => {
+      module.exports.createNotification({
+        user: post.seller,
+        title: "You have a new order: " + post.listing_name,
+        image: post.feature_image,
+        description: "Tap to view more.",
+        actions: {
+          actionType: "orders",
+          actionValue: oid
+        }
+      });
+    });
   },
   getNotificationsByUser: async function(id) {
     try {
