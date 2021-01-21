@@ -43,7 +43,6 @@ const UserDetailsSchema = mongoose.Schema({
     account_number: {
       type: String,
       required: false,
-      unique: true
     },
     account_holder_name: {
       type: String,

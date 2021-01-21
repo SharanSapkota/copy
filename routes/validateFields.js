@@ -42,7 +42,7 @@ router.post("/", async (req, res) => {
         errors.push({
           field: "username",
           msg:
-            "Username is invalid. Please pick a username with at least 3 letters, containing only dots and underscores as special characters."
+            "Username is invalid. Username must not be less than 3 characters, and cannot contain spaces, or special characters like (!@#$%^&*{}|-+=~`)"
         });
       }
     } else if (step === 2) {
