@@ -22,6 +22,13 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: false
   },
+
+  isPublished: {
+    type: Boolean,
+    default: true,
+    required: true
+  },
+  
   feature_image: {
     type: String,
     required: false
