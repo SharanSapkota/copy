@@ -9,8 +9,26 @@ const orderSchema = mongoose.Schema({
 
   clothes: [
     {
-      type: Schema.Types.ObjectId,
-      required: true
+      item: {
+        type: Schema.Types.ObjectId,
+        refPath: "clothes.itemType",
+        required: true
+      },
+      itemType: {
+        type: String,
+        default: "Posts",
+        required: true
+      },
+      quantity: {
+        type: Number,
+        default: 1,
+        required: true
+      },
+      seller: {
+        type: Schema.Types.ObjectId,
+        ref: "Users",
+        required: true
+      }
     }
   ],
 

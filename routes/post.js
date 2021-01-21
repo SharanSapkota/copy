@@ -21,8 +21,11 @@ const { s3Upload } = require("../functions/s3upload");
 const {
   postNewItem,
   postWithoutPublish,
-  getPostById
+  getPostById,
+  getPosts
 } = require("../functions/postFunctions");
+
+const { getUser } = require("../functions/users");
 
 //GET ALL
 router.get("/", async (req, res) => {
@@ -186,7 +189,22 @@ router.get("/:postId", async (req, res) => {
   }
 });
 
-//GET ALL POSTS BY SELLER
+//GET ALL POSTS BY SELLER PROFILE
+
+router.get("/profile/:username", async (req, res) => {
+  try {
+    const user = await getUser({ username: req.params.username }, "username");
+    const posts = await getPosts({ seller: user._id });
+    return res.json({ success: true, posts });
+  } catch (err) {
+    return res.json({
+      success: false,
+      errors: [{ msg: "User not found." }]
+    });
+  }
+});
+
+//GET ALL POSTS BY USER
 router.get("/seller/:userId", AuthController.authCheck, async (req, res) => {
   if (req.verified) {
     try {

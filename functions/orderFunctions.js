@@ -4,31 +4,23 @@ const { getUserDetails } = require("./users");
 
 module.exports = {
   getPurchases: async function(id) {
-    const purchases = Orders.find({ buyer: id }).populate("clothes");
+    const purchases = await Orders.find({ buyer: id }).populate("clothes.item");
     return purchases;
   },
 
   getOrdersBySeller: async function(id, filters = {}) {
-    
     let ordersArr = await Orders.find({
-      buyer: { $ne: id },
+      clothes: { $elemMatch: { seller: id } },
       ...filters
     })
-      .populate({
-        path: "clothes",
-        match: {
-          seller: id
-        }
-      })
+      .populate("clothes.item")
       .sort({ date: -1 })
       .exec();
-   
 
     return ordersArr;
   },
 
   getOrdersBySellerAlt: async function(id, oid) {
-
     let ordersArr = await Orders.find({
       _id: oid
     })
@@ -40,22 +32,22 @@ module.exports = {
       })
       .sort({ date: -1 })
       .exec();
-      
 
     return ordersArr;
   },
   getOrderById: async function(id) {
     var order = await Orders.findById(id)
-      .populate({ path: "clothes", model: "Posts" })
+      .populate("clothes.item")
       .exec();
 
     return order;
   },
   verifyOrderSeller: async function(order, user) {
-    console.log(user)
     var order = await module.exports.getOrderById(order);
-    console.log(order.clothes.find(item => item["seller"] === user._id))
-    if (String(order.clothes.seller) === user._id) {console.log("order"); return order} ;
+
+    if (String(order.clothes.seller) === user._id) {
+      return order;
+    }
   },
 
   placeOrder: async function(orderFields) {

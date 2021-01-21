@@ -28,6 +28,7 @@ const {
 } = require("../functions/discounts");
 
 const {
+  getOnePost,
   getPostById,
   getTotalAmount,
   getTotalCreditDiscount,
@@ -46,7 +47,7 @@ const router = express.Router();
 router.get("/", AuthController.authSeller, async (req, res) => {
   try {
     const result = await getOrdersBySeller(req.user.id);
-    
+
     if (result.length > 0) {
       res.json({ success: true, orders: result });
     } else {
@@ -60,9 +61,8 @@ router.get("/", AuthController.authSeller, async (req, res) => {
 router.get("/pending", AuthController.authSeller, async (req, res) => {
   let filters = { order_status: "pending" };
   try {
-    
     const result = await getOrdersBySeller(req.user._id, filters);
-    
+
     if (result.length > 0) {
       res.json({ success: true, orders: result });
     } else {
@@ -129,12 +129,25 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
 
   var orderFields = {
     buyer: user,
-    clothes: clothes,
     payment_type: payment_type,
     total_amount: total_amount,
     delivery_charge: delivery_charge,
     total_order_amount: total_order_amount
   };
+
+  var clothesDetails = Promise.all(
+    clothes.map(async item => {
+      const post = await getOnePost({ _id: item }, "seller");
+      return {
+        item: post._id,
+        seller: post.seller
+      };
+    })
+  );
+
+  orderFields.clothes = await clothesDetails.then(deets => {
+    return deets;
+  });
 
   if (discount) {
     const discount_verified = await validateDiscount(discount);
@@ -197,7 +210,7 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
       .status(200)
       .json({ success: true, msg: "Order placed successfully!" });
   } else {
-    return res.json({success:false, errors:[{msg: "Order failed."}]})
+    return res.json({ success: false, errors: [{ msg: "Order failed." }] });
   }
 });
 
@@ -206,7 +219,6 @@ router.patch("/:orderId/agree", AuthController.authSeller, async (req, res) => {
   const order = req.params.orderId;
 
   const result = await verifyOrderSeller(order, user);
-  
 
   if (result) {
     await createAgreement(user, order);

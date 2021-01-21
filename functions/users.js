@@ -10,6 +10,10 @@ module.exports = {
     const userDetails = await UserDetails.findOne(filters).select(fields);
     return userDetails;
   },
+  getUser: async function(filters, fields = "") {
+    const user = await Users.findOne(filters).select(fields);
+    return user;
+  },
   getUserById: async function(id) {
     const user = await Users.findById(id);
     return user;
