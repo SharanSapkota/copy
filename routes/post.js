@@ -45,6 +45,7 @@ router.get("/", async (req, res) => {
     customQuery.gender.$in = [...customQuery.gender.$in, "both"];
 
   customQuery.status = "Available";
+  customQuery.isPublished = true;
 
   const page = parseInt(req.query.page);
   const limit = parseInt(req.query.limit);
@@ -259,7 +260,8 @@ router.patch("/:postId", AuthController.authSeller, async (req, res) => {
       measurement,
       fabric,
       color,
-      status
+      status,
+      isPublished
     } = req.body;
 
     const update = {};
@@ -330,17 +332,13 @@ router.patch(
     const posts = await Post.findById(req.params.postId);
     const updateStatus = {};
 
-    if (posts.status == "Available") {
-      updateStatus.status = "notAvailable";
-    } else {
-      updateStatus.status = "Available";
-    }
+    updateStatus.isPublished = !posts.isPublished
     const updatedStatus = await Post.findOneAndUpdate(
       { _id: req.params.postId, seller: req.user._id },
       { $set: updateStatus }
     );
 
-    if (updatedStatus) res.json({ ...updateStatus });
+    if (updatedStatus) res.json({ ...updateStatus, success: true });
   }
 );
 

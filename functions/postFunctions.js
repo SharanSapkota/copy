@@ -20,7 +20,7 @@ module.exports = {
     return posts;
   },
   getPostById: async function(id) {
-    const post = await Post.findById(id).populate("seller", "username");
+    const post = await Post.findById(id, {isPublished}, {status :"Available"}).populate("seller", "username");
     return post;
   },
   getPostsByIds: async function(ids) {
