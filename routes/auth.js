@@ -21,6 +21,7 @@ router.get("/user/:username", AuthController.getSingleUser);
 router.post(
   "/register/seller",
   AuthController.authBuyer,
+  
   upload.single("document"),
   AuthController.registerSeller
 );

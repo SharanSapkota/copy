@@ -17,16 +17,21 @@ const authBuyer = (req, res, next) => {
   const token = req.header("x-auth-token");
 
   // Check if no token
+
   if (!token) {
+    console.log("No token")
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
   // Verify token
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    
+    
     req.user = decoded.user;
     next();
   } catch (err) {
+    console.log("token not valid")
     res.status(401).json({ msg: "Token is not valid." });
   }
 };
@@ -131,7 +136,6 @@ const registerSeller = async (req, res) => {
 
   if (!bank_name || !account_holder_name || !account_number || !branch) {
     return res
-      .status(422)
       .json({ success: false, error: { msg: "Bank Details are Required" } });
   }
 
@@ -150,26 +154,35 @@ const registerSeller = async (req, res) => {
   userDetailsFields.bank_details = bank_details;
 
   let user = await userModel.findById(id);
+  
+  
 
   if (user && user.role == 3) {
+    console.log("user role 3")
+
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
       userDetailsFields,
       { new: true }
     );
 
+    console.log(updatedUser)
     if (updatedUser) {
+      console.log("user role 2")
+
       user.role = 2;
       user.save();
-      res.status(200).json({
+      res.json({
         success: true,
         msg: "bank details updated",
         user: updatedUser
       });
     } else {
-      res.status(400).json({ success: false, error: { msg: "Server error." } });
+      console.log("server error")
+      res.json({ success: false, error: { msg: "Server error." } });
     }
   } else {
+    console.log("server error 2")
     res.status(400).json({ success: false, error: { msg: "Server error." } });
   }
 };
