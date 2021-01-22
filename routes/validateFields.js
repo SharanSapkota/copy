@@ -19,7 +19,10 @@ router.post("/", async (req, res) => {
     account_holder_name,
     bank_name,
     branch,
-    step
+    step,
+    address,
+    
+    city
   } = req.body;
 
   let errors = [];
@@ -50,11 +53,13 @@ router.post("/", async (req, res) => {
         errors.push({ field: "password", msg: "Password is too short." });
       }
     } else if (step === 3) {
+      console.log(req.body)
       var mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
       if (!email.match(mailformat)) {
         errors.push({ field: "email", msg: "Email is invalid." });
       } else {
         const user1 = await Users.findOne({ email });
+        
         if (user1) {
           errors.push({
             field: "email",
@@ -62,6 +67,28 @@ router.post("/", async (req, res) => {
           });
         }
       }
+      if(address=== "") {
+        errors.push({ 
+          field: "address",
+          msg: "This field is required"
+        })
+
+      }
+
+      if(city === "" ) {
+        errors.push({ 
+          field: "city",
+          msg: "This field is required"
+        })
+      }
+
+      if(name === ""){
+        errors.push({ 
+          field: "name",
+          msg: "This field is required"
+        })
+      } 
+
       if (phone_number.length !== 10) {
         errors.push({
           field: "phone_number",

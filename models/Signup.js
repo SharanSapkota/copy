@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
         fullname: {
             type: String,
             required: false,
-            trime: true
+            trim: true
         },
         username: { 
             type: String,
