@@ -29,8 +29,57 @@ module.exports = {
       .sort(sort);
     return posts;
   },
+  getBestDeals: async function(dealAmount) {
+    const posts = await Unverified.aggregate([
+      {
+        $project: {
+          ab: {
+            $cmp: [
+              {
+                $divide: [
+                  { $subtract: ["$purchase_price", "$selling_price"] },
+                  "$purchase_price"
+                ]
+              },
+              0.25
+            ]
+          },
+          listing_name: 1,
+          description: 1,
+          category: 1,
+          occassion: 1,
+          gender: 1,
+          isPublished: 1,
+          feature_image: 1,
+          images: 1,
+          purchase_price: 1,
+          selling_price: 1,
+          commission: 1,
+          platform_fee: 1,
+          purchase_date: 1,
+          condition: 1,
+          likes: 1,
+          measurements: 1,
+          brand: 1,
+          fabric: 1,
+          color: 1,
+          status: 1,
+          seller: 1,
+          item_code: 1,
+          date: 1
+        }
+      },
+      { $match: { ab: { $gt: -1 }, isPublished: true, status: "Available" } }
+    ]);
+
+    return posts;
+  },
   getPostById: async function(id) {
-    const post = await Post.findById(id, {isPublished}, {status :"Available"}).populate("seller", "username");
+    const post = await Post.findById(
+      id,
+      { isPublished },
+      { status: "Available" }
+    ).populate("seller", "username");
     return post;
   },
   getPostsByIds: async function(ids) {

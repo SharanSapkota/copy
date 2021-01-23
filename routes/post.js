@@ -22,7 +22,8 @@ const {
   postNewItem,
   postWithoutPublish,
   getPostById,
-  getPosts
+  getPosts,
+  getBestDeals
 } = require("../functions/postFunctions");
 
 const { getUser } = require("../functions/users");
@@ -71,6 +72,20 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {
     res.status(404).json({ message: err });
+  }
+});
+
+//GET BEST DEALS
+
+router.get("/deals", async (req, res) => {
+  const dealAmount = 25;
+
+  let posts = await getBestDeals(dealAmount);
+
+  if (posts.length > 0) {
+    return res.json({ success: true, posts });
+  } else {
+    return res.json({ success: false, errors: [{ msg: "No deals found!" }] });
   }
 });
 
@@ -350,7 +365,7 @@ router.patch(
     const posts = await Post.findById(req.params.postId);
     const updateStatus = {};
 
-    updateStatus.isPublished = !posts.isPublished
+    updateStatus.isPublished = !posts.isPublished;
     const updatedStatus = await Post.findOneAndUpdate(
       { _id: req.params.postId, seller: req.user._id },
       { $set: updateStatus }
