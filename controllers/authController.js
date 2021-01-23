@@ -497,8 +497,8 @@ const forgotPassword = async (req, res) => {
 
 const verifyEmail = (name, email) => {
   try {
-    const OTP = 123456
-    // const OTP = Math.floor(100000 + Math.random() * 900000);
+    // const OTP = 123456
+    const OTP = Math.floor(100000 + Math.random() * 900000);
     const ttl = 5 * 60 * 1000;
     const expires = Date.now() + ttl;
     const data = `${email}.${OTP}.${expires}`;
@@ -509,12 +509,12 @@ const verifyEmail = (name, email) => {
 
     const fullHash = `${hash}.${expires}`;
 
-    // const mailBody = GenerateOTP(name, OTP);
+    const mailBody = GenerateOTP(name, OTP);
 
-    // sendMailNew(email, {
-    //   subject: "Verify Email Address",
-    //   html: mailBody
-    // });
+    sendMailNew(email, {
+      subject: "Verify Email Address",
+      html: mailBody
+    });
     return {
       success: true,
       msg: "Verification email sent.",
