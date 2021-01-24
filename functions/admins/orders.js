@@ -1,11 +1,9 @@
 const Order = require("../../models/Orders");
-const {Post} = require("../../models/Post");
+const { Post } = require("../../models/Post");
 
 const getAllOrders = async () => {
   try {
-    const getAllOrder = await Order.find()
-      .populate({ path: "buyer", select: "phone_number" })
-      .populate("clothes");
+    const getAllOrder = await Order.find().populate("clothes.item");
 
     return getAllOrder;
   } catch (err) {
