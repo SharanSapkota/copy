@@ -127,6 +127,7 @@ const getUserDetails = async (req, res) => {
 };
 
 const registerSeller = async (req, res) => {
+  console.log("this is register seller")
   const file = req.file;
   const id = req.user.id;
   const { account_holder_name, account_number, bank_name, branch } = JSON.parse(
@@ -187,12 +188,15 @@ const registerSeller = async (req, res) => {
 };
 
 const registerFinal = async (req, res, next) => {
+  console.log("registerFinal")
   const file = req.file;
-
+console.log(req.file)
   const data = JSON.parse(req.body.data);
+ 
 
   const {
     username,
+    name,
     password,
     phone_number,
     email,
@@ -228,6 +232,7 @@ const registerFinal = async (req, res, next) => {
   if (address) userDetailsFields.address = address;
   if (dob) userDetailsFields.dob = dob;
   if (document) userDetailsFields.document = document;
+  if (name) userDetailsFields.name = name;
 
   const bank_details = {};
 
