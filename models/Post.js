@@ -28,7 +28,7 @@ const PostSchema = mongoose.Schema({
     default: true,
     required: true
   },
-  
+
   feature_image: {
     type: String,
     required: false

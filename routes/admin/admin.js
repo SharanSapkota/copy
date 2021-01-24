@@ -12,7 +12,10 @@ const upload = multer({ storage: storage });
 
 const { s3Upload } = require("../../functions/s3upload");
 
-const { postNewItem } = require("../../functions/postFunctions");
+const {
+  postNewItem,
+  changeClothingStatus
+} = require("../../functions/postFunctions");
 const {
   getAllUsers,
   verifyUser,
@@ -57,10 +60,7 @@ router.get(
   // AuthController.authAdmin,
   async (req, res) => {
     try {
-      const allPosts = await Post
-        .find
-        // { testSeller: { $exists: true } }
-        ();
+      const allPosts = await Post.find().select("-testSeller");
 
       res.status(200).json(allPosts);
     } catch (err) {
@@ -164,7 +164,7 @@ router.post(
 
     const seller = await Seller.findOne({ usercode: data.testSeller });
 
-    const categoryCode = data.category.slice(0, 2).toUpperCase();
+    const categoryCode = data.category.substring(0, 2).toUpperCase();
 
     const errors = validationResult(data);
 
@@ -176,6 +176,7 @@ router.post(
       const postClothings = {};
 
       postClothings.seller = req.user.id;
+      postClothings.sellerType = "Seller";
       postClothings.platform_fee = data.selling_price * 0.3;
       postClothings.commission = data.selling_price * 0.7;
 
@@ -285,28 +286,59 @@ router.patch("/orders/:orderId", AuthController.authAdmin, async (req, res) => {
   try {
     const updateStatus = await Orders.findOneAndUpdate(
       { _id: req.params.orderId },
-      { $set: req.body }
+      { $set: req.body },
+      { new: true }
     );
-    res.status(200).json(updateStatus);
+    res.status(200).json({ success: true, update: updateStatus });
   } catch (err) {
-    res.status(400).json({ message: err });
+    res.json({ success: false, errors: [err] });
   }
 });
 
 router.post("/orders", AuthController.authAdmin, async (req, res) => {
-  const { buyerTest, clothes, delivery_location } = req.body;
+  const {
+    buyerTest,
+    phone_number,
+    clothes,
+    delivery_location,
+    delivery_type
+  } = req.body;
   orderDestructure = {};
 
-  if (buyerTest) {
-    orderDestructure.buyerTest = buyerTest;
+  if (
+    !buyerTest ||
+    !phone_number ||
+    !clothes ||
+    !delivery_location ||
+    !delivery_type
+  ) {
+    return res.json({
+      success: false,
+      errors: [{ msg: "All fields are required." }]
+    });
   }
-  if (clothes) {
-    orderDestructure.clothes = clothes;
-  }
-  if (delivery_location) {
-    orderDestructure.delivery_location = delivery_location;
-  }
-  orderDestructure.delivery_charge = 100;
+
+  orderDestructure.buyer = buyerTest;
+
+  orderDestructure.phone_number = phone_number;
+
+  orderDestructure.clothes = {
+    item: clothes,
+    seller: req.user.id
+  };
+
+  orderDestructure.delivery_location = delivery_location;
+
+  orderDestructure.delivery_type = delivery_type;
+
+  orderDestructure.delivery_charge =
+    delivery_type === "Inside Ringroad"
+      ? 100
+      : delivery_type === "Outside Ringroad"
+      ? 150
+      : delivery_type === "Outside Valley"
+      ? 250
+      : 100;
 
   try {
     const orderClothes = await Post.findById(clothes);
@@ -316,38 +348,27 @@ router.post("/orders", AuthController.authAdmin, async (req, res) => {
     orderDestructure.total_order_amount =
       orderDestructure.delivery_charge + orderDestructure.total_amount;
 
-    // if(orderClothes.testSeller) {
-    //   console.log(orderClothes.testSeller)
-    // }
-
-    const seller = await Seller.findById(orderClothes.testSeller);
-
-    orderDestructure.pickup_location = seller.address;
+    orderDestructure.pickup_location = "Antidote Apparel, Kupondole, Lalitpur";
 
     const orderPost = new Orders(orderDestructure);
 
-    try {
-      orderPost
-        .save()
-        .then(async res => {
-          await Seller.findByIdAndUpdate(
-            { _id: orderClothes.testSeller },
-            { $inc: { credits: orderClothes.selling_price } }
-          );
+    orderPost.save();
+    await changeClothingStatus(clothes, "Unavailable");
 
-          res
-            .status(200)
-            .json({ success: true, msg: "Order placed successfully!" });
-        })
-        .catch(err => res.status(400).json(err));
-    } catch (err) {
-      console.log(err);
-      res
-        .status(400)
-        .json({ success: false, errors: { msg: "Order failed." } });
-    }
+    // .then(async res => {
+    //   await Seller.findByIdAndUpdate(
+    //     { _id: orderClothes.testSeller },
+    //     { $inc: { credits: orderClothes.selling_price } }
+    //   );
+
+    // })
+
+    return res
+      .status(200)
+      .json({ success: true, msg: "Order placed successfully!" });
   } catch (err) {
     console.log(err);
+    res.status(400).json({ success: false, errors: { msg: "Order failed." } });
   }
 });
 module.exports = router;

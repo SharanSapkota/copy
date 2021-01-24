@@ -3,8 +3,7 @@ const Schema = mongoose.Schema;
 
 const orderSchema = mongoose.Schema({
   buyer: {
-    type: Schema.Types.ObjectId,
-    ref: "Users"
+    type: Schema.Types.Mixed
   },
 
   clothes: [
@@ -35,12 +34,6 @@ const orderSchema = mongoose.Schema({
   payment_type: {
     type: String,
     required: false
-  },
-
-  buyerTest: {
-    type: String,
-    required: false,
-    trim: true
   },
 
   total_amount: {
