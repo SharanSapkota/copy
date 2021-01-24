@@ -17,7 +17,7 @@ const {
   getAllUsers,
   verifyUser,
   movePostsToShop
-} = require("../../functions/admin");
+} = require("../../functions/admins/admin");
 const AuthController = require("../../controllers/authController");
 
 router.get(
@@ -124,9 +124,12 @@ router.patch(
     const id = req.params.id;
 
     const result = await verifyUser(id);
-    const moved = await movePostsToShop(id);
-
-    res.json({ verification: result, movePosts: moved });
+    console.log(result);
+    if (result.success) {
+      const moved = await movePostsToShop(id);
+      return res.json({ verification: result, movePosts: moved });
+    }
+    return res.json(result);
   }
 );
 

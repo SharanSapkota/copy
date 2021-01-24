@@ -19,19 +19,18 @@ const authBuyer = (req, res, next) => {
   // Check if no token
 
   if (!token) {
-    console.log("No token")
+    console.log("No token");
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
   // Verify token
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    
-    
+
     req.user = decoded.user;
     next();
   } catch (err) {
-    console.log("token not valid")
+    console.log("token not valid");
     res.status(401).json({ msg: "Token is not valid." });
   }
 };
@@ -93,7 +92,7 @@ const authAdmin = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    if (req.user.id == "5fd9b20457412e6a880ed55a") {
+    if (req.user.id == "600d0f107209f3577cc074a3") {
       next();
     }
   } catch (err) {
@@ -135,8 +134,10 @@ const registerSeller = async (req, res) => {
   );
 
   if (!bank_name || !account_holder_name || !account_number || !branch) {
-    return res
-      .json({ success: false, error: { msg: "Bank Details are Required" } });
+    return res.json({
+      success: false,
+      error: { msg: "Bank Details are Required" }
+    });
   }
 
   const userDetailsFields = {};
@@ -154,11 +155,9 @@ const registerSeller = async (req, res) => {
   userDetailsFields.bank_details = bank_details;
 
   let user = await userModel.findById(id);
-  
-  
 
   if (user && user.role == 3) {
-    console.log("user role 3")
+    console.log("user role 3");
 
     let updatedUser = await userDetailsModel.findOneAndUpdate(
       { user: user.id },
@@ -166,9 +165,9 @@ const registerSeller = async (req, res) => {
       { new: true }
     );
 
-    console.log(updatedUser)
+    console.log(updatedUser);
     if (updatedUser) {
-      console.log("user role 2")
+      console.log("user role 2");
 
       user.role = 2;
       user.save();
@@ -178,11 +177,11 @@ const registerSeller = async (req, res) => {
         user: updatedUser
       });
     } else {
-      console.log("server error")
+      console.log("server error");
       res.json({ success: false, error: { msg: "Server error." } });
     }
   } else {
-    console.log("server error 2")
+    console.log("server error 2");
     res.status(400).json({ success: false, error: { msg: "Server error." } });
   }
 };

@@ -258,23 +258,36 @@ router.get("/seller/:userId", AuthController.authCheck, async (req, res) => {
 });
 
 //DELETE
-router.delete("/:postId", AuthController.authSeller, async (req, res) => {
-  await mongoose
-    .model("Posts")
-    .findOne({ _id: req.params.postId, seller: req.user._id }, function(
-      err,
-      result
-    ) {
-      let swap = new Archive(result.toJSON()); //or result.toObject
+router.delete("/:postId", AuthController.authBuyer, async (req, res) => {
+  const user = await getUser({ _id: req.user.id }, "role");
 
-      result.remove();
-      swap.save();
-      res.json(swap);
-    });
+  if (user.role === "1") {
+    await Post.findOne(
+      { _id: req.params.postId, seller: req.user.id },
+      function(err, result) {
+        let swap = new Archive(result.toJSON()); //or result.toObject
+
+        result.remove();
+        swap.save();
+        res.json(swap);
+      }
+    );
+  } else {
+    await Unverified.findOne(
+      { _id: req.params.postId, seller: req.user.id },
+      function(err, result) {
+        let swap = new Archive(result.toJSON()); //or result.toObject
+
+        result.remove();
+        swap.save();
+        res.json(swap);
+      }
+    );
+  }
 });
 
 //UPDATE
-router.patch("/:postId", AuthController.authSeller, async (req, res) => {
+router.patch("/:postId", AuthController.authBuyer, async (req, res) => {
   try {
     const {
       listing_name,
@@ -360,9 +373,12 @@ router.patch("/:postId", AuthController.authSeller, async (req, res) => {
 
 router.patch(
   "/unpublish/:postId",
-  AuthController.authSeller,
+  AuthController.authBuyer,
   async (req, res) => {
-    const posts = await Post.findById(req.params.postId);
+    const posts = await Post.findOne({
+      _id: req.params.postId,
+      seller: req.user.id
+    });
     const updateStatus = {};
 
     updateStatus.isPublished = !posts.isPublished;
