@@ -11,3 +11,5 @@ AWS_S3_REGION=us-east-1
 
 EMAIL_USER=antidotenepal@gmail.com
 EMAIL_PASS=antifashion2030
+
+SEND_IN_BL_API=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

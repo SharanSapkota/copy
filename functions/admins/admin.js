@@ -1,6 +1,6 @@
-const Users = require("../models/Users");
-const { Post, Unverified } = require("../models/Post");
-const userModel = require("../models/UserDetails");
+const Users = require("../../models/Users");
+const { Post, Unverified } = require("../../models/Post");
+const userModel = require("../../models/UserDetails");
 
 module.exports = {
   getAllUsers: async function(filters = {}) {
@@ -44,21 +44,21 @@ module.exports = {
       } else if (user.role === "1") {
         return {
           success: false,
-          error: { msg: "Seller already verified." }
+          errors: [{ msg: "Seller already verified." }]
         };
       } else if (user.role === "3") {
         return {
           success: false,
-          error: { msg: "Seller registration incomplete." }
+          errors: [{ msg: "Seller registration incomplete." }]
         };
       } else {
         return {
           success: false,
-          error: { msg: "User doesn't live in Kathmandu Valley." }
+          errors: [{ msg: "User doesn't live in Kathmandu Valley." }]
         };
       }
     } catch (err) {
-      return { success: false, error: { msg: "User not found." } };
+      return { success: false, errors: [{ msg: "User not found." }] };
     }
   },
   movePostsToShop: async function(id) {
