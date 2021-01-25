@@ -123,6 +123,8 @@ router.post(
       fabric
     } = data;
 
+    
+
     data.feature_image = await s3Upload(feature_image[0]);
 
     if (images !== undefined) {

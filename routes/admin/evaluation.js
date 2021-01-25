@@ -11,6 +11,7 @@ router.get('/',
  AuthController.authAdmin,
  async(req, res) => {
    const getAllEvaluation = await Evaluation.find().populate('seller')
+ 
    res.status(200).json(getAllEvaluation)
 })
 

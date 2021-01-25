@@ -121,12 +121,14 @@ router.patch(
   "/users/verify/:id",
   AuthController.authAdmin,
   async (req, res) => {
+    console.log("into users/verify")
     const id = req.params.id;
 
     const result = await verifyUser(id);
-    console.log(result);
+    
     if (result.success) {
       const moved = await movePostsToShop(id);
+      console.log("moved")
       return res.json({ verification: result, movePosts: moved });
     }
     return res.json(result);
@@ -144,15 +146,20 @@ router.post(
   AuthController.authAdmin,
   upload.fields([{ name: "images" }, { name: "featured" }, { name: "data" }]),
   async (req, res, next) => {
+
+    console.log("1")
     const featured = req.files["featured"];
 
     const images = req.files["images"];
+
+
 
     const data = JSON.parse(req.body.data);
 
     let tempArr = [];
 
     data.feature_image = await s3Upload(featured[0]);
+    
 
     if (images !== undefined) {
       for (let i = 0; i < images.length; i++) {
@@ -161,19 +168,25 @@ router.post(
     }
 
     data.images = tempArr;
+    console.log("data")
 
     const seller = await Seller.findOne({ usercode: data.testSeller });
 
     const categoryCode = data.category.substring(0, 2).toUpperCase();
 
     const errors = validationResult(data);
+    console.log("4")
+
 
     if (!errors.isEmpty()) {
-      console.log(errors);
+      console.log("errors");
       res.end();
       // res.status(422).json({ success: false, errors: errors.array() });
     } else {
       const postClothings = {};
+      console.log(data.measurement)
+      console.log(data.measurements)
+    
 
       postClothings.seller = req.user.id;
       postClothings.sellerType = "Seller";
@@ -190,20 +203,21 @@ router.post(
       if (data.listing_name) {
         postClothings.listing_name = data.listing_name;
       }
-      if (data.listing_type) {
-        postClothings.listing_type = data.listing_type;
-      }
-      if (data.occassion) {
-        postClothings.occassion = data.occassion;
-      }
+     
       if (data.gender) {
         postClothings.gender = data.gender;
       }
       if (data.category) {
         postClothings.category = data.category;
       }
+      if (data.brand) {
+        postClothings.brand = data.brand;
+      }
       if (data.design) {
         postClothings.design = data.design;
+      }
+      if(data.description) {
+        postClothings.description = data.description
       }
       if (data.purchase_price) {
         postClothings.purchase_price = data.purchase_price;
@@ -217,8 +231,8 @@ router.post(
       if (data.condition) {
         postClothings.condition = data.condition;
       }
-      if (data.measurement) {
-        postClothings.measurement = data.measurement;
+      if (data.measurements) {
+        postClothings.measurements = data.measurements;
       }
       if (data.fabric) {
         postClothings.fabric = data.fabric;
