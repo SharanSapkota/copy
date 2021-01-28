@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Seller = require("../../models/admin/Seller");
+const UserDetails = require("../../models/UserDetails");
 const Orders = require("../../models/Orders");
 const { Post } = require("../../models/Post");
 const Evaluation = require("../../models/admin/Evaluation");
@@ -121,14 +122,13 @@ router.patch(
   "/users/verify/:id",
   AuthController.authAdmin,
   async (req, res) => {
-    console.log("into users/verify")
     const id = req.params.id;
 
     const result = await verifyUser(id);
     
     if (result.success) {
       const moved = await movePostsToShop(id);
-      console.log("moved")
+      
       return res.json({ verification: result, movePosts: moved });
     }
     return res.json(result);
@@ -146,8 +146,6 @@ router.post(
   AuthController.authAdmin,
   upload.fields([{ name: "images" }, { name: "featured" }, { name: "data" }]),
   async (req, res, next) => {
-
-    console.log("1")
     const featured = req.files["featured"];
 
     const images = req.files["images"];
@@ -168,14 +166,14 @@ router.post(
     }
 
     data.images = tempArr;
-    console.log("data")
+    
 
     const seller = await Seller.findOne({ usercode: data.testSeller });
 
     const categoryCode = data.category.substring(0, 2).toUpperCase();
 
     const errors = validationResult(data);
-    console.log("4")
+
 
 
     if (!errors.isEmpty()) {
@@ -184,8 +182,7 @@ router.post(
       // res.status(422).json({ success: false, errors: errors.array() });
     } else {
       const postClothings = {};
-      console.log(data.measurement)
-      console.log(data.measurements)
+      
     
 
       postClothings.seller = req.user.id;
@@ -282,7 +279,7 @@ router.post(
       }
 
       const post = postNewItem(postClothings);
-      console.log(data.evId);
+      
       const ePost = await Evaluation.findByIdAndUpdate(
         { _id: data.evId },
         {
@@ -290,23 +287,92 @@ router.post(
         }
       );
 
-      console.log(ePost);
+      
       res.send({ success: true });
     }
   }
 );
 
 router.patch("/orders/:orderId", AuthController.authAdmin, async (req, res) => {
-  try {
+ 
+    const findUpdateStatus = await Orders.find({_id: req.params.orderId})
+    console.log(findUpdateStatus)
+    
+    if(req.body.payment_status === findUpdateStatus[0].payment_status && 
+      req.body.order_status === findUpdateStatus[0].order_status){
+
+      res.status(200).json({sameValue: true})
+      
+    } else{
+
+      try {
+
     const updateStatus = await Orders.findOneAndUpdate(
       { _id: req.params.orderId },
       { $set: req.body },
       { new: true }
     );
+
+
+    const abc = updateStatus.clothes
+
+
+    // console.log(updateStatus)
+ 
+    const a = abc.map(c => {return c})
+  
+   const b = a[0].item
+   const selfSeller = a[0].seller
+   
+
+   const insideItem = await Post.findById(b)
+  //  console.log(insideItem.testSeller)
+
+if(insideItem.testSeller){
+ const y = await Seller.findById({_id: insideItem.testSeller})
+
+  console.log("admin added seller")
+  // const data = y.map(dat => {return dat})
+  
+  if(updateStatus.payment_status === "completed") {  
+  const updateCredits =  await Seller.findByIdAndUpdate(
+      {_id: insideItem.testSeller},
+      { $set: { credits: updateStatus.total_amount + y.credits} }
+  
+    )
+
+    }
+  } else {
+
+const z = await UserDetails.find({user: selfSeller})
+
+
+   const data1 = z.map(data => {return data})
+
+const zy = data1[0]
+
+if(updateStatus.payment_status === "completed") {
+  
+const updateCredits =  await UserDetails.findByIdAndUpdate(
+    {_id: zy._id},
+    { $set: { credits: updateStatus.total_amount + zy.credits} }
+  )
+ 
+ }
+
+}
+
+
+
+
+
+
     res.status(200).json({ success: true, update: updateStatus });
   } catch (err) {
+    console.log(err)
     res.json({ success: false, errors: [err] });
   }
+}
 });
 
 router.post("/orders", AuthController.authAdmin, async (req, res) => {
@@ -368,6 +434,17 @@ router.post("/orders", AuthController.authAdmin, async (req, res) => {
 
     orderPost.save();
     await changeClothingStatus(clothes, "Unavailable");
+
+    // console.log(orderPost)
+
+     console.log(orderClothes)
+
+    // if(orderClothes.payment_status === "completed") {
+    //   await Seller.findByIdAndUpdate(
+    //     {_id: orderClothes.testSeller},
+    //     { $inc: { credits: orderClothes.selling_price } }
+    //   )
+    // }
 
     // .then(async res => {
     //   await Seller.findByIdAndUpdate(
