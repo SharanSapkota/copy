@@ -55,19 +55,15 @@ router.patch(
   }
 );
 
-router.get(
-  "/posts",
-  // AuthController.authAdmin,
-  async (req, res) => {
-    try {
-      const allPosts = await Post.find().select("-testSeller");
+router.get("/posts", AuthController.authAdmin, async (req, res) => {
+  try {
+    const allPosts = await Post.find().select("-testSeller");
 
-      res.status(200).json(allPosts);
-    } catch (err) {
-      res.status(400).json({ message: err.message });
-    }
+    res.status(200).json(allPosts);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-);
+});
 
 router.post("/seller", AuthController.authAdmin, async (req, res) => {
   const data = req.body;

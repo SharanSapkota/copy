@@ -4,7 +4,12 @@ const { getUserDetails } = require("./users");
 
 module.exports = {
   getPurchases: async function(id) {
-    const purchases = await Orders.find({ buyer: id }).populate("clothes.item");
+    const purchases = await Orders.find({ buyer: id })
+      .populate("clothes.item")
+      .populate({
+        path: "clothes.seller",
+        select: "username"
+      });
     return purchases;
   },
 
