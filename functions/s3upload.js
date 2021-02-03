@@ -25,7 +25,7 @@ async function s3Upload(file, width = 750, height = 994) {
   let resizeOptions = {};
 
   if (width === 0 && height === 0) {
-    resizeOptions.fit = "contain";
+    resizeOptions.fit = "cover";
   } else {
     resizeOptions.fit = "contain";
     resizeOptions.width = width;

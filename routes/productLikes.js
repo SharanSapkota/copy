@@ -30,7 +30,8 @@ router.put(
         },
         { new: true }
       );
-      res.status(200).json(profile);
+      if (profile)
+        res.status(200).json({ success: true, msg: "Added to wishlist." });
     } catch (err) {
       res.json(err);
     }
@@ -49,7 +50,8 @@ router.put(
         },
         { new: true }
       );
-      res.status(200).json(profile);
+      if (profile)
+        res.status(200).json({ success: true, msg: "Removed from wishlist" });
     } catch (err) {
       res.json(err);
     }

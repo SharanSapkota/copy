@@ -40,8 +40,6 @@ const {
   createOrderNotifications
 } = require("../functions/notificationFunctions");
 
-const { createBuyerCredits } = require("../functions/credits");
-
 const router = express.Router();
 
 router.get("/", AuthController.authSeller, async (req, res) => {
@@ -102,9 +100,9 @@ router.get("/orderById/:id", AuthController.authSeller, async (req, res) => {
 });
 
 router.post("/", AuthController.authBuyer, async (req, res) => {
-  const { clothes, delivery_type, payment_type, discount } = req.body;
+  const { clothes, delivery_type, discount } = req.body;
 
-  if (!delivery_type || !clothes || !payment_type) {
+  if (!delivery_type || !clothes) {
     return res
       .status(401)
       .json({ error: { msg: "Delivery details are required." } });
@@ -129,7 +127,7 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
 
   var orderFields = {
     buyer: user,
-    payment_type: payment_type,
+    payment_type: "COD",
     total_amount: total_amount,
     delivery_charge: delivery_charge,
     total_order_amount: total_order_amount
@@ -174,26 +172,9 @@ router.post("/", AuthController.authBuyer, async (req, res) => {
 
   orderFields.delivery_type = delivery_type;
 
-  if (payment_type === "credits") {
-    const creditsAvailable = await getUserCredits(user);
-
-    var creditDiscount = await getTotalCreditDiscount(clothes);
-    total_after_discount = total_after_discount - creditDiscount;
-
-    if (creditsAvailable < total_after_discount) {
-      return res.json({
-        success: false,
-        errors: [{ msg: "Not enough credits to place order." }]
-      });
-    }
-  }
-
   const order = await placeOrder(orderFields);
 
   if (order) {
-    if (payment_type === "credits") {
-      await createBuyerCredits(user, order._id, total_after_discount);
-    }
     // await createBuyerNotification(order._id);
     await createOrderNotifications(clothes, order._id);
 

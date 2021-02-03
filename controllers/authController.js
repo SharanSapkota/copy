@@ -127,63 +127,68 @@ const getUserDetails = async (req, res) => {
 };
 
 const registerSeller = async (req, res) => {
-  console.log("this is register seller")
-  const file = req.file;
-  const id = req.user.id;
-  const { account_holder_name, account_number, bank_name, branch } = JSON.parse(
-    req.body.data
-  );
+  try {
+    const file = req.file;
+    const id = req.user.id;
+    const {
+      account_holder_name,
+      account_number,
+      bank_name,
+      branch
+    } = JSON.parse(req.body.data);
 
-  if (!bank_name || !account_holder_name || !account_number || !branch) {
-    return res.json({
-      success: false,
-      error: { msg: "Bank Details are Required" }
-    });
-  }
-
-  const userDetailsFields = {};
-  const document = await s3Upload(file, 0, 0);
-  if (document) userDetailsFields.document = document;
-
-  const bank_details = {};
-
-  if (bank_name) bank_details.bank_name = bank_name;
-  if (branch) bank_details.branch = branch;
-  if (account_holder_name)
-    bank_details.account_holder_name = account_holder_name;
-  if (account_number) bank_details.account_number = account_number;
-
-  userDetailsFields.bank_details = bank_details;
-
-  let user = await userModel.findById(id);
-
-  if (user && user.role == 3) {
-    console.log("user role 3");
-
-    let updatedUser = await userDetailsModel.findOneAndUpdate(
-      { user: user.id },
-      userDetailsFields,
-      { new: true }
-    );
-
-    console.log(updatedUser);
-    if (updatedUser) {
-      console.log("user role 2");
-
-      user.role = 2;
-      user.save();
-      res.json({
-        success: true,
-        msg: "bank details updated",
-        user: updatedUser
+    if (!bank_name || !account_holder_name || !account_number || !branch) {
+      return res.json({
+        success: false,
+        error: { msg: "Bank Details are Required" }
       });
-    } else {
-      console.log("server error");
-      res.json({ success: false, error: { msg: "Server error." } });
     }
-  } else {
-    console.log("server error 2");
-    res.status(400).json({ success: false, error: { msg: "Server error." } });
+
+    const userDetailsFields = {};
+    const document = await s3Upload(file, 0, 0);
+    if (document) userDetailsFields.document = document;
+
+    const bank_details = {};
+
+    if (bank_name) bank_details.bank_name = bank_name;
+    if (branch) bank_details.branch = branch;
+    if (account_holder_name)
+      bank_details.account_holder_name = account_holder_name;
+    if (account_number) bank_details.account_number = account_number;
+
+    userDetailsFields.bank_details = bank_details;
+
+    let user = await userModel.findById(id);
+    if (user && user.role == 3) {
+      console.log("user role 3");
+
+      let updatedUser = await userDetailsModel.findOneAndUpdate(
+        { user: user.id },
+        userDetailsFields,
+        { new: true }
+      );
+
+      console.log(updatedUser);
+      if (updatedUser) {
+        console.log("user role 2");
+
+        user.role = 2;
+        user.save();
+        res.json({
+          success: true,
+          msg: "bank details updated",
+          user: updatedUser
+        });
+      } else {
+        console.log("server error");
+        res.json({ success: false, error: { msg: "Server error." } });
+      }
+    } else {
+      console.log("server error 2");
+      res.status(400).json({ success: false, error: { msg: "Server error." } });
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
 
@@ -386,7 +391,9 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
+      return res
+        .status(422)
+        .json({ errors: [{ field: "login", msg: "Invalid Credentials" }] });
     }
 
     const comparisonResult = await bcrypt.compare(password, user.password);
@@ -413,7 +420,9 @@ const login = async (req, res) => {
         }
       );
     } else {
-      return res.status(422).json({ errors: [{ msg: "Invalid Credentials" }] });
+      return res
+        .status(422)
+        .json({ errors: [{ field: "login", msg: "Invalid Credentials" }] });
     }
   } catch (error) {
     res.status(400).json({
@@ -514,7 +523,6 @@ const forgotPassword = async (req, res) => {
 
 const verifyEmail = (name, email) => {
   try {
-    // const OTP = 123456
     const OTP = Math.floor(100000 + Math.random() * 900000);
     const ttl = 5 * 60 * 1000;
     const expires = Date.now() + ttl;
