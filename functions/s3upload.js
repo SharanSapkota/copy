@@ -9,6 +9,7 @@ let s3bucket = new AWS.S3({
 });
 
 async function s3Upload(file, width = 750, height = 994) {
+  
   let fileType = file.originalname.substr(
     file.originalname.lastIndexOf(".") + 1
   );
