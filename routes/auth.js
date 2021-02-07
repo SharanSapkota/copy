@@ -21,7 +21,7 @@ router.get("/user/:username", AuthController.getSingleUser);
 router.post(
   "/register/seller",
   AuthController.authBuyer,
-  
+
   upload.single("document"),
   AuthController.registerSeller
 );
@@ -32,11 +32,11 @@ router.post(
   AuthController.registerBuyer
 );
 
-router.post(
-  "/register/final",
-  upload.single("file"),
-  AuthController.registerFinal
-);
+// router.post(
+//   "/register/final",
+//   upload.single("file"),
+//   AuthController.registerFinal
+// );
 
 router.post(
   "/login",
