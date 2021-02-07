@@ -19,7 +19,6 @@ const authBuyer = (req, res, next) => {
   // Check if no token
 
   if (!token) {
-    console.log("No token");
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
@@ -30,7 +29,6 @@ const authBuyer = (req, res, next) => {
     req.user = decoded.user;
     next();
   } catch (err) {
-    console.log("token not valid");
     res.status(401).json({ msg: "Token is not valid." });
   }
 };
@@ -83,20 +81,17 @@ const authCheck = async (req, res, next) => {
 
 const authAdmin = (req, res, next) => {
   const token = req.header("x-auth-token");
-
   if (!token) {
-    console.log("not authorized");
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    if (req.user.id == "600d0f107209f3577cc074a3") {
+    if (req.user.id == "601a8b21fc73e537e299a495") {
       next();
     }
   } catch (err) {
-    console.log("token is invalid");
     res.status(401).json({ msg: "Token is not valid." });
   }
 };
@@ -160,18 +155,13 @@ const registerSeller = async (req, res) => {
 
     let user = await userModel.findById(id);
     if (user && user.role == 3) {
-      console.log("user role 3");
-
       let updatedUser = await userDetailsModel.findOneAndUpdate(
         { user: user.id },
         userDetailsFields,
         { new: true }
       );
 
-      console.log(updatedUser);
       if (updatedUser) {
-        console.log("user role 2");
-
         user.role = 2;
         user.save();
         res.json({
@@ -180,11 +170,9 @@ const registerSeller = async (req, res) => {
           user: updatedUser
         });
       } else {
-        console.log("server error");
         res.json({ success: false, error: { msg: "Server error." } });
       }
     } else {
-      console.log("server error 2");
       res.status(400).json({ success: false, error: { msg: "Server error." } });
     }
   } catch (err) {
@@ -192,112 +180,110 @@ const registerSeller = async (req, res) => {
   }
 };
 
-const registerFinal = async (req, res, next) => {
-  console.log("registerFinal")
-  const file = req.file;
-console.log(req.file)
-  const data = JSON.parse(req.body.data);
- 
+// const registerFinal = async (req, res, next) => {
+//   const file = req.file;
 
-  const {
-    username,
-    name,
-    password,
-    phone_number,
-    email,
-    city,
-    address,
-    dob,
-    bank_name,
-    account_number,
-    account_holder_name,
-    branch,
-    profileimage
-  } = data;
+//   const data = JSON.parse(req.body.data);
 
-  // const errors = validationResult(req);
+//   const {
+//     username,
+//     name,
+//     password,
+//     phone_number,
+//     email,
+//     city,
+//     address,
+//     dob,
+//     bank_name,
+//     account_number,
+//     account_holder_name,
+//     branch,
+//     profileimage
+//   } = data;
 
-  if (!bank_name || !account_holder_name || !account_number || !branch) {
-    return res
-      .status(422)
-      .json({ success: false, error: { msg: "Bank Details are Required" } });
-  }
+//   // const errors = validationResult(req);
 
-  const document = await s3Upload(file, 0, 0);
+//   if (!bank_name || !account_holder_name || !account_number || !branch) {
+//     return res
+//       .status(422)
+//       .json({ success: false, error: { msg: "Bank Details are Required" } });
+//   }
 
-  const userDetailsFields = {};
-  const userFields = {};
+//   const document = await s3Upload(file, 0, 0);
 
-  if (username) userFields.username = username;
-  if (phone_number) userFields.phone_number = phone_number;
-  if (email) userFields.email = email;
-  userFields.role = 2;
+//   const userDetailsFields = {};
+//   const userFields = {};
 
-  if (city) userDetailsFields.city = city;
-  if (address) userDetailsFields.address = address;
-  if (dob) userDetailsFields.dob = dob;
-  if (document) userDetailsFields.document = document;
-  if (name) userDetailsFields.name = name;
+//   if (username) userFields.username = username;
+//   if (phone_number) userFields.phone_number = phone_number;
+//   if (email) userFields.email = email;
+//   userFields.role = 2;
 
-  const bank_details = {};
+//   if (city) userDetailsFields.city = city;
+//   if (address) userDetailsFields.address = address;
+//   if (dob) userDetailsFields.dob = dob;
+//   if (document) userDetailsFields.document = document;
+//   if (name) userDetailsFields.name = name;
 
-  if (bank_name) bank_details.bank_name = bank_name;
-  if (branch) bank_details.branch = branch;
-  if (account_holder_name)
-    bank_details.account_holder_name = account_holder_name;
-  if (account_number) bank_details.account_number = account_number;
+//   const bank_details = {};
 
-  userDetailsFields.bank_details = bank_details;
+//   if (bank_name) bank_details.bank_name = bank_name;
+//   if (branch) bank_details.branch = branch;
+//   if (account_holder_name)
+//     bank_details.account_holder_name = account_holder_name;
+//   if (account_number) bank_details.account_number = account_number;
 
-  const profile_fields = {};
-  if (profileimage) profile_fields.profile_picture = profileimage;
+//   userDetailsFields.bank_details = bank_details;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+//   const profile_fields = {};
+//   if (profileimage) profile_fields.profile_picture = profileimage;
 
-  if (hashedPassword) userFields.password = hashedPassword;
-  userFields.credits = 0;
+//   const hashedPassword = await bcrypt.hash(password, 10);
 
-  let user = await userModel.findOne({ email });
+//   if (hashedPassword) userFields.password = hashedPassword;
+//   userFields.credits = 0;
 
-  if (user) {
-    return res.status(400).json({ errors: { msg: "User already exists." } });
-  }
+//   let user = await userModel.findOne({ email });
 
-  user = new userModel(userFields);
-  user.save().then(user => {
-    userDetailsFields.user = user.id;
-    profile_fields.user = user.id;
-    let userDetails = new userDetailsModel(userDetailsFields);
-    userDetails.save().then(() => {
-      const payload = {
-        user: {
-          id: user.id
-        }
-      };
+//   if (user) {
+//     return res.status(400).json({ errors: { msg: "User already exists." } });
+//   }
 
-      let profile = new Profiles(profile_fields);
-      profile.save();
+//   user = new userModel(userFields);
+//   user.save().then(user => {
+//     userDetailsFields.user = user.id;
+//     profile_fields.user = user.id;
+//     let userDetails = new userDetailsModel(userDetailsFields);
+//     userDetails.save().then(() => {
+//       const payload = {
+//         user: {
+//           id: user.id
+//         }
+//       };
 
-      registerNotification(user.id);
+//       let profile = new Profiles(profile_fields);
+//       profile.save();
 
-      jwt.sign(
-        payload,
-        process.env.SECRET_KEY,
-        {
-          expiresIn: "4h"
-        },
-        (err, token) => {
-          if (err) throw err;
-          res.status(200).json({
-            success: true,
-            message: "Registered New User",
-            token
-          });
-        }
-      );
-    });
-  });
-};
+//       registerNotification(user.id);
+
+//       jwt.sign(
+//         payload,
+//         process.env.SECRET_KEY,
+//         {
+//           expiresIn: "4h"
+//         },
+//         (err, token) => {
+//           if (err) throw err;
+//           res.status(200).json({
+//             success: true,
+//             message: "Registered New User",
+//             token
+//           });
+//         }
+//       );
+//     });
+//   });
+// };
 
 const registerBuyer = async (req, res, next) => {
   const {
@@ -314,15 +300,21 @@ const registerBuyer = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res.status(422).json({ success: false, errors: errors.array() });
+    return res.status(422).json({ success: false, errors: errors.array() });
   }
 
   const userDetailsFields = {};
   const userFields = {};
 
-  if (username) userFields.username = username;
-  if (phone_number) userFields.phone_number = phone_number;
-  if (email) userFields.email = email;
+  if (username.toLowerCase().includes("antidote")) {
+    return res
+      .status(422)
+      .json({ success: false, errors: [{ msg: "Username already taken!" }] });
+  }
+
+  userFields.username = username.toLowerCase();
+  userFields.phone_number = phone_number;
+  userFields.email = email;
   if (city === "Others") userFields.role = 4;
   else userFields.role = 3;
 
@@ -434,8 +426,8 @@ const login = async (req, res) => {
 const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
 
-  try {
-    if (username === "info@antidotenepal.com") {
+  if (username === "info@antidotenepal.com") {
+    try {
       let user = await userModel.findOne({ email: username });
 
       const comparisonResult = await bcrypt.compare(password, user.password);
@@ -462,11 +454,12 @@ const loginAdmin = async (req, res) => {
           }
         );
       }
-    } else {
-      res.status(404).json({ msg: "Admin not valid" });
+    } catch (err) {
+      console.log(err);
+      res.json({ msg: "Admin not found" });
     }
-  } catch (err) {
-    res.json({ msg: "Admin not found" });
+  } else {
+    res.status(404).json({ msg: "Admin not valid" });
   }
 };
 
@@ -584,7 +577,7 @@ module.exports = {
   getUserDetails,
   registerSeller,
   registerBuyer,
-  registerFinal,
+  // registerFinal,
   login,
   loginPartner,
   authBuyer,

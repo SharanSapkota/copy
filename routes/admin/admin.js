@@ -23,14 +23,10 @@ const {
 } = require("../../functions/admins/admin");
 const AuthController = require("../../controllers/authController");
 
-router.get(
-  "/seller",
-  // AuthController.authAdmin,
-  async (req, res) => {
-    const seller = await Seller.find({});
-    res.status(200).json(seller);
-  }
-);
+router.get("/seller", AuthController.authAdmin, async (req, res) => {
+  const seller = await Seller.find({});
+  res.status(200).json(seller);
+});
 
 router.get("/seller/:sellerId", AuthController.authAdmin, async (req, res) => {
   try {
