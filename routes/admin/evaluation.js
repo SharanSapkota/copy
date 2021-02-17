@@ -26,38 +26,62 @@ router.get('/maintenance',AuthController.authAdmin, async(req, res) => {
  })
 
 
-router.post('/',AuthController.authAdmin, async(req, res) => {
+router.post('/', 
+AuthController.authAdmin, 
 
+async(req, res) => {
     const {
         seller,
-        
+        category,
         color,
         detail,
-        purchase_price,
-        selling_price
+        brand,
+        selling_price,
+        date_of_pickup,
+        date_of_receipt
     } = req.body
     const evaluationDestructure = {}
 
     if(seller){
+        console.log("seller")
+        console.log(req.body.seller)
         evaluationDestructure.seller = req.body.seller
     }
+    
+    if(category) {
+       
+        evaluationDestructure.category = req.body.category
+    }
+
     if(selling_price) {
         evaluationDestructure.selling_price = req.body.selling_price
     }
    
     if(color){
+        console.log("color")
         evaluationDestructure.color = req.body.color
     }
+ 
     if(detail){
         evaluationDestructure.detail = req.body.detail
     }
-    if(purchase_price){
-        evaluationDestructure.purchase_price = req.body.purchase_price
+    if(brand){
+        console.log("brand")
+        evaluationDestructure.brand = req.body.brand
     }
+    if(date_of_receipt){
+        evaluationDestructure.date_of_receipt = req.body.date_of_receipt
+    }
+    if(date_of_pickup){
+        evaluationDestructure.date_of_pickup = req.body.date_of_pickup
+    }
+
+    console.log(evaluationDestructure)
     const postEvaluation = new Evaluation(evaluationDestructure)
+    console.log(postEvaluation)
     try {
         await postEvaluation.save()
-        res.status(200).json({success: true})
+        res.status(200).json({success: true, complete: true})
 
     }
     catch( err) {

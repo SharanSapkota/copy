@@ -82,6 +82,7 @@ const authCheck = async (req, res, next) => {
 };
 
 const authAdmin = (req, res, next) => {
+  
   const token = req.header("x-auth-token");
 
   if (!token) {
@@ -90,10 +91,14 @@ const authAdmin = (req, res, next) => {
   }
 
   try {
+   
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    if (req.user.id == "600d0f107209f3577cc074a3") {
+    
+    if (req.user.id === "600d0f107209f3577cc074a3") {
+    
       next();
+      
     }
   } catch (err) {
     console.log("token is invalid");
@@ -423,15 +428,18 @@ const login = async (req, res) => {
 };
 
 const loginAdmin = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
+  console.log(email, password)
 
   try {
-    if (username === "info@antidotenepal.com") {
-      let user = await userModel.findOne({ email: username });
+    if (email === "info@antidotenepal.com") {
+      let user = await userModel.findOne({ email: email });
+      
 
       const comparisonResult = await bcrypt.compare(password, user.password);
 
       if (comparisonResult) {
+        console.log("password comparison")
         const payload = {
           user: {
             id: user.id
@@ -454,9 +462,11 @@ const loginAdmin = async (req, res) => {
         );
       }
     } else {
+      console.log("admin not validd")
       res.status(404).json({ msg: "Admin not valid" });
     }
   } catch (err) {
+    console.log("Admin not foundd")
     res.json({ msg: "Admin not found" });
   }
 };
@@ -514,8 +524,8 @@ const forgotPassword = async (req, res) => {
 
 const verifyEmail = (name, email) => {
   try {
-    // const OTP = 123456
-    const OTP = Math.floor(100000 + Math.random() * 900000);
+     const OTP = 123456
+    // const OTP = Math.floor(100000 + Math.random() * 900000);
     const ttl = 5 * 60 * 1000;
     const expires = Date.now() + ttl;
     const data = `${email}.${OTP}.${expires}`;
@@ -528,10 +538,10 @@ const verifyEmail = (name, email) => {
 
     const mailBody = GenerateOTP(name, OTP);
 
-    sendMailNew(email, {
-      subject: "Verify Email Address",
-      html: mailBody
-    });
+    // sendMailNew(email, {
+    //   subject: "Verify Email Address",
+    //   html: mailBody
+    // });
     return {
       success: true,
       msg: "Verification email sent.",

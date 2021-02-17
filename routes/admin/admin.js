@@ -170,8 +170,13 @@ router.post(
 
     const seller = await Seller.findOne({ usercode: data.testSeller });
 
-    const categoryCode = data.category.substring(0, 2).toUpperCase();
-
+    var data1 = data.category 
+    if(data1.includes("-")) {
+      const splittedArr = data1.split("-")
+    data1 = (splittedArr[0] + splittedArr[1])
+    }
+  
+  const categoryCode = data1.substring(0, 2).toUpperCase();
     const errors = validationResult(data);
 
 

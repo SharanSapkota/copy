@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     try{
         
     const getAllSellers = await functions.getAllSellers()
-    // console.log(getAllSellers)
+  
     // const getSeller = getAllSellers.map(seller => console.log(seller))
    
    
@@ -27,7 +27,7 @@ router.get('/seller/:id', async (req, res) => {
     try {
         const getSeller = await getUserDetails({user: req.params.id})
         res.status(200).json({success: true, getSeller})
-        console.log(getSeller)  
+       
 
 
     } catch(err) {
