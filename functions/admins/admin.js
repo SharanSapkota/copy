@@ -1,15 +1,29 @@
 const Users = require("../../models/Users");
 const { Post, Unverified } = require("../../models/Post");
-const userModel = require("../../models/UserDetails");
+const UserDetails = require("../../models/UserDetails");
+const Seller = require("../../models/admin/Seller");
 
 module.exports = {
   getAllUsers: async function(filters = {}) {
     try {
       const users = await Users.find(filters);
-      if (users) {
-        return users;
-      }
+      const userIds = users.map((u) => {
+        return u.id;
+      })
+      const userDetails = await UserDetails.find({user: {$in : userIds}}).populate("user");
+      return userDetails;
+      
     } catch (err) {
+      console.log(err);
+      return err;
+    }
+  },
+  getAllUnregisteredUsers: async function() {
+    try {
+      const users = await Seller.find().sort({date: -1});
+      return users;
+    } catch (err) {
+      console.log(err);
       return err;
     }
   },
@@ -24,12 +38,16 @@ module.exports = {
       return err;
     }
   },
-  deleteUser: async function(id) {
+  deleteUnregisteredUser: async function(id) {
     try {
-      await Users.deleteOne({ id: id });
-      return true;
+      const res = await Seller.deleteOne({_id: id});
+      
+      if(res.deletedCount > 0)
+        return true;
+      else return false;
     } catch (err) {
-      return err;
+      console.log(err);
+      return false;
     }
   },
   verifyUser: async function(id) {

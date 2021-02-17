@@ -18,7 +18,11 @@ const SellerSchema = mongoose.Schema({
     required: true,
     trim: true,
   },
-  
+  city: {
+    type: String,
+    required: true,
+    trim: true
+  },
   usercode: {
     type: String,
     trim: true,

@@ -20,6 +20,7 @@ const { s3Upload } = require("../functions/s3upload");
 
 const {
   postNewItem,
+  updateItem,
   postWithoutPublish,
   getPostById,
   getPosts,
@@ -39,10 +40,18 @@ router.get("/", async (req, res) => {
   var customQuery = {};
   if (filters && filters.length > 0) {
     let parsed = JSON.parse(filters);
-    if (parsed.gender && parsed.gender.length > 0)
-      customQuery.gender = { $in: parsed.gender };
+    if (parsed.gender && parsed.gender.length > 0) {
+      if (parsed.gender.includes("Men") && parsed.gender.includes("Women")) {
+        customQuery.gender = { $in: ["Men", "Women", "All"] };
+      } else {
+        customQuery.gender = { $in: parsed.gender };
+      }
+    }
+
     if (parsed.category && parsed.category.length > 0)
       customQuery.category = { $in: parsed.category };
+    if (parsed.condition && parsed.condition.length > 0)
+      customQuery.condition = { $in: parsed.condition };
   }
 
   if (customQuery.gender)
@@ -93,15 +102,9 @@ router.get("/deals", async (req, res) => {
 router.post(
   "/",
   AuthController.authCheck,
-  upload.fields([
-    { name: "images" },
-    { name: "feature_image" },
-    { name: "data" }
-  ]),
+  upload.fields([{ name: "images" }, { name: "data" }]),
   limiter,
   async (req, res) => {
-    const feature_image = req.files["feature_image"];
-
     const images = req.files["images"];
 
     const data = JSON.parse(req.body.data);
@@ -123,10 +126,6 @@ router.post(
       fabric
     } = data;
 
-    
-
-    data.feature_image = await s3Upload(feature_image[0]);
-
     if (images !== undefined) {
       for (let i = 0; i < images.length; i++) {
         tempArr.push(await s3Upload(images[i]));
@@ -136,9 +135,6 @@ router.post(
     data.images = tempArr;
 
     const postClothings = {};
-
-    postClothings.platform_fee = selling_price * 0.15;
-    postClothings.commission = selling_price * 0.85;
 
     postClothings.seller = req.user.id;
 
@@ -157,9 +153,7 @@ router.post(
     if (data.images) {
       postClothings.images = data.images;
     }
-    if (data.feature_image) {
-      postClothings.feature_image = data.feature_image;
-    }
+
     if (purchase_price) {
       postClothings.purchase_price = purchase_price;
     }
@@ -289,89 +283,49 @@ router.delete("/:postId", AuthController.authBuyer, async (req, res) => {
 });
 
 //UPDATE
-router.patch("/:postId", AuthController.authBuyer, async (req, res) => {
-  try {
-    const {
-      listing_name,
+router.patch(
+  "/:postId",
+  AuthController.authCheck,
+  upload.fields([{ name: "images" }, { name: "data" }]),
+  limiter,
+  async (req, res) => {
+    const images = req.files["images"];
+    const prevImages =
+      typeof req.body.images === "string" ? [req.body.images] : req.body.images;
+    const imageIndexes =
+      typeof req.body.imageIndexes === "string"
+        ? [req.body.imageIndexes]
+        : req.body.imageIndexes;
 
-      occassion,
-      gender,
+    const data = JSON.parse(req.body.data);
 
-      feature_image,
-      purchase_price,
-      selling_price,
-      commission,
-      platform_fee,
-      purchase_date,
-      condition,
-      likes,
-      measurement,
-      fabric,
-      color,
-      status,
-      isPublished
-    } = req.body;
+    const id = req.params.postId;
 
-    const update = {};
+    let tempArr = [];
 
-    if (listing_name) {
-      update.listing_name = req.body.listing_name;
+    if (images) {
+      for (let i = 0; i < images.length; i++) {
+        tempArr.push(await s3Upload(images[i]));
+      }
     }
 
-    if (occassion) {
-      update.occasion = req.body.occasion;
-    }
-    if (gender) {
-      update.gender = req.body.gender;
-    }
-
-    if (feature_image) {
-      update.feature_image = req.body.feature_image;
-    }
-    if (purchase_price) {
-      update.purchase_price = req.body.purchase_price;
-    }
-    if (selling_price) {
-      update.selling_price = req.body.selling_price;
-    }
-    if (commission) {
-      update.commission = req.body.commission;
-    }
-    if (platform_fee) {
-      update.platform_fee = req.body.platform_fee;
-    }
-    if (purchase_date) {
-      update.purchase_date = req.body.purchase_date;
-    }
-    if (likes) {
-      update.likes = req.body.likes;
-    }
-    if (status) {
-      update.status = req.body.status;
-    }
-    if (condition) {
-      update.condition = req.body.condition;
-    }
-    if (measurement) {
-      update.measurement = req.body.measurement;
-    }
-    if (fabric) {
-      update.fabric = req.body.fabric;
-    }
-    if (color) {
-      update.color = req.body.color;
+    if (!prevImages) {
+      data.images = tempArr;
+    } else {
+      tempArr.forEach((image, index) => {
+        data.images[parseInt(imageIndexes[index])] = image;
+      });
     }
 
-    const updatedPost = await Post.findOneAndUpdate(
-      { _id: req.params.postId, seller: req.user._id },
-      { $set: update },
-      { new: true }
-    );
-    res.status(200).json(updatedPost);
-  } catch (err) {
-    res.status(404).json({ message: err });
+    const result = await updateItem(id, data, req.verified);
+
+    if (result) {
+      return res.json({ success: true, result });
+    } else {
+      return res.json({ success: false });
+    }
   }
-});
+);
 
 router.patch(
   "/unpublish/:postId",

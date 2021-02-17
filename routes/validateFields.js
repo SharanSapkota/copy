@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
     branch,
     step,
     address,
-    
+
     city
   } = req.body;
 
@@ -38,7 +38,7 @@ router.post("/", async (req, res) => {
       if (username && username.match(usernameFormat) && username.length > 2) {
         const user = await Users.findOne({ username: username });
 
-        if (user) {
+        if (user || username.toLowerCase().includes("antidote")) {
           errors.push({ field: "username", msg: "Username already taken." });
         }
       } else {
@@ -53,13 +53,13 @@ router.post("/", async (req, res) => {
         errors.push({ field: "password", msg: "Password is too short." });
       }
     } else if (step === 3) {
-      console.log(req.body)
+      console.log(req.body);
       var mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
       if (!email.match(mailformat)) {
         errors.push({ field: "email", msg: "Email is invalid." });
       } else {
         const user1 = await Users.findOne({ email });
-        
+
         if (user1) {
           errors.push({
             field: "email",
@@ -67,27 +67,26 @@ router.post("/", async (req, res) => {
           });
         }
       }
-      if(address=== "") {
-        errors.push({ 
+      if (address === "") {
+        errors.push({
           field: "address",
           msg: "This field is required"
-        })
-
+        });
       }
 
-      if(city === "" ) {
-        errors.push({ 
+      if (city === "") {
+        errors.push({
           field: "city",
           msg: "This field is required"
-        })
+        });
       }
 
-      if(name === ""){
-        errors.push({ 
+      if (name === "") {
+        errors.push({
           field: "name",
           msg: "This field is required"
-        })
-      } 
+        });
+      }
 
       if (phone_number.length !== 10) {
         errors.push({

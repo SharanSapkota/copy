@@ -19,6 +19,23 @@ module.exports = {
     posts.save();
     return posts;
   },
+  updateItem: async function(id, data, verified) {
+    try {
+      if (verified) {
+        const post = await Post.findOneAndUpdate({ _id: id }, data, {
+          new: true
+        });
+        return post;
+      } else {
+        const unv = await Unverified.findOneAndUpdate({ _id: id }, data, {
+          new: true
+        });
+        return unv;
+      }
+    } catch (err) {
+      return err;
+    }
+  },
   getOnePost: async function(filters, selection = "") {
     const posts = await Post.findOne(filters).select(selection);
     return posts;
@@ -29,8 +46,8 @@ module.exports = {
       .sort(sort);
     return posts;
   },
-  getBestDeals: async function(dealAmount) {
-    const posts = await Unverified.aggregate([
+  getBestDeals: async function(dealAmount = 0.25) {
+    const posts = await Post.aggregate([
       {
         $project: {
           ab: {
@@ -41,7 +58,7 @@ module.exports = {
                   "$purchase_price"
                 ]
               },
-              0.25
+              dealAmount
             ]
           },
           listing_name: 1,
@@ -75,11 +92,12 @@ module.exports = {
     return posts;
   },
   getPostById: async function(id) {
-    const post = await Post.findById(
-      id,
-      { isPublished },
-      { status: "Available" }
-    ).populate("seller", "username");
+    const post = await Post.findOne({
+      _id: id,
+      isPublished: true,
+      status: "Available"
+    }).populate("seller", "username");
+
     return post;
   },
   getPostsByIds: async function(ids) {
@@ -87,7 +105,6 @@ module.exports = {
     return posts;
   },
   getTotalAmount: async function(clothes) {
-    console.log(clothes);
     var clothesArr = clothes.map(item => mongoose.Types.ObjectId(item));
     var result = await Post.aggregate([
       { $match: { _id: { $in: clothesArr } } },
