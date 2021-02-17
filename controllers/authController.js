@@ -88,7 +88,7 @@ const authAdmin = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    if (req.user.id == "601a8b21fc73e537e299a495") {
+    if (req.user.id == "600d0f107209f3577cc074a3") {
       next();
     }
   } catch (err) {
@@ -424,11 +424,11 @@ const login = async (req, res) => {
 };
 
 const loginAdmin = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (username === "info@antidotenepal.com") {
+  if (email === "info@antidotenepal.com") {
     try {
-      let user = await userModel.findOne({ email: username });
+      let user = await userModel.findOne({ email: email });
 
       const comparisonResult = await bcrypt.compare(password, user.password);
 
@@ -453,13 +453,15 @@ const loginAdmin = async (req, res) => {
             });
           }
         );
+      } else {
+        return res.status(401).json({ msg: "Password incorrect." });
       }
     } catch (err) {
       console.log(err);
-      res.json({ msg: "Admin not found" });
+      return res.json({ msg: "Admin not found" });
     }
   } else {
-    res.status(404).json({ msg: "Admin not valid" });
+    return res.status(404).json({ msg: "Admin not valid" });
   }
 };
 
