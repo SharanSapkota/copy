@@ -18,6 +18,8 @@ const {
 } = require("../../functions/postFunctions");
 const {
   getAllUsers,
+  getAllUnregisteredUsers,
+  deleteUnregisteredUser,
   verifyUser,
   movePostsToShop
 } = require("../../functions/admins/admin");
@@ -52,14 +54,32 @@ router.patch(
 );
 
 router.get("/posts", AuthController.authAdmin, async (req, res) => {
-  try {
-    const allPosts = await Post.find().select("-testSeller");
 
-    res.status(200).json(allPosts);
+  try {
+    const adminPosts = await Post.find({seller: req.user.id, isPublished: true});
+    res.status(200).json(adminPosts);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
+
+router.get("/posts/unpublished", AuthController.authAdmin, async (req,res)=> {
+  try {
+    const unpublishedPosts = await Post.find({seller: req.user.id, isPublished: false});
+    res.status(200).json(unpublishedPosts);
+  } catch (err) {
+    res.status(400).json({message: err.message});
+  }
+})
+
+router.get("/posts/ecom", AuthController.authAdmin, async (req,res) => {
+  try {
+    const ecomPosts = await Post.find({$neq : {seller: req.user.id}});
+    res.status(200).json(ecomPosts);
+  } catch (err) {
+    res.status(400).json({message: err.message});
+  }
+})
 
 router.post("/seller", AuthController.authAdmin, async (req, res) => {
   const data = req.body;
@@ -103,9 +123,8 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   try {
     const savedSeller = await sellers.save();
     res.json(savedSeller);
-    console.log("success");
   } catch (err) {
-    res.json({ message: err });
+    res.json({errors: [{msg: "Server Error."}]});
   }
 });
 
@@ -125,11 +144,30 @@ router.patch(
   }
 );
 
-router.get("/users/unverified", AuthController.authAdmin, async (req, res) => {
-  const result = await getAllUsers({ role: "2" });
+router.get("/users/verified", AuthController.authAdmin, async (req, res) => {
+  const verified = await getAllUsers({role: "1"});
+  return res.json({verified});
+})
 
-  return res.json(result);
+router.get("/users/unregistered", AuthController.authAdmin, async (req, res) => {
+  const unregistered = await getAllUnregisteredUsers();
+  return res.json({unregistered});
 });
+
+router.get("/users/admin", AuthController.authAdmin, async (req, res) => {
+  const admin = await getAllUsers({role: "99"});
+  return res.json({admin});
+});
+
+router.get("/users/unverified", AuthController.authAdmin, async (req, res) => {
+  const unverified = await getAllUsers({role: "2"});
+  return res.json({unverified});
+});
+
+router.delete("/users/unregistered", AuthController.authAdmin, async (req,res) => {
+  const deleted = await deleteUnregisteredUser(req.body.id);
+  return res.json(deleted);
+})
 
 router.post(
   "/post",

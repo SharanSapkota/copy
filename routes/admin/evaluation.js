@@ -1,5 +1,5 @@
 const express = require("express");
-const Evaluation = require("../../models/admin/Evaluation");
+const {Evaluation, Rejections} = require("../../models/admin/Evaluation");
 const evalFunctions = require("./functions/evaluations");
 
 const router = express.Router();
@@ -27,7 +27,6 @@ router.get("/dryclean", AuthController.authAdmin, async (req, res) => {
 router.post("/", AuthController.authAdmin, async (req, res) => {
   const {
     seller,
-
     color,
     detail,
     purchase_price,
@@ -181,7 +180,6 @@ router.patch("/:evaluationId", AuthController.authAdmin, async (req, res) => {
 
 router.delete("/:evaluationId", AuthController.authAdmin, async (req, res) => {
   const deleteId = req.params.evaluationId;
-  console.log(deleteId);
   const data = await Evaluation.findById(deleteId);
   if (data != null) {
     data.remove();
@@ -190,5 +188,23 @@ router.delete("/:evaluationId", AuthController.authAdmin, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
+router.patch("/reject/:evaluationId", AuthController.authAdmin, async (req, res) => {
+  const rejectId = req.params.evaluationId;
+  try {
+    await Evaluation.findOne(
+      { _id: rejectId},
+      function(err, result) {
+        let swap = new Rejections(result.toJSON()); //or result.toObject
+
+        result.remove();
+        swap.save();
+        res.status(200).json(swap);
+      }
+    );
+  } catch(err){
+    return res.status(400).json({message: err.message});
+  }
+})
 
 module.exports = router;

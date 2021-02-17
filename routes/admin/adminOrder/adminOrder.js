@@ -7,7 +7,7 @@ const router = express.Router();
 //Get all orders
 router.get(
   "/",
-  // AuthController.authAdmin,
+  AuthController.authAdmin,
   async (req, res) => {
     const getAllOrders = await orderFunctions.getAllOrders();
     res.status(200).json(getAllOrders);

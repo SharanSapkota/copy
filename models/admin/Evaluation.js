@@ -57,3 +57,4 @@ const EvaluationSchema = Schema ({
     }
 })
 module.exports = mongoose.model("evaluation", EvaluationSchema)
+module.exports = mongoose.model("Rejections", EvaluationSchema)
