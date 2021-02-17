@@ -7,57 +7,87 @@ const router = express.Router();
 // Get All Evaluation
 const AuthController = require("../../controllers/authController");
 
-router.get("/", AuthController.authAdmin, async (req, res) => {
-  const getAllEvaluation = await Evaluation.find().populate("seller");
-  res.status(200).json(getAllEvaluation);
-});
+router.get('/',
+ AuthController.authAdmin,
+ async(req, res) => {
+   const getAllEvaluation = await Evaluation.find().populate('seller')
+ 
+   res.status(200).json(getAllEvaluation)
+})
 
-router.get("/maintenance", AuthController.authAdmin, async (req, res) => {
-  const getAllMaintenance = await Evaluation.find({
-    "maintenance.status": true
-  });
-  res.status(200).json(getAllMaintenance);
-});
+router.get('/maintenance',AuthController.authAdmin, async(req, res) => {
+    const getAllMaintenance = await Evaluation.find({'maintenance.status' : true})
+    res.status(200).json(getAllMaintenance)
+ })
 
-router.get("/dryclean", AuthController.authAdmin, async (req, res) => {
-  const getAllDryClean = await Evaluation.find({ "dry_cleaning.status": true });
-  res.status(200).json(getAllDryClean);
-});
+ router.get('/dryclean',AuthController.authAdmin, async(req, res) => {
+    const getAllDryClean = await Evaluation.find({'dry_cleaning.status' : true})
+    res.status(200).json(getAllDryClean)
+ })
 
-router.post("/", AuthController.authAdmin, async (req, res) => {
-  const {
-    seller,
-    color,
-    detail,
-    purchase_price,
-    selling_price
-  } = req.body;
-  const evaluationDestructure = {};
 
-  if (seller) {
-    evaluationDestructure.seller = req.body.seller;
-  }
-  if (selling_price) {
-    evaluationDestructure.selling_price = req.body.selling_price;
-  }
+router.post('/', 
+AuthController.authAdmin, 
 
-  if (color) {
-    evaluationDestructure.color = req.body.color;
-  }
-  if (detail) {
-    evaluationDestructure.detail = req.body.detail;
-  }
-  if (purchase_price) {
-    evaluationDestructure.purchase_price = req.body.purchase_price;
-  }
-  const postEvaluation = new Evaluation(evaluationDestructure);
-  try {
-    await postEvaluation.save();
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(404).json({ message: err });
-  }
-});
+async(req, res) => {
+    const {
+        seller,
+        category,
+        color,
+        detail,
+        brand,
+        selling_price,
+        date_of_pickup,
+        date_of_receipt
+    } = req.body
+    const evaluationDestructure = {}
+
+    if(seller){
+        console.log("seller")
+        console.log(req.body.seller)
+        evaluationDestructure.seller = req.body.seller
+    }
+    
+    if(category) {
+       
+        evaluationDestructure.category = req.body.category
+    }
+
+    if(selling_price) {
+        evaluationDestructure.selling_price = req.body.selling_price
+    }
+   
+    if(color){
+        console.log("color")
+        evaluationDestructure.color = req.body.color
+    }
+ 
+    if(detail){
+        evaluationDestructure.detail = req.body.detail
+    }
+    if(brand){
+        console.log("brand")
+        evaluationDestructure.brand = req.body.brand
+    }
+    if(date_of_receipt){
+        evaluationDestructure.date_of_receipt = req.body.date_of_receipt
+    }
+    if(date_of_pickup){
+        evaluationDestructure.date_of_pickup = req.body.date_of_pickup
+    }
+
+    console.log(evaluationDestructure)
+    const postEvaluation = new Evaluation(evaluationDestructure)
+    console.log(postEvaluation)
+    try {
+        await postEvaluation.save()
+        res.status(200).json({success: true, complete: true})
+
+    }
+    catch( err) {
+        res.status(404).json({message: err})
+    }
+})
 
 //Get Evaluation By Id
 router.get("/:evaluationId", async (req, res) => {

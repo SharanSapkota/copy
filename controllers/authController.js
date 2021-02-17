@@ -80,16 +80,21 @@ const authCheck = async (req, res, next) => {
 };
 
 const authAdmin = (req, res, next) => {
+  
   const token = req.header("x-auth-token");
   if (!token) {
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
   try {
+   
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    if (req.user.id == "600d0f107209f3577cc074a3") {
+    
+    if (req.user.id === "600d0f107209f3577cc074a3") {
+    
       next();
+      
     }
   } catch (err) {
     res.status(401).json({ msg: "Token is not valid." });
@@ -425,7 +430,6 @@ const login = async (req, res) => {
 
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
-
   if (email === "info@antidotenepal.com") {
     try {
       let user = await userModel.findOne({ email: email });
@@ -433,6 +437,7 @@ const loginAdmin = async (req, res) => {
       const comparisonResult = await bcrypt.compare(password, user.password);
 
       if (comparisonResult) {
+        console.log("password comparison")
         const payload = {
           user: {
             id: user.id
@@ -531,10 +536,10 @@ const verifyEmail = (name, email) => {
 
     const mailBody = GenerateOTP(name, OTP);
 
-    sendMailNew(email, {
-      subject: "Verify Email Address",
-      html: mailBody
-    });
+    // sendMailNew(email, {
+    //   subject: "Verify Email Address",
+    //   html: mailBody
+    // });
     return {
       success: true,
       msg: "Verification email sent.",

@@ -15,6 +15,7 @@ const upload = multer({ storage: storage });
 const AuthController = require("../controllers/authController");
 
 router.get("/", AuthController.authBuyer, AuthController.getUserDetails);
+router.get("/admin", AuthController.authAdmin);
 
 router.get("/user/:username", AuthController.getSingleUser);
 

@@ -7,7 +7,9 @@ module.exports = {
     return userDetails;
   },
   getUserDetails: async function(filters, fields = "") {
+    console.log(filters)
     const userDetails = await UserDetails.findOne(filters).select(fields);
+    console.log(userDetails)
     return userDetails;
   },
   getUser: async function(filters, fields = "") {

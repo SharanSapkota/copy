@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Seller = require("../../models/admin/Seller");
+const UserDetails = require("../../models/UserDetails");
 const Orders = require("../../models/Orders");
 const { Post } = require("../../models/Post");
 const Evaluation = require("../../models/admin/Evaluation");
@@ -135,9 +136,10 @@ router.patch(
     const id = req.params.id;
 
     const result = await verifyUser(id);
-    console.log(result);
+    
     if (result.success) {
       const moved = await movePostsToShop(id);
+      
       return res.json({ verification: result, movePosts: moved });
     }
     return res.json(result);
@@ -178,11 +180,14 @@ router.post(
 
     const images = req.files["images"];
 
+
+
     const data = JSON.parse(req.body.data);
 
     let tempArr = [];
 
     data.feature_image = await s3Upload(featured[0]);
+    
 
     if (images !== undefined) {
       for (let i = 0; i < images.length; i++) {
@@ -191,19 +196,29 @@ router.post(
     }
 
     data.images = tempArr;
+    
 
     const seller = await Seller.findOne({ usercode: data.testSeller });
 
-    const categoryCode = data.category.substring(0, 2).toUpperCase();
-
+    var data1 = data.category 
+    if(data1.includes("-")) {
+      const splittedArr = data1.split("-")
+    data1 = (splittedArr[0] + splittedArr[1])
+    }
+  
+  const categoryCode = data1.substring(0, 2).toUpperCase();
     const errors = validationResult(data);
 
+
+
     if (!errors.isEmpty()) {
-      console.log(errors);
+      console.log("errors");
       res.end();
       // res.status(422).json({ success: false, errors: errors.array() });
     } else {
       const postClothings = {};
+      
+    
 
       postClothings.seller = req.user.id;
       postClothings.sellerType = "Seller";
@@ -220,20 +235,21 @@ router.post(
       if (data.listing_name) {
         postClothings.listing_name = data.listing_name;
       }
-      if (data.listing_type) {
-        postClothings.listing_type = data.listing_type;
-      }
-      if (data.occassion) {
-        postClothings.occassion = data.occassion;
-      }
+     
       if (data.gender) {
         postClothings.gender = data.gender;
       }
       if (data.category) {
         postClothings.category = data.category;
       }
+      if (data.brand) {
+        postClothings.brand = data.brand;
+      }
       if (data.design) {
         postClothings.design = data.design;
+      }
+      if(data.description) {
+        postClothings.description = data.description
       }
       if (data.purchase_price) {
         postClothings.purchase_price = data.purchase_price;
@@ -247,8 +263,8 @@ router.post(
       if (data.condition) {
         postClothings.condition = data.condition;
       }
-      if (data.measurement) {
-        postClothings.measurement = data.measurement;
+      if (data.measurements) {
+        postClothings.measurements = data.measurements;
       }
       if (data.fabric) {
         postClothings.fabric = data.fabric;
@@ -298,7 +314,7 @@ router.post(
       }
 
       const post = postNewItem(postClothings);
-      console.log(data.evId);
+      
       const ePost = await Evaluation.findByIdAndUpdate(
         { _id: data.evId },
         {
@@ -306,23 +322,92 @@ router.post(
         }
       );
 
-      console.log(ePost);
+      
       res.send({ success: true });
     }
   }
 );
 
 router.patch("/orders/:orderId", AuthController.authAdmin, async (req, res) => {
-  try {
+ 
+    const findUpdateStatus = await Orders.find({_id: req.params.orderId})
+    console.log(findUpdateStatus)
+    
+    if(req.body.payment_status === findUpdateStatus[0].payment_status && 
+      req.body.order_status === findUpdateStatus[0].order_status){
+
+      res.status(200).json({sameValue: true})
+      
+    } else{
+
+      try {
+
     const updateStatus = await Orders.findOneAndUpdate(
       { _id: req.params.orderId },
       { $set: req.body },
       { new: true }
     );
+
+
+    const abc = updateStatus.clothes
+
+
+    // console.log(updateStatus)
+ 
+    const a = abc.map(c => {return c})
+  
+   const b = a[0].item
+   const selfSeller = a[0].seller
+   
+
+   const insideItem = await Post.findById(b)
+  //  console.log(insideItem.testSeller)
+
+if(insideItem.testSeller){
+ const y = await Seller.findById({_id: insideItem.testSeller})
+
+  console.log("admin added seller")
+  // const data = y.map(dat => {return dat})
+  
+  if(updateStatus.payment_status === "completed") {  
+  const updateCredits =  await Seller.findByIdAndUpdate(
+      {_id: insideItem.testSeller},
+      { $set: { credits: updateStatus.total_amount + y.credits} }
+  
+    )
+
+    }
+  } else {
+
+const z = await UserDetails.find({user: selfSeller})
+
+
+   const data1 = z.map(data => {return data})
+
+const zy = data1[0]
+
+if(updateStatus.payment_status === "completed") {
+  
+const updateCredits =  await UserDetails.findByIdAndUpdate(
+    {_id: zy._id},
+    { $set: { credits: updateStatus.total_amount + zy.credits} }
+  )
+ 
+ }
+
+}
+
+
+
+
+
+
     res.status(200).json({ success: true, update: updateStatus });
   } catch (err) {
+    console.log(err)
     res.json({ success: false, errors: [err] });
   }
+}
 });
 
 router.post("/orders", AuthController.authAdmin, async (req, res) => {
@@ -384,6 +469,17 @@ router.post("/orders", AuthController.authAdmin, async (req, res) => {
 
     orderPost.save();
     await changeClothingStatus(clothes, "Unavailable");
+
+    // console.log(orderPost)
+
+     console.log(orderClothes)
+
+    // if(orderClothes.payment_status === "completed") {
+    //   await Seller.findByIdAndUpdate(
+    //     {_id: orderClothes.testSeller},
+    //     { $inc: { credits: orderClothes.selling_price } }
+    //   )
+    // }
 
     // .then(async res => {
     //   await Seller.findByIdAndUpdate(
