@@ -40,6 +40,26 @@ router.get("/seller/:sellerId", AuthController.authAdmin, async (req, res) => {
   }
 });
 
+router.get('/sellername/:name', async (req, res) => {
+ 
+  const sellerName = req.params.name
+  console.log(sellerName)
+  const getAllSellers = await Seller.find({
+  username: {$regex: req.params.name, $options: "i"}
+}
+ )
+ console.log(getAllSellers)
+
+ return res.status(200).json({success: true, getAllSellers})
+
+// const getSellerByName = getAllSellers.username
+  
+  
+  
+  
+  
+  })
+
 router.patch(
   "/seller/:sellerId",
   AuthController.authAdmin,

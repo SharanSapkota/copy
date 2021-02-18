@@ -17,7 +17,8 @@ router.get("/", AuthController.authAdmin, async (req, res) => {
   }
 });
 
-})
+
+
 
 router.get('/seller/:id', async (req, res) => {
    console.log(req.params.id)
@@ -25,8 +26,6 @@ router.get('/seller/:id', async (req, res) => {
         const getSeller = await getUserDetails({user: req.params.id})
         res.status(200).json({success: true, getSeller})
        
-
-
     } catch(err) {
         console.log(err)
     }
