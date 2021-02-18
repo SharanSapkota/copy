@@ -51,5 +51,10 @@ const EvaluationSchema = Schema ({
         required: false
     },
 })
-module.exports = mongoose.model("evaluation", EvaluationSchema)
-module.exports = mongoose.model("Rejections", EvaluationSchema)
+
+
+
+module.exports = {
+     Evaluation : mongoose.model("evaluation", EvaluationSchema),
+     Rejections : mongoose.model("Rejections", EvaluationSchema)
+}
