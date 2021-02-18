@@ -10,6 +10,7 @@ const AuthController = require("../../controllers/authController");
 router.get('/',
  AuthController.authAdmin,
  async(req, res) => {
+   console.log(Evaluation)
    const getAllEvaluation = await Evaluation.find().populate('seller')
  
    res.status(200).json(getAllEvaluation)
@@ -30,57 +31,66 @@ router.post('/',
 AuthController.authAdmin, 
 
 async(req, res) => {
+
+  console.log("inside post evaluation")
     const {
         seller,
-        category,
-        color,
-        detail,
-        brand,
-        selling_price,
-        date_of_pickup,
-        date_of_receipt
+        items
     } = req.body
-    const evaluationDestructure = {}
 
-    if(seller){
-        console.log("seller")
-        console.log(req.body.seller)
-        evaluationDestructure.seller = req.body.seller
+    console.log(req.body)
+
+
+
+    if(!seller || !items){
+      res.status(404).json({success: false, message: "seller or item is empty"})
     }
-    
-    if(category) {
+
+    // if(seller){
        
-        evaluationDestructure.category = req.body.category
-    }
+    //     evaluationDestructure.seller = req.body.seller
+    // }
+    
+try{ 
+    items.forEach(async (post) => {
+      const evaluationDestructure = {}
+      evaluationDestructure.seller = req.body.seller
 
-    if(selling_price) {
-        evaluationDestructure.selling_price = req.body.selling_price
+      if(post.category) {
+       console.log("category")
+        evaluationDestructure.category = post.category
+    }
+    if(post.selling_price) {
+        evaluationDestructure.selling_price = post.selling_price
     }
    
-    if(color){
+    if(post.color){
         console.log("color")
-        evaluationDestructure.color = req.body.color
+        evaluationDestructure.color = post.color
     }
  
-    if(detail){
-        evaluationDestructure.detail = req.body.detail
+    if(post.detail){
+        evaluationDestructure.detail = post.detail
     }
-    if(brand){
+    if(post.brand){
         console.log("brand")
-        evaluationDestructure.brand = req.body.brand
+        evaluationDestructure.brand = post.brand
     }
-    if(date_of_receipt){
-        evaluationDestructure.date_of_receipt = req.body.date_of_receipt
+    if(post.date_of_receipt){
+        evaluationDestructure.date_of_receipt = post.date_of_receipt
     }
-    if(date_of_pickup){
-        evaluationDestructure.date_of_pickup = req.body.date_of_pickup
+    if(post.date_of_pickup){
+        evaluationDestructure.date_of_pickup = post.date_of_pickup
     }
 
-    console.log(evaluationDestructure)
+
+
     const postEvaluation = new Evaluation(evaluationDestructure)
-    console.log(postEvaluation)
-    try {
-        await postEvaluation.save()
+    await postEvaluation.save()
+    })
+   
+
+ 
         res.status(200).json({success: true, complete: true})
 
     }
