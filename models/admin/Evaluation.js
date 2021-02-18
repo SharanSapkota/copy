@@ -1,55 +1,57 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
-const EvaluationSchema = Schema ({
-    seller: {
-        type: Schema.Types.ObjectId,
-        ref: 'Sellers'
-    },
+const EvaluationSchema = Schema({
+  seller: {
+    type: Schema.Types.ObjectId,
+    ref: "Sellers",
+  },
 
-    category: {
-        type: String,
-        required: true
-    },
- 
-    color: {
-        type: String,
-        required: false
-    },
+  category: {
+    type: String,
+    required: true,
+  },
 
-    detail: {
-        type: String,
-        required: false
-    },
+  color: {
+    type: String,
+    required: false,
+  },
 
-    brand: {
-        type: String,
-        required: true
-    },
+  detail: {
+    type: String,
+    required: false,
+  },
 
-    selling_price: {
-        type: Number,
-        required: false
-    },
+  brand: {
+    type: String,
+    required: true,
+  },
 
-    date: {
-        type: Date,
-        default: Date.now
-    },
+  selling_price: {
+    type: Number,
+    required: false,
+  },
 
-    status: {
-        type: String,
-        default: "pending"
-    },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
 
-    date_of_pickup : {
-        type: Date,
-        required: false
-    },
-    date_of_receipt : {
-        type: Date,
-        required: false
-    },
-})
-module.exports = mongoose.model("evaluation", EvaluationSchema)
-module.exports = mongoose.model("Rejections", EvaluationSchema)
+  status: {
+    type: String,
+    default: "pending",
+  },
+
+  date_of_pickup: {
+    type: Date,
+    required: false,
+  },
+  date_of_receipt: {
+    type: Date,
+    required: false,
+  },
+});
+module.exports = {
+  Evaluation: mongoose.model("evaluation", EvaluationSchema),
+  Rejections: mongoose.model("Rejections", EvaluationSchema),
+};
