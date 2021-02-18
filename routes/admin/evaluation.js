@@ -144,21 +144,14 @@ router.patch(
 
 router.patch("/:evaluationId", AuthController.authAdmin, async (req, res) => {
   const {
-    seller,
+    category,
     color,
+    brand,
     detail,
-    purchase_price,
-    status,
-    dry_cleaning,
-    maintenance,
+    selling_price,
   } = req.body;
 
-  var data = await Evaluation.findById(req.params.evaluationId);
   const evaluationDestructure = {};
-
-  if (seller) {
-    evaluationDestructure.seller = seller;
-  }
 
   if (color) {
     evaluationDestructure.color = color;
@@ -166,50 +159,26 @@ router.patch("/:evaluationId", AuthController.authAdmin, async (req, res) => {
   if (detail) {
     evaluationDestructure.detail = detail;
   }
-  if (purchase_price) {
-    evaluationDestructure.purchase_price = purchase_price;
+  if (brand) {
+    evaluationDestructure.brand = brand;
   }
-  if (status) {
-    evaluationDestructure.status = status;
+  if (category) {
+    evaluationDestructure.category = category;
   }
-  if (dry_cleaning) {
-    evaluationDestructure.dry_cleaning = dry_cleaning;
-    if (data.dry_cleaning.status == true && dry_cleaning.status == true) {
-      evaluationDestructure.dry_cleaning.sentDate = data.dry_cleaning.sentDate;
-      evaluationDestructure.dry_cleaning.receivedDate =
-        data.dry_cleaning.receivedDate;
-    } else {
-      if (dry_cleaning.status == "true") {
-        evaluationDestructure.dry_cleaning.sentDate = Date.now();
-      } else if (dry_cleaning.status == "false") {
-        evaluationDestructure.dry_cleaning.sentDate = undefined;
-      }
-    }
+  if (selling_price) {
+    evaluationDestructure.selling_price = selling_price;
   }
-  if (maintenance) {
-    evaluationDestructure.maintenance = req.body.maintenance;
-    if (data.maintenance.status == true && maintenance.status == true) {
-      evaluationDestructure.maintenance.sentDate = data.maintenance.sentDate;
-      evaluationDestructure.maintenance.receivedDate =
-        data.maintenance.receivedDate;
-    } else {
-      if (maintenance.status == "true") {
-        evaluationDestructure.maintenance.sentDate = Date.now();
-      } else if (maintenance.status == "false") {
-        evaluationDestructure.maintenance.sentDate = undefined;
-      }
-    }
-  }
+  
 
   try {
     const patchAll = await Evaluation.findOneAndUpdate(
       { _id: req.params.evaluationId },
       { $set: evaluationDestructure },
       { new: true }
-    );
-    res.status(200).json(patchAll);
+    ).populate("seller");
+    res.status(200).json({success: true, evaluation: patchAll });
   } catch (err) {
-    res.status(404).json({ message: err });
+    res.status(404).json({ success: false, errors: [{ msg: err}] });
   }
 });
 
@@ -220,7 +189,7 @@ router.delete("/:evaluationId", AuthController.authAdmin, async (req, res) => {
     data.remove();
     res.status(200).json({ message: "deleted" });
   } else {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: "Evaluation not found" });
   }
 });
 
