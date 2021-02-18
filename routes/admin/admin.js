@@ -203,8 +203,12 @@ router.delete("/users/unregistered", AuthController.authAdmin, async (req,res) =
 router.post(
   "/post",
   AuthController.authAdmin,
-  upload.fields([{ name: "images" }, { name: "featured" }, { name: "data" }]),
+  upload.fields([{ name: "images" }, { name: "data" }]),
   async (req, res, next) => {
+
+    
+console.log(req.files)
+    console.log("inside admin post route")
     const featured = req.files["featured"];
 
     const images = req.files["images"];
