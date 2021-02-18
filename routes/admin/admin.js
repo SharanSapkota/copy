@@ -64,12 +64,19 @@ router.patch(
   "/seller/:sellerId",
   AuthController.authAdmin,
   async (req, res) => {
-    const seller = await Seller.findById(req.params.sellerId);
-    if (seller.username === req.body.seller_name) {
-      seller.remove();
-      res.json("success");
-    } else {
-      res.json("failure");
+    const id = req.params.sellerId;
+    const {username, address, phone_number, city} = req.body;
+    try {
+    const seller = await Seller.findOneAndUpdate({_id: id}, {username, address, phone_number, city}, {new: true});
+      if(seller) {
+        return res.status(200).json({success: true, seller});
+      } else {
+        return res.status(404).json({errors: [{msg: "Seller not found."}]})
+      }
+    }
+    catch (err) {
+      console.log(err);
+      return res.status(500).json({errors: [{msg: "Server Error."}]})
     }
   }
 );
@@ -120,7 +127,7 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   let tempCodeEnd;
 
   if (seller.length == 0) {
-    tempCodeEnd = "00";
+    tempCodeEnd = "000";
   } else {
     let tempCode = seller[0].usercode.match(/\d+/g);
 
@@ -129,6 +136,8 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
     tempCodeEndA++;
 
     if (tempCodeEndA < 9) {
+      tempCodeEndA = "00" + tempCodeEndA;
+    } else if(tempCodeEndA < 99) {
       tempCodeEndA = "0" + tempCodeEndA;
     } else {
       tempCodeEndA = tempCodeEndA;
