@@ -4,41 +4,41 @@ const Schema = mongoose.Schema;
 const UserDetailsSchema = mongoose.Schema({
   user: {
     type: Schema.Types.ObjectId,
-    ref: "Users"
+    ref: "Users",
   },
 
   name: {
     type: String,
-    required: false
+    required: false,
   },
 
   dob: {
     type: Date,
     required: true,
-    trim: true
+    trim: true,
   },
   city: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   address: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   document: {
     type: String,
-    required: false
+    required: false,
   },
   bank_details: {
     bank_name: {
       type: String,
-      required: false
+      required: false,
     },
     branch: {
       type: String,
-      required: false
+      required: false,
     },
     account_number: {
       type: String,
@@ -46,24 +46,24 @@ const UserDetailsSchema = mongoose.Schema({
     },
     account_holder_name: {
       type: String,
-      required: false
-    }
+      required: false,
+    },
   },
   credits: {
     type: Number,
     required: true,
     trim: true,
-    default: 0
+    default: 0,
   },
   pincode: {
     type: Number,
     required: false,
-    trim: true
+    trim: true,
   },
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model("UserDetails", UserDetailsSchema);

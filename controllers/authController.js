@@ -80,36 +80,44 @@ const authCheck = async (req, res, next) => {
 };
 
 const authAdmin = (req, res, next) => {
-  
   const token = req.header("x-auth-token");
   if (!token) {
     return res.status(401).json({ msg: "No token, authorization denied." });
   }
 
   try {
-   
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
-    
+
     if (req.user.id === "600d0f107209f3577cc074a3") {
-    
       next();
-      
     }
+    // if(req.user.id === "601a8b21fc73e537e299a495") {
+    //   next();
+    // }
   } catch (err) {
+    console.log(err);
     res.status(401).json({ msg: "Token is not valid." });
   }
 };
 
 const getSingleUser = async (req, res) => {
   try {
-    const user = await userModel
-      .findOne({ username: req.params.username })
-      .select("username");
-    const userProfile = await Profiles.findOne({ user: user._id });
-    res.status(200).json({ success: true, user, userProfile });
+    const user = await userModel.findOne({ email: req.params.email });
+    if (user) {
+      const userDetails = await userDetailsModel.findOne({ user: user.id });
+      const userProfile = await Profiles.findOne({ user: user.id });
+
+      res.status(200).json({ success: true, user, userDetails, userProfile });
+    } else {
+      res
+        .status(404)
+        .json({ success: false, errors: [{ msg: "User not found." }] });
+    }
   } catch (e) {
-    res.status(401).json({ success: false });
+    res
+      .status(500)
+      .json({ success: false, errors: [{ msg: "Server Error." }] });
   }
 };
 
@@ -134,13 +142,13 @@ const registerSeller = async (req, res) => {
       account_holder_name,
       account_number,
       bank_name,
-      branch
+      branch,
     } = JSON.parse(req.body.data);
 
     if (!bank_name || !account_holder_name || !account_number || !branch) {
       return res.json({
         success: false,
-        error: { msg: "Bank Details are Required" }
+        error: { msg: "Bank Details are Required" },
       });
     }
 
@@ -172,7 +180,7 @@ const registerSeller = async (req, res) => {
         res.json({
           success: true,
           msg: "bank details updated",
-          user: updatedUser
+          user: updatedUser,
         });
       } else {
         res.json({ success: false, error: { msg: "Server error." } });
@@ -299,7 +307,7 @@ const registerBuyer = async (req, res, next) => {
     email,
     city,
     address,
-    dob
+    dob,
   } = req.body;
 
   const errors = validationResult(req);
@@ -339,14 +347,14 @@ const registerBuyer = async (req, res, next) => {
   }
 
   user = new userModel(userFields);
-  user.save().then(user => {
+  user.save().then((user) => {
     userDetailsFields.user = user.id;
     let userDetails = new userDetailsModel(userDetailsFields);
-    userDetails.save().then(userDetails => {
+    userDetails.save().then((userDetails) => {
       const payload = {
         user: {
-          id: user.id
-        }
+          id: user.id,
+        },
       };
 
       let profile = new Profiles({ user: user.id });
@@ -358,14 +366,14 @@ const registerBuyer = async (req, res, next) => {
         payload,
         process.env.SECRET_KEY,
         {
-          expiresIn: "4h"
+          expiresIn: "4h",
         },
         (err, token) => {
           if (err) throw err;
           res.status(200).json({
             success: true,
             message: "Registered New User",
-            token
+            token,
           });
         }
       );
@@ -384,7 +392,7 @@ const login = async (req, res) => {
 
   try {
     let user = await userModel.findOne({
-      $or: [{ email: email }, { username: username }]
+      $or: [{ email: email }, { username: username }],
     });
 
     if (!user) {
@@ -398,21 +406,21 @@ const login = async (req, res) => {
     if (comparisonResult) {
       const payload = {
         user: {
-          id: user.id
-        }
+          id: user.id,
+        },
       };
 
       jwt.sign(
         payload,
         process.env.SECRET_KEY,
         {
-          expiresIn: "4h"
+          expiresIn: "4h",
         },
         (err, token) => {
           if (err) throw err;
           res.status(200).json({
             message: "login successfully",
-            token
+            token,
           });
         }
       );
@@ -423,13 +431,14 @@ const login = async (req, res) => {
     }
   } catch (error) {
     res.status(400).json({
-      message: "Server Error."
+      message: "Server Error.",
     });
   }
 };
 
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
+
   if (email === "info@antidotenepal.com") {
     try {
       let user = await userModel.findOne({ email: email });
@@ -437,24 +446,24 @@ const loginAdmin = async (req, res) => {
       const comparisonResult = await bcrypt.compare(password, user.password);
 
       if (comparisonResult) {
-        console.log("password comparison")
+        console.log("password comparison");
         const payload = {
           user: {
-            id: user.id
-          }
+            id: user.id,
+          },
         };
 
         jwt.sign(
           payload,
           process.env.ADMIN_SECRET_KEY,
           {
-            expiresIn: "4h"
+            expiresIn: "4h",
           },
           (err, token) => {
             if (err) throw err;
             res.status(200).json({
               message: "login successfully",
-              token
+              token,
             });
           }
         );
@@ -484,7 +493,7 @@ const loginPartner = async (req, res) => {
       res.status(200).json({
         username: data.username,
         brand_name: data.brand_name,
-        success: true
+        success: true,
       });
     } else {
       res.status(400).json({ msg: "Invalid Credentials." });
@@ -497,7 +506,7 @@ const loginPartner = async (req, res) => {
 const forgotPassword = async (req, res) => {
   userModel
     .findOne({ email: req.body.email })
-    .then(user => {
+    .then((user) => {
       if (user === null) {
         res.send("email not in database");
       } else {
@@ -511,12 +520,12 @@ const forgotPassword = async (req, res) => {
 
         sendMailNew(user.email, {
           subject: "Reset Password Link",
-          html: mailBody
+          html: mailBody,
         });
         res.send("recovery mail sent");
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
     });
 };
@@ -543,7 +552,7 @@ const verifyEmail = (name, email) => {
     return {
       success: true,
       msg: "Verification email sent.",
-      hash: fullHash
+      hash: fullHash,
     };
   } catch (err) {
     return { success: false, msg: "Server Error." };
@@ -558,7 +567,7 @@ const verifyOTP = (email, hash, otp) => {
   if (now > parseInt(expires))
     return {
       success: false,
-      msg: "OTP expired."
+      msg: "OTP expired.",
     };
 
   let data = `${email}.${otp}.${expires}`;
@@ -570,12 +579,12 @@ const verifyOTP = (email, hash, otp) => {
 
   if (newCalculatedHash === hashValue) {
     return {
-      success: true
+      success: true,
     };
   }
   return {
     success: false,
-    msg: "OTP incorrect. Please re-check and try again."
+    msg: "OTP incorrect. Please re-check and try again.",
   };
 };
 
@@ -594,5 +603,5 @@ module.exports = {
   loginAdmin,
   forgotPassword,
   verifyEmail,
-  verifyOTP
+  verifyOTP,
 };
