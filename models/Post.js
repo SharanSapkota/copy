@@ -14,10 +14,6 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  occassion: {
-    type: String,
-    required: false
-  },
   gender: {
     type: String,
     required: false
@@ -32,7 +28,7 @@ const PostSchema = mongoose.Schema({
   images: [
     {
       type: String,
-      required: false
+      required: true
     }
   ],
   purchase_price: {
@@ -49,10 +45,6 @@ const PostSchema = mongoose.Schema({
   },
   platform_fee: {
     type: Number,
-    required: false
-  },
-  purchase_date: {
-    type: Date,
     required: false
   },
   condition: {
@@ -84,7 +76,7 @@ const PostSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    required: false,
+    required: true,
     default: "Available"
   },
   seller: {
@@ -92,12 +84,16 @@ const PostSchema = mongoose.Schema({
     ref: "Users",
     required: true
   },
-  testSeller: {
+  originalSeller: {
     type: Schema.Types.ObjectId,
     ref: "Seller"
   },
   item_code: {
     type: String,
+    required: false
+  },
+  box_no: {
+    type: Number,
     required: false
   },
   date: {

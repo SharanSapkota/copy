@@ -6,52 +6,51 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   email: {
     type: String,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   },
   phone_number: {
     type: Number,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
   },
   role: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
-  resetPasswordToken:{
+  resetPasswordToken: {
     type: String,
-    required: false
+    required: false,
   },
-  resetPasswordExpired:{
+  resetPasswordExpired: {
     type: Date,
-    required: false
+    required: false,
   },
 
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-
-UserSchema.methods.resetToken = function(){
-  setTimeout(()=>{
+UserSchema.methods.resetToken = function () {
+  setTimeout(() => {
     this.resetPasswordToken = undefined;
     this.resetPasswordExpired = undefined;
     this.save();
-  }, 3600000)
+  }, 3600000);
 };
 
 module.exports = mongoose.model("Users", UserSchema);

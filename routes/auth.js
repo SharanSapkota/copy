@@ -9,15 +9,19 @@ const router = express.Router();
 
 const multer = require("multer");
 const storage = multer.memoryStorage();
+const admin = require('firebase-admin');
+const app = admin.initializeApp();
 
 const upload = multer({ storage: storage });
 
 const AuthController = require("../controllers/authController");
 
 router.get("/", AuthController.authBuyer, AuthController.getUserDetails);
-router.get("/admin", AuthController.authAdmin);
+router.get("/admin", AuthController.authAdmin, (req, res) => {
+  return res.json({success: true, admin: req.user});
+});
 
-router.get("/user/:username", AuthController.getSingleUser);
+router.get("/user/:email", AuthController.getSingleUser);
 
 router.post(
   "/register/seller",

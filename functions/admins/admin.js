@@ -18,12 +18,19 @@ module.exports = {
       return err;
     }
   },
-  getAllUnregisteredUsers: async function() {
+  getAllUnregisteredUsers: async function(page) {
     try {
-      const users = await Seller.find().sort({date: -1});
+      const users = await Seller.find().sort({date: -1}).skip((page - 1) * 10).limit(10);
       return users;
     } catch (err) {
-      console.log(err);
+      return err;
+    }
+  },
+  getUnregisteredCount: function() {
+    try {
+      const count = Seller.estimatedDocumentCount();
+      return count;
+    } catch (err) {
       return err;
     }
   },
