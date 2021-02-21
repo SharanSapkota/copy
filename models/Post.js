@@ -4,105 +4,105 @@ const Schema = mongoose.Schema;
 const PostSchema = mongoose.Schema({
   listing_name: {
     type: String,
-    required: false
+    required: false,
   },
   description: {
     type: String,
-    required: false
+    required: false,
   },
   category: {
     type: String,
-    required: false
+    required: false,
   },
   gender: {
     type: String,
-    required: false
+    required: false,
   },
 
   isPublished: {
     type: Boolean,
     default: true,
-    required: true
+    required: true,
   },
 
   images: [
     {
       type: String,
-      required: true
-    }
+      required: false,
+    },
   ],
   purchase_price: {
     type: Number,
-    required: false
+    required: false,
   },
   selling_price: {
     type: Number,
-    required: false
+    required: false,
   },
   commission: {
     type: Number,
-    required: false
+    required: false,
   },
   platform_fee: {
     type: Number,
-    required: false
+    required: false,
   },
   condition: {
     type: String,
-    required: false
+    required: true,
   },
   likes: [
     {
       type: Schema.Types.ObjectId,
       ref: "Users",
-      required: false
-    }
+      required: false,
+    },
   ],
   measurements: {
     type: Schema.Types.Mixed,
-    required: false
+    required: false,
   },
   brand: {
     type: String,
-    required: false
+    required: false,
   },
   fabric: {
     type: String,
-    required: false
+    required: false,
   },
   color: {
     type: String,
-    required: false
+    required: false,
   },
   status: {
     type: String,
     required: true,
-    default: "Available"
+    default: "Available",
   },
   seller: {
     type: Schema.Types.ObjectId,
     ref: "Users",
-    required: true
+    required: true,
   },
   originalSeller: {
     type: Schema.Types.ObjectId,
-    ref: "Seller"
+    ref: "Seller",
   },
   item_code: {
     type: String,
-    required: false
+    required: false,
   },
   box_no: {
     type: Number,
-    required: false
+    required: false,
   },
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-PostSchema.pre("save", async function(next) {
+PostSchema.pre("save", async function (next) {
   const Post = this;
 
   Post.platform_fee = Post.selling_price * 0.15;
@@ -111,7 +111,7 @@ PostSchema.pre("save", async function(next) {
   next();
 });
 
-PostSchema.pre("update", async function(next) {
+PostSchema.pre("update", async function (next) {
   const Post = this;
 
   Post.platform_fee = Post.selling_price * 0.15;
@@ -123,5 +123,5 @@ PostSchema.pre("update", async function(next) {
 module.exports = {
   Archive: mongoose.model("archievePosts", PostSchema),
   Post: mongoose.model("Posts", PostSchema),
-  Unverified: mongoose.model("Unverified", PostSchema)
+  Unverified: mongoose.model("Unverified", PostSchema),
 };

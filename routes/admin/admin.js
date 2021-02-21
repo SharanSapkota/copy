@@ -24,6 +24,10 @@ const {
   deleteUnregisteredUser,
   verifyUser,
   movePostsToShop,
+  editPost,
+  deletePost,
+  getUnpublishedPosts,
+  getUnpublishedCount,
 } = require("../../functions/admins/admin");
 const AuthController = require("../../controllers/authController");
 
@@ -90,16 +94,22 @@ router.get("/posts", AuthController.authAdmin, async (req, res) => {
 });
 
 router.get("/posts/unpublished", AuthController.authAdmin, async (req, res) => {
-  try {
-    const unpublishedPosts = await Post.find({
-      seller: req.user.id,
-      isPublished: false,
-    });
-    res.status(200).json(unpublishedPosts);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+  const page = parseInt(req.query.page);
+  const admin = req.user.id;
+  const count = await getUnpublishedCount();
+  const unpublishedPosts = await getUnpublishedPosts(admin, page);
+  return res.json({ posts: unpublishedPosts, count });
 });
+
+router.delete(
+  "/unpublished/:id",
+  AuthController.authAdmin,
+  async (req, res) => {
+    console.log("here");
+    const deleted = await deletePost(req.params.id);
+    return res.json(deleted);
+  }
+);
 
 router.get("/posts/ecom", AuthController.authAdmin, async (req, res) => {
   try {
@@ -160,6 +170,37 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
 });
 
 router.patch(
+  "/unpublished/:id",
+  AuthController.authAdmin,
+  upload.fields([{ name: "images" }, { name: "data" }]),
+  async (req, res) => {
+    const images = req.files["images"];
+    const id = req.params.id;
+
+    const data = JSON.parse(req.body.data);
+
+    var tempArr = [];
+
+    if (!id) {
+      return res
+        .status(500)
+        .json({ success: false, errors: [{ msg: "Internal Server Error." }] });
+    }
+
+    if (images !== undefined && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        tempArr.push(await s3Upload(images[i]));
+      }
+      data.images = tempArr;
+    }
+
+    const result = await editPost(id, data);
+
+    return res.status(200).json(result);
+  }
+);
+
+router.patch(
   "/users/verify/:id",
   AuthController.authAdmin,
   async (req, res) => {
@@ -214,21 +255,22 @@ router.delete(
 router.post(
   "/direct",
   AuthController.authAdmin,
-  upload.fields([{ name: "images" }, { name: "data" }]),
+  // upload.fields([{ name: "images" }, { name: "data" }]),
+  upload.fields([{ name: "data" }]),
   async (req, res) => {
-    const images = req.files["images"];
+    // const images = req.files["images"];
 
     const data = JSON.parse(req.body.data);
 
-    let tempArr = [];
+    // let tempArr = [];
 
-    if (images !== undefined) {
-      for (let i = 0; i < images.length; i++) {
-        tempArr.push(await s3Upload(images[i]));
-      }
-    }
+    // if (images !== undefined) {
+    //   for (let i = 0; i < images.length; i++) {
+    //     tempArr.push(await s3Upload(images[i]));
+    //   }
+    // }
 
-    data.images = tempArr;
+    // data.images = tempArr;
 
     const seller = await Seller.findOne({ usercode: data.seller_code });
 
@@ -334,8 +376,9 @@ router.post(
       postClothings.item_code = asd;
 
       postClothings.box_no = parseInt(data.box_no);
+      postClothings.isPublished = false;
 
-      const post = postNewItem(postClothings);
+      const post = await postNewItem(postClothings);
 
       res.send({ success: true, post });
     }

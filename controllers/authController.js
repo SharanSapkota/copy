@@ -89,12 +89,12 @@ const authAdmin = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.ADMIN_SECRET_KEY);
     req.user = decoded.user;
 
-    if (req.user.id === "600d0f107209f3577cc074a3") {
-      next();
-    }
-    // if(req.user.id === "601a8b21fc73e537e299a495") {
+    // if (req.user.id === "600d0f107209f3577cc074a3") {
     //   next();
     // }
+    if (req.user.id === "601a8b21fc73e537e299a495") {
+      next();
+    }
   } catch (err) {
     console.log(err);
     res.status(401).json({ msg: "Token is not valid." });
