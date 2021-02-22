@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const orderSchema = mongoose.Schema({
   buyer: {
-    type: Schema.Types.Mixed
+    type: Schema.Types.Mixed,
   },
 
   clothes: [
@@ -11,86 +11,90 @@ const orderSchema = mongoose.Schema({
       item: {
         type: Schema.Types.ObjectId,
         refPath: "clothes.itemType",
-        required: true
+        required: true,
       },
       itemType: {
         type: String,
         default: "Posts",
-        required: true
+        required: true,
       },
       quantity: {
         type: Number,
         default: 1,
-        required: true
+        required: true,
       },
       seller: {
         type: Schema.Types.ObjectId,
         ref: "Users",
-        required: true
-      }
-    }
+        required: true,
+      },
+    },
   ],
 
   payment_type: {
     type: String,
-    required: false
+    required: false,
   },
 
   total_amount: {
     type: Number,
-    required: true
+    required: true,
   },
 
   delivery_charge: {
     type: Number,
-    required: true
+    required: true,
   },
 
   total_order_amount: {
     type: Number,
-    required: true
+    required: true,
   },
 
   discount: {
     type: Schema.Types.ObjectId,
     ref: "Discounts",
-    required: false
+    required: false,
   },
 
   total_after_discount: {
     type: Number,
-    required: false
+    required: false,
   },
 
   delivery_location: {
     type: String,
-    required: false
+    required: false,
   },
 
   delivery_type: {
     type: String,
-    required: true
+    required: true,
   },
 
   payment_status: {
     type: String,
     required: true,
-    default: "pending"
+    default: "pending",
   },
 
   order_status: {
     type: String,
     required: true,
-    default: "pending"
+    default: "pending",
+  },
+  completed_date: {
+    type: Date,
+    required: false,
   },
 
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-orderSchema.pre("save", async function(next) {
+orderSchema.pre("save", async function (next) {
   const order = this;
   console.log(order);
 });

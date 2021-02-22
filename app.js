@@ -26,7 +26,7 @@ const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
 const notificationsRoute = require("./routes/notifications");
 
-const adminOrderRoute = require("./routes/admin/adminOrder/adminOrder");
+const adminOrderRoute = require("./routes/admin/orders");
 const adminRoute = require("./routes/admin/admin");
 
 const s3uploadRoute = require("./routes/s3upload");
@@ -70,7 +70,7 @@ mongoose.connect(
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: false
+    useFindAndModify: false,
   },
   () => {
     console.log("DB connected");

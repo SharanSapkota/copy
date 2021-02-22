@@ -53,7 +53,10 @@ module.exports = {
   },
   getUnpublishedCount: function () {
     try {
-      const count = Post.estimatedDocumentCount({ isPublished: false });
+      const count = Post.estimatedDocumentCount({
+        seller: admin,
+        isPublished: false,
+      });
       return count;
     } catch (err) {
       return err;
@@ -64,10 +67,9 @@ module.exports = {
       const unpublishedPosts = await Post.find({
         seller: admin,
         isPublished: false,
-      })
-        .sort({ date: -1 })
-        .skip((page - 1) * 20)
-        .limit(20);
+      }).sort({ date: -1 });
+      // .skip((page - 1) * 20)
+      // .limit(20);
 
       return unpublishedPosts;
     } catch (err) {
@@ -77,7 +79,6 @@ module.exports = {
   editPost: async function (id, data) {
     try {
       const updated = await Post.findByIdAndUpdate(id, data, { new: true });
-      console.log(updated);
       return { success: true, updated: updated };
     } catch (err) {
       return err;

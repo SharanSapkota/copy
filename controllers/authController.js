@@ -446,7 +446,6 @@ const loginAdmin = async (req, res) => {
       const comparisonResult = await bcrypt.compare(password, user.password);
 
       if (comparisonResult) {
-        console.log("password comparison");
         const payload = {
           user: {
             id: user.id,

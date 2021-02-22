@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const Seller = require("../../models/admin/Seller");
-const UserDetails = require("../../models/UserDetails");
-const Orders = require("../../models/Orders");
 const { Post } = require("../../models/Post");
 const Evaluation = require("../../models/admin/Evaluation");
 const { validationResult } = require("express-validator");
@@ -105,7 +103,6 @@ router.delete(
   "/unpublished/:id",
   AuthController.authAdmin,
   async (req, res) => {
-    console.log("here");
     const deleted = await deletePost(req.params.id);
     return res.json(deleted);
   }
@@ -526,159 +523,4 @@ router.post(
   }
 );
 
-router.patch("/orders/:orderId", AuthController.authAdmin, async (req, res) => {
-  const findUpdateStatus = await Orders.find({ _id: req.params.orderId });
-  console.log(findUpdateStatus);
-
-  if (
-    req.body.payment_status === findUpdateStatus[0].payment_status &&
-    req.body.order_status === findUpdateStatus[0].order_status
-  ) {
-    res.status(200).json({ sameValue: true });
-  } else {
-    try {
-      const updateStatus = await Orders.findOneAndUpdate(
-        { _id: req.params.orderId },
-        { $set: req.body },
-        { new: true }
-      );
-
-      const abc = updateStatus.clothes;
-
-      // console.log(updateStatus)
-
-      const a = abc.map((c) => {
-        return c;
-      });
-
-      const b = a[0].item;
-      const selfSeller = a[0].seller;
-
-      const insideItem = await Post.findById(b);
-      //  console.log(insideItem.originalSeller)
-
-      if (insideItem.originalSeller) {
-        const y = await Seller.findById({ _id: insideItem.originalSeller });
-
-        console.log("admin added seller");
-        // const data = y.map(dat => {return dat})
-
-        if (updateStatus.payment_status === "completed") {
-          const updateCredits = await Seller.findByIdAndUpdate(
-            { _id: insideItem.originalSeller },
-            { $set: { credits: updateStatus.total_amount + y.credits } }
-          );
-        }
-      } else {
-        const z = await UserDetails.find({ user: selfSeller });
-
-        const data1 = z.map((data) => {
-          return data;
-        });
-
-        const zy = data1[0];
-
-        if (updateStatus.payment_status === "completed") {
-          const updateCredits = await UserDetails.findByIdAndUpdate(
-            { _id: zy._id },
-            { $set: { credits: updateStatus.total_amount + zy.credits } }
-          );
-        }
-      }
-
-      res.status(200).json({ success: true, update: updateStatus });
-    } catch (err) {
-      console.log(err);
-      res.json({ success: false, errors: [err] });
-    }
-  }
-});
-
-router.post("/orders", AuthController.authAdmin, async (req, res) => {
-  const {
-    buyerTest,
-    phone_number,
-    clothes,
-    delivery_location,
-    delivery_type,
-  } = req.body;
-  orderDestructure = {};
-
-  if (
-    !buyerTest ||
-    !phone_number ||
-    !clothes ||
-    !delivery_location ||
-    !delivery_type
-  ) {
-    return res.json({
-      success: false,
-      errors: [{ msg: "All fields are required." }],
-    });
-  }
-
-  orderDestructure.buyer = buyerTest;
-
-  orderDestructure.phone_number = phone_number;
-
-  orderDestructure.clothes = {
-    item: clothes,
-    seller: req.user.id,
-  };
-
-  orderDestructure.delivery_location = delivery_location;
-
-  orderDestructure.delivery_type = delivery_type;
-
-  orderDestructure.delivery_charge =
-    delivery_type === "Inside Ringroad"
-      ? 100
-      : delivery_type === "Outside Ringroad"
-      ? 150
-      : delivery_type === "Outside Valley"
-      ? 250
-      : 100;
-
-  try {
-    const orderClothes = await Post.findById(clothes);
-
-    orderDestructure.total_amount = orderClothes.selling_price;
-
-    orderDestructure.total_order_amount =
-      orderDestructure.delivery_charge + orderDestructure.total_amount;
-
-    orderDestructure.pickup_location = "Antidote Apparel, Kupondole, Lalitpur";
-
-    const orderPost = new Orders(orderDestructure);
-
-    orderPost.save();
-    await changeClothingStatus(clothes, "Unavailable");
-
-    // console.log(orderPost)
-
-    console.log(orderClothes);
-
-    // if(orderClothes.payment_status === "completed") {
-    //   await Seller.findByIdAndUpdate(
-    //     {_id: orderClothes.originalSeller},
-    //     { $inc: { credits: orderClothes.selling_price } }
-    //   )
-    // }
-
-    // .then(async res => {
-    //   await Seller.findByIdAndUpdate(
-    //     { _id: orderClothes.originalSeller },
-    //     { $inc: { credits: orderClothes.selling_price } }
-    //   );
-
-    // })
-
-    return res
-      .status(200)
-      .json({ success: true, msg: "Order placed successfully!" });
-  } catch (err) {
-    console.log(err);
-    res.status(400).json({ success: false, errors: { msg: "Order failed." } });
-  }
-});
 module.exports = router;
