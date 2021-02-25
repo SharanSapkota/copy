@@ -4,12 +4,7 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv/config");
 
-// var multer = require("multer");
-// var uploadForm = multer();
-const cors = require("cors");
-
 const postRoute = require("./routes/post");
-
 const evaluationRoute = require("./routes/admin/evaluation");
 const profileRoute = require("./routes/profile");
 const creditsRoute = require("./routes/credit");
@@ -26,15 +21,13 @@ const sellers = require("./routes/sellers");
 const productLikes = require("./routes/productLikes");
 const notificationsRoute = require("./routes/notifications");
 
-const adminOrderRoute = require("./routes/admin/adminOrder/adminOrder");
+const adminOrderRoute = require("./routes/admin/orders");
 const adminRoute = require("./routes/admin/admin");
 
 const s3uploadRoute = require("./routes/s3upload");
 const validateFields = require("./routes/validateFields");
 
 app.use(bodyParser.json());
-
-app.use(cors());
 
 app.use("/api/post", postRoute);
 app.use("/api/post/gender", postGenderRoute);
@@ -60,17 +53,13 @@ app.use("/api/admin/order", adminOrderRoute);
 app.use("/api/s3upload", s3uploadRoute);
 app.use("/api/validate", validateFields);
 
-app.get("/", (req, res) => {
-  res.send("this the main page");
-});
-
 mongoose.connect(
   process.env.MONGO_URI,
   {
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: false
+    useFindAndModify: false,
   },
   () => {
     console.log("DB connected");

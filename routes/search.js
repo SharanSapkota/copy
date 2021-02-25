@@ -3,20 +3,16 @@ const Post = require("../models/Post");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-
   try {
-
     const abc = req.query.search;
 
     const search1 = await Post.find(
       { listing_name: { $regex: abc, $options: "i" } },
-      function(err, docs) {
+      function (err, docs) {
         console.log("Partial Search Begins");
-
       }
     );
-    
+
     console.log(req.query);
     // console.log(req.params.listing_name)
     res.json(search1);
@@ -25,23 +21,17 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 router.get("/searchAll", async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-
   try {
-
     const searchFromBody = req.body.search;
 
     const search2 = await Post.find(
-      { $regex: searchFromBody, $options: "i" } ,
-      function(err, docs) {
+      { $regex: searchFromBody, $options: "i" },
+      function (err, docs) {
         console.log("Partial Search for 'search all' Begins");
-
-      
       }
     );
-    
+
     console.log(req.query);
     // console.log(req.params.listing_name)
     res.json(search2);
@@ -49,6 +39,5 @@ router.get("/searchAll", async (req, res) => {
     res.json({ message: err });
   }
 });
-
 
 module.exports = router;

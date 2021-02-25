@@ -92,7 +92,7 @@ const authAdmin = (req, res, next) => {
     if (req.user.id === "600d0f107209f3577cc074a3") {
       next();
     }
-    // if(req.user.id === "601a8b21fc73e537e299a495") {
+    // if (req.user.id === "601a8b21fc73e537e299a495") {
     //   next();
     // }
   } catch (err) {
@@ -446,7 +446,6 @@ const loginAdmin = async (req, res) => {
       const comparisonResult = await bcrypt.compare(password, user.password);
 
       if (comparisonResult) {
-        console.log("password comparison");
         const payload = {
           user: {
             id: user.id,

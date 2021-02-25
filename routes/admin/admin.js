@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Seller = require("../../models/admin/Seller");
-const UserDetails = require("../../models/UserDetails");
-const Orders = require("../../models/Orders");
+const Tags = require("../../models/Tags");
 const { Post } = require("../../models/Post");
 const Evaluation = require("../../models/admin/Evaluation");
 const { validationResult } = require("express-validator");
@@ -24,8 +23,47 @@ const {
   deleteUnregisteredUser,
   verifyUser,
   movePostsToShop,
+  editPost,
+  deletePost,
+  getUnpublishedPosts,
+  getUnpublishedCount,
 } = require("../../functions/admins/admin");
 const AuthController = require("../../controllers/authController");
+
+router.get("/tags", async (req, res) => {
+  const tags = await Tags.find();
+  return res.json({ success: true, tags });
+});
+
+router.patch("/tags/remove", AuthController.authAdmin, async (req, res) => {
+  const { product, tag } = req.body;
+
+  try {
+    await Post.findOneAndUpdate(
+      { _id: product },
+      { $pull: { tags: tag } },
+      { new: true }
+    ).populate("tags");
+
+    return res.json({ success: true, tag });
+  } catch (err) {
+    return res.json({ success: false, errors: [err] });
+  }
+});
+
+router.post("/tags", AuthController.authAdmin, async (req, res) => {
+  const name = req.body.name;
+  try {
+    const tag = new Tags({ name });
+    const saved = await tag.save();
+
+    if (saved) {
+      return res.json({ success: true, tag: saved });
+    }
+  } catch (err) {
+    return res.json({ success: false, errors: [err] });
+  }
+});
 
 router.get("/seller", AuthController.authAdmin, async (req, res) => {
   const seller = await Seller.find();
@@ -90,16 +128,21 @@ router.get("/posts", AuthController.authAdmin, async (req, res) => {
 });
 
 router.get("/posts/unpublished", AuthController.authAdmin, async (req, res) => {
-  try {
-    const unpublishedPosts = await Post.find({
-      seller: req.user.id,
-      isPublished: false,
-    });
-    res.status(200).json(unpublishedPosts);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+  const page = parseInt(req.query.page);
+  const admin = req.user.id;
+  const count = await getUnpublishedCount();
+  const unpublishedPosts = await getUnpublishedPosts(admin, page);
+  return res.json({ posts: unpublishedPosts, count });
 });
+
+router.delete(
+  "/unpublished/:id",
+  AuthController.authAdmin,
+  async (req, res) => {
+    const deleted = await deletePost(req.params.id);
+    return res.json(deleted);
+  }
+);
 
 router.get("/posts/ecom", AuthController.authAdmin, async (req, res) => {
   try {
@@ -159,6 +202,22 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   }
 });
 
+router.patch("/unpublished/:id", AuthController.authAdmin, async (req, res) => {
+  const id = req.params.id;
+
+  const data = req.body;
+
+  if (!id) {
+    return res
+      .status(500)
+      .json({ success: false, errors: [{ msg: "Internal Server Error." }] });
+  }
+
+  const result = await editPost(id, data);
+
+  return res.status(200).json(result);
+});
+
 router.patch(
   "/users/verify/:id",
   AuthController.authAdmin,
@@ -212,23 +271,46 @@ router.delete(
 );
 
 router.post(
+  "/upload",
+  AuthController.authAdmin,
+  upload.fields([{ name: "image" }]),
+  async (req, res) => {
+    const image = req.files["image"];
+
+    if (image.length > 0) {
+      try {
+        const result = await s3Upload(image[0]);
+        return res.json({ success: true, uploaded: result });
+      } catch (err) {
+        return res.status(500).json({ success: false, errors: [err] });
+      }
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, errors: [{ msg: "Image is undefined." }] });
+    }
+  }
+);
+
+router.post(
   "/direct",
   AuthController.authAdmin,
-  upload.fields([{ name: "images" }, { name: "data" }]),
+  // upload.fields([{ name: "images" }, { name: "data" }]),
+  upload.fields([{ name: "data" }]),
   async (req, res) => {
-    const images = req.files["images"];
+    // const images = req.files["images"];
 
     const data = JSON.parse(req.body.data);
 
-    let tempArr = [];
+    // let tempArr = [];
 
-    if (images !== undefined) {
-      for (let i = 0; i < images.length; i++) {
-        tempArr.push(await s3Upload(images[i]));
-      }
-    }
+    // if (images !== undefined) {
+    //   for (let i = 0; i < images.length; i++) {
+    //     tempArr.push(await s3Upload(images[i]));
+    //   }
+    // }
 
-    data.images = tempArr;
+    // data.images = tempArr;
 
     const seller = await Seller.findOne({ usercode: data.seller_code });
 
@@ -334,8 +416,9 @@ router.post(
       postClothings.item_code = asd;
 
       postClothings.box_no = parseInt(data.box_no);
+      postClothings.isPublished = false;
 
-      const post = postNewItem(postClothings);
+      const post = await postNewItem(postClothings);
 
       res.send({ success: true, post });
     }
@@ -483,159 +566,4 @@ router.post(
   }
 );
 
-router.patch("/orders/:orderId", AuthController.authAdmin, async (req, res) => {
-  const findUpdateStatus = await Orders.find({ _id: req.params.orderId });
-  console.log(findUpdateStatus);
-
-  if (
-    req.body.payment_status === findUpdateStatus[0].payment_status &&
-    req.body.order_status === findUpdateStatus[0].order_status
-  ) {
-    res.status(200).json({ sameValue: true });
-  } else {
-    try {
-      const updateStatus = await Orders.findOneAndUpdate(
-        { _id: req.params.orderId },
-        { $set: req.body },
-        { new: true }
-      );
-
-      const abc = updateStatus.clothes;
-
-      // console.log(updateStatus)
-
-      const a = abc.map((c) => {
-        return c;
-      });
-
-      const b = a[0].item;
-      const selfSeller = a[0].seller;
-
-      const insideItem = await Post.findById(b);
-      //  console.log(insideItem.originalSeller)
-
-      if (insideItem.originalSeller) {
-        const y = await Seller.findById({ _id: insideItem.originalSeller });
-
-        console.log("admin added seller");
-        // const data = y.map(dat => {return dat})
-
-        if (updateStatus.payment_status === "completed") {
-          const updateCredits = await Seller.findByIdAndUpdate(
-            { _id: insideItem.originalSeller },
-            { $set: { credits: updateStatus.total_amount + y.credits } }
-          );
-        }
-      } else {
-        const z = await UserDetails.find({ user: selfSeller });
-
-        const data1 = z.map((data) => {
-          return data;
-        });
-
-        const zy = data1[0];
-
-        if (updateStatus.payment_status === "completed") {
-          const updateCredits = await UserDetails.findByIdAndUpdate(
-            { _id: zy._id },
-            { $set: { credits: updateStatus.total_amount + zy.credits } }
-          );
-        }
-      }
-
-      res.status(200).json({ success: true, update: updateStatus });
-    } catch (err) {
-      console.log(err);
-      res.json({ success: false, errors: [err] });
-    }
-  }
-});
-
-router.post("/orders", AuthController.authAdmin, async (req, res) => {
-  const {
-    buyerTest,
-    phone_number,
-    clothes,
-    delivery_location,
-    delivery_type,
-  } = req.body;
-  orderDestructure = {};
-
-  if (
-    !buyerTest ||
-    !phone_number ||
-    !clothes ||
-    !delivery_location ||
-    !delivery_type
-  ) {
-    return res.json({
-      success: false,
-      errors: [{ msg: "All fields are required." }],
-    });
-  }
-
-  orderDestructure.buyer = buyerTest;
-
-  orderDestructure.phone_number = phone_number;
-
-  orderDestructure.clothes = {
-    item: clothes,
-    seller: req.user.id,
-  };
-
-  orderDestructure.delivery_location = delivery_location;
-
-  orderDestructure.delivery_type = delivery_type;
-
-  orderDestructure.delivery_charge =
-    delivery_type === "Inside Ringroad"
-      ? 100
-      : delivery_type === "Outside Ringroad"
-      ? 150
-      : delivery_type === "Outside Valley"
-      ? 250
-      : 100;
-
-  try {
-    const orderClothes = await Post.findById(clothes);
-
-    orderDestructure.total_amount = orderClothes.selling_price;
-
-    orderDestructure.total_order_amount =
-      orderDestructure.delivery_charge + orderDestructure.total_amount;
-
-    orderDestructure.pickup_location = "Antidote Apparel, Kupondole, Lalitpur";
-
-    const orderPost = new Orders(orderDestructure);
-
-    orderPost.save();
-    await changeClothingStatus(clothes, "Unavailable");
-
-    // console.log(orderPost)
-
-    console.log(orderClothes);
-
-    // if(orderClothes.payment_status === "completed") {
-    //   await Seller.findByIdAndUpdate(
-    //     {_id: orderClothes.originalSeller},
-    //     { $inc: { credits: orderClothes.selling_price } }
-    //   )
-    // }
-
-    // .then(async res => {
-    //   await Seller.findByIdAndUpdate(
-    //     { _id: orderClothes.originalSeller },
-    //     { $inc: { credits: orderClothes.selling_price } }
-    //   );
-
-    // })
-
-    return res
-      .status(200)
-      .json({ success: true, msg: "Order placed successfully!" });
-  } catch (err) {
-    console.log(err);
-    res.status(400).json({ success: false, errors: { msg: "Order failed." } });
-  }
-});
 module.exports = router;
