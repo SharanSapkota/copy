@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Seller = require("../../models/admin/Seller");
+const Tags = require("../../models/Tags");
 const { Post } = require("../../models/Post");
 const Evaluation = require("../../models/admin/Evaluation");
 const { validationResult } = require("express-validator");
@@ -28,6 +29,41 @@ const {
   getUnpublishedCount,
 } = require("../../functions/admins/admin");
 const AuthController = require("../../controllers/authController");
+
+router.get("/tags", async (req, res) => {
+  const tags = await Tags.find();
+  return res.json({ success: true, tags });
+});
+
+router.patch("/tags/remove", AuthController.authAdmin, async (req, res) => {
+  const { product, tag } = req.body;
+
+  try {
+    await Post.findOneAndUpdate(
+      { _id: product },
+      { $pull: { tags: tag } },
+      { new: true }
+    ).populate("tags");
+
+    return res.json({ success: true, tag });
+  } catch (err) {
+    return res.json({ success: false, errors: [err] });
+  }
+});
+
+router.post("/tags", AuthController.authAdmin, async (req, res) => {
+  const name = req.body.name;
+  try {
+    const tag = new Tags({ name });
+    const saved = await tag.save();
+
+    if (saved) {
+      return res.json({ success: true, tag: saved });
+    }
+  } catch (err) {
+    return res.json({ success: false, errors: [err] });
+  }
+});
 
 router.get("/seller", AuthController.authAdmin, async (req, res) => {
   const seller = await Seller.find();
@@ -166,36 +202,21 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   }
 });
 
-router.patch(
-  "/unpublished/:id",
-  AuthController.authAdmin,
-  upload.fields([{ name: "images" }, { name: "data" }]),
-  async (req, res) => {
-    const images = req.files["images"];
-    const id = req.params.id;
+router.patch("/unpublished/:id", AuthController.authAdmin, async (req, res) => {
+  const id = req.params.id;
 
-    const data = JSON.parse(req.body.data);
+  const data = req.body;
 
-    var tempArr = [];
-
-    if (!id) {
-      return res
-        .status(500)
-        .json({ success: false, errors: [{ msg: "Internal Server Error." }] });
-    }
-
-    if (images !== undefined && images.length > 0) {
-      for (let i = 0; i < images.length; i++) {
-        tempArr.push(await s3Upload(images[i]));
-      }
-      data.images = tempArr;
-    }
-
-    const result = await editPost(id, data);
-
-    return res.status(200).json(result);
+  if (!id) {
+    return res
+      .status(500)
+      .json({ success: false, errors: [{ msg: "Internal Server Error." }] });
   }
-);
+
+  const result = await editPost(id, data);
+
+  return res.status(200).json(result);
+});
 
 router.patch(
   "/users/verify/:id",
@@ -246,6 +267,28 @@ router.delete(
   async (req, res) => {
     const deleted = await deleteUnregisteredUser(req.body.id);
     return res.json(deleted);
+  }
+);
+
+router.post(
+  "/upload",
+  AuthController.authAdmin,
+  upload.fields([{ name: "image" }]),
+  async (req, res) => {
+    const image = req.files["image"];
+
+    if (image.length > 0) {
+      try {
+        const result = await s3Upload(image[0]);
+        return res.json({ success: true, uploaded: result });
+      } catch (err) {
+        return res.status(500).json({ success: false, errors: [err] });
+      }
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, errors: [{ msg: "Image is undefined." }] });
+    }
   }
 );
 

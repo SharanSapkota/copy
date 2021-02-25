@@ -24,15 +24,13 @@ const {
   postWithoutPublish,
   getPostById,
   getPosts,
-  getBestDeals
+  getBestDeals,
 } = require("../functions/postFunctions");
 
 const { getUser } = require("../functions/users");
 
 //GET ALL
 router.get("/", async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-
   const search = req.query.search;
 
   const filters = req.query.filters;
@@ -77,7 +75,7 @@ router.get("/", async (req, res) => {
     res.status(200).json({
       page: page,
       limit: limit,
-      resultUsers: getAll
+      resultUsers: getAll,
     });
   } catch (err) {
     res.status(404).json({ message: err });
@@ -123,7 +121,7 @@ router.post(
       measurements,
       brand,
       color,
-      fabric
+      fabric,
     } = data;
 
     if (images !== undefined) {
@@ -211,7 +209,7 @@ router.get("/profile/:username", async (req, res) => {
   } catch (err) {
     return res.json({
       success: false,
-      errors: [{ msg: "User not found." }]
+      errors: [{ msg: "User not found." }],
     });
   }
 });
@@ -227,7 +225,7 @@ router.get("/seller/:userId", AuthController.authCheck, async (req, res) => {
       if (!posts.length > 0) {
         return res.status(400).json({
           success: false,
-          error: { msg: "User has no clothes listed." }
+          error: { msg: "User has no clothes listed." },
         });
       }
       return res.status(200).json(posts);
@@ -243,7 +241,7 @@ router.get("/seller/:userId", AuthController.authCheck, async (req, res) => {
       if (!posts.length > 0) {
         return res.status(400).json({
           success: false,
-          error: { msg: "User has no clothes listed." }
+          error: { msg: "User has no clothes listed." },
         });
       }
       return res.status(200).json(posts);
@@ -260,7 +258,7 @@ router.delete("/:postId", AuthController.authBuyer, async (req, res) => {
   if (user.role === "1") {
     await Post.findOne(
       { _id: req.params.postId, seller: req.user.id },
-      function(err, result) {
+      function (err, result) {
         let swap = new Archive(result.toJSON()); //or result.toObject
 
         result.remove();
@@ -271,7 +269,7 @@ router.delete("/:postId", AuthController.authBuyer, async (req, res) => {
   } else {
     await Unverified.findOne(
       { _id: req.params.postId, seller: req.user.id },
-      function(err, result) {
+      function (err, result) {
         let swap = new Archive(result.toJSON()); //or result.toObject
 
         result.remove();
@@ -333,7 +331,7 @@ router.patch(
   async (req, res) => {
     const posts = await Post.findOne({
       _id: req.params.postId,
-      seller: req.user.id
+      seller: req.user.id,
     });
     const updateStatus = {};
 

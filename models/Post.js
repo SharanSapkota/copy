@@ -74,6 +74,12 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: false,
   },
+  tags: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Tags",
+    },
+  ],
   status: {
     type: String,
     required: true,

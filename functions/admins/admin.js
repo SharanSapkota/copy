@@ -67,7 +67,9 @@ module.exports = {
       const unpublishedPosts = await Post.find({
         seller: admin,
         isPublished: false,
-      }).sort({ date: -1 });
+      })
+        .populate("tags")
+        .sort({ date: -1 });
       // .skip((page - 1) * 20)
       // .limit(20);
 
@@ -78,7 +80,9 @@ module.exports = {
   },
   editPost: async function (id, data) {
     try {
-      const updated = await Post.findByIdAndUpdate(id, data, { new: true });
+      const updated = await Post.findByIdAndUpdate(id, data, {
+        new: true,
+      }).populate("tags");
       return { success: true, updated: updated };
     } catch (err) {
       return err;
@@ -97,12 +101,11 @@ module.exports = {
   deleteUnregisteredUser: async function (id) {
     try {
       const res = await Seller.deleteOne({ _id: id });
-
-      if (res.deletedCount > 0) return true;
-      else return false;
+      if (res.deletedCount > 0) return { success: true };
+      else return { success: false };
     } catch (err) {
       console.log(err);
-      return false;
+      return { success: false };
     }
   },
   verifyUser: async function (id) {
