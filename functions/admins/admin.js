@@ -78,6 +78,33 @@ module.exports = {
       return err;
     }
   },
+  getPublishedCount: function () {
+    try {
+      const count = Post.estimatedDocumentCount({
+        seller: admin,
+        isPublished: true,
+      });
+      return count;
+    } catch (err) {
+      return err;
+    }
+  },
+  getPublishedPosts: async function (admin, page) {
+    try {
+      const unpublishedPosts = await Post.find({
+        seller: admin,
+        isPublished: true,
+      })
+        .populate("tags")
+        .sort({ date: -1 });
+      // .skip((page - 1) * 20)
+      // .limit(20);
+
+      return unpublishedPosts;
+    } catch (err) {
+      return err;
+    }
+  },
   editPost: async function (id, data) {
     try {
       const updated = await Post.findByIdAndUpdate(id, data, {
