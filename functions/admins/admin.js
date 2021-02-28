@@ -67,6 +67,7 @@ module.exports = {
       const unpublishedPosts = await Post.find({
         seller: admin,
         isPublished: false,
+        status: "Available",
       })
         .populate("tags")
         .sort({ date: -1 });
@@ -91,16 +92,17 @@ module.exports = {
   },
   getPublishedPosts: async function (admin, page) {
     try {
-      const unpublishedPosts = await Post.find({
+      const publishedPosts = await Post.find({
         seller: admin,
         isPublished: true,
+        status: "Available",
       })
         .populate("tags")
         .sort({ date: -1 });
       // .skip((page - 1) * 20)
       // .limit(20);
 
-      return unpublishedPosts;
+      return publishedPosts;
     } catch (err) {
       return err;
     }

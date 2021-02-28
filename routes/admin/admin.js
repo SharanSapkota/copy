@@ -231,7 +231,7 @@ router.patch(
 
 router.get("/users/verified", AuthController.authAdmin, async (req, res) => {
   const verified = await getAllUsers({ role: "1" });
-  return res.json({ verified });
+  return res.json({ success: true, verified });
 });
 
 router.get(
@@ -241,18 +241,18 @@ router.get(
     const page = parseInt(req.query.page);
     const unregistered = await getAllUnregisteredUsers(page);
     const count = await getUnregisteredCount();
-    return res.json({ sellers: unregistered, count });
+    return res.json({ success: true, sellers: unregistered, count });
   }
 );
 
 router.get("/users/admin", AuthController.authAdmin, async (req, res) => {
   const admin = await getAllUsers({ role: "99" });
-  return res.json({ admin });
+  return res.json({ success: true, admin });
 });
 
 router.get("/users/unverified", AuthController.authAdmin, async (req, res) => {
   const unverified = await getAllUsers({ role: "2" });
-  return res.json({ unverified });
+  return res.json({ success: true, unverified });
 });
 
 router.delete(

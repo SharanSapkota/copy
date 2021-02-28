@@ -3,6 +3,11 @@ const orderFunctions = require("../../functions/admins/orders");
 const Orders = require("../../models/Orders");
 const AuthController = require("../../controllers/authController");
 
+const {
+  getTotalAmount,
+  changeClothingStatus,
+} = require("../../functions/postFunctions");
+
 const router = express.Router();
 
 //Get all orders
@@ -48,21 +53,26 @@ router.get("/cancelled", AuthController.authAdmin, async (req, res) => {
     .json({ success: false, errors: [{ msg: "Server Error." }] });
 });
 
-router.post("/orders", AuthController.authAdmin, async (req, res) => {
+router.post("/", AuthController.authAdmin, async (req, res) => {
   const {
-    buyerTest,
+    items,
+    name,
     phone_number,
-    clothes,
-    delivery_location,
+    address,
+    city,
+    email,
     delivery_type,
   } = req.body;
+
   orderDestructure = {};
 
   if (
-    !buyerTest ||
+    !items ||
+    !name ||
     !phone_number ||
-    !clothes ||
-    !delivery_location ||
+    !address ||
+    !city ||
+    !email ||
     !delivery_type
   ) {
     return res.json({
@@ -71,68 +81,44 @@ router.post("/orders", AuthController.authAdmin, async (req, res) => {
     });
   }
 
-  orderDestructure.buyer = buyerTest;
+  orderDestructure.buyer = { name, phone_number, email, address, city };
 
-  orderDestructure.phone_number = phone_number;
-
-  orderDestructure.clothes = {
-    item: clothes,
+  orderDestructure.clothes = items.map((item) => ({
+    item,
     seller: req.user.id,
-  };
+  }));
 
-  orderDestructure.delivery_location = delivery_location;
+  orderDestructure.address = address;
+  orderDestructure.city = city;
 
   orderDestructure.delivery_type = delivery_type;
 
-  orderDestructure.delivery_charge =
-    delivery_type === "Inside Ringroad"
-      ? 100
-      : delivery_type === "Outside Ringroad"
-      ? 150
-      : delivery_type === "Outside Valley"
-      ? 250
-      : 100;
+  orderDestructure.delivery_charge = (function () {
+    switch (delivery_type) {
+      case "Inside Ringroad":
+        return 100;
+      case "Outside Ringroad":
+        return 120;
+      case "Outside Valley":
+        return 150;
+    }
+  })();
 
   try {
-    const orderClothes = await Post.findById(clothes);
-
-    orderDestructure.total_amount = orderClothes.selling_price;
-
+    orderDestructure.total_amount = await getTotalAmount(items);
     orderDestructure.total_order_amount =
       orderDestructure.delivery_charge + orderDestructure.total_amount;
 
-    orderDestructure.pickup_location = "Antidote Apparel, Kupondole, Lalitpur";
+    const order = new Orders(orderDestructure);
+    await order.save();
+    await changeClothingStatus(items, "Unavailable");
 
-    const orderPost = new Orders(orderDestructure);
-
-    orderPost.save();
-    await changeClothingStatus(clothes, "Unavailable");
-
-    // console.log(orderPost)
-
-    console.log(orderClothes);
-
-    // if(orderClothes.payment_status === "completed") {
-    //   await Seller.findByIdAndUpdate(
-    //     {_id: orderClothes.originalSeller},
-    //     { $inc: { credits: orderClothes.selling_price } }
-    //   )
-    // }
-
-    // .then(async res => {
-    //   await Seller.findByIdAndUpdate(
-    //     { _id: orderClothes.originalSeller },
-    //     { $inc: { credits: orderClothes.selling_price } }
-    //   );
-
-    // })
-
-    return res
-      .status(200)
-      .json({ success: true, msg: "Order placed successfully!" });
+    return res.json({ success: true, order });
   } catch (err) {
     console.log(err);
-    res.status(400).json({ success: false, errors: { msg: "Order failed." } });
+    return res
+      .status(500)
+      .json({ success: false, errors: [{ msg: "Server Error." }] });
   }
 });
 

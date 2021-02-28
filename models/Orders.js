@@ -18,22 +18,27 @@ const orderSchema = mongoose.Schema({
         default: "Posts",
         required: true,
       },
-      quantity: {
-        type: Number,
-        default: 1,
-        required: true,
-      },
       seller: {
         type: Schema.Types.ObjectId,
         ref: "Users",
         required: true,
+      },
+      delivered: {
+        status: {
+          type: Boolean,
+          default: false,
+        },
+        date: {
+          type: Date,
+        },
       },
     },
   ],
 
   payment_type: {
     type: String,
-    required: false,
+    required: true,
+    default: "cod",
   },
 
   total_amount: {
@@ -62,9 +67,13 @@ const orderSchema = mongoose.Schema({
     required: false,
   },
 
-  delivery_location: {
+  address: {
     type: String,
-    required: false,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
   },
 
   delivery_type: {

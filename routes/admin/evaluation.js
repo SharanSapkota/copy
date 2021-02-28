@@ -8,8 +8,9 @@ const router = express.Router();
 const AuthController = require("../../controllers/authController");
 
 router.get("/", AuthController.authAdmin, async (req, res) => {
-  console.log(Evaluation);
-  const getAllEvaluation = await Evaluation.find().populate("seller");
+  const getAllEvaluation = await Evaluation.find()
+    .populate("seller")
+    .sort({ date: -1 });
 
   res.status(200).json(getAllEvaluation);
 });
@@ -31,10 +32,7 @@ router.post(
   AuthController.authAdmin,
 
   async (req, res) => {
-    console.log("inside post evaluation");
     const { seller, items } = req.body;
-
-    console.log(req.body);
 
     if (!seller || !items) {
       res
@@ -42,54 +40,50 @@ router.post(
         .json({ success: false, message: "seller or item is empty" });
     }
 
-    // if(seller){
-
-    //     evaluationDestructure.seller = req.body.seller
-    // }
-
     try {
-      let arr = [];
+      let evaluations = [];
 
-      items.forEach(async (post) => {
+      for (let i = 0; i < items.length; i++) {
         const evaluationDestructure = {};
         evaluationDestructure.seller = req.body.seller;
 
-        if (post.category) {
-          console.log("category");
-          evaluationDestructure.category = post.category;
+        if (items[i].category) {
+          evaluationDestructure.category = items[i].category;
         }
-        if (post.selling_price) {
-          evaluationDestructure.selling_price = post.selling_price;
-        }
-
-        if (post.color) {
-          console.log("color");
-          evaluationDestructure.color = post.color;
+        if (items[i].selling_price) {
+          evaluationDestructure.selling_price = items[i].selling_price;
         }
 
-        if (post.detail) {
-          evaluationDestructure.detail = post.detail;
+        if (items[i].color) {
+          evaluationDestructure.color = items[i].color;
         }
-        if (post.brand) {
-          console.log("brand");
-          evaluationDestructure.brand = post.brand;
+
+        if (items[i].detail) {
+          evaluationDestructure.detail = items[i].detail;
         }
-        if (post.date_of_receipt) {
-          evaluationDestructure.date_of_receipt = post.date_of_receipt;
+        if (items[i].brand) {
+          evaluationDestructure.brand = items[i].brand;
         }
-        if (post.date_of_pickup) {
-          evaluationDestructure.date_of_pickup = post.date_of_pickup;
+        if (items[i].date_of_receipt) {
+          evaluationDestructure.date_of_receipt = items[i].date_of_receipt;
+        }
+        if (items[i].date_of_pickup) {
+          evaluationDestructure.date_of_pickup = items[i].date_of_pickup;
         }
 
         const postEvaluation = new Evaluation(evaluationDestructure);
-        await postEvaluation.save();
-        arr.push(postEvaluation);
-      });
+        // const saved = await postEvaluation.save();
 
-      console.log(arr);
-      res.status(200).json({ success: true,  evaluations: [...arr] });
+        const post = await postEvaluation.save();
+        await Evaluation.populate(post, { path: "seller" });
+
+        evaluations.push(post);
+      }
+
+      res.status(200).json({ success: true, evaluations });
     } catch (err) {
-      res.status(404).json({ message: err });
+      console.log(err);
+      res.status(500).json({ success: false, errors: [{ message: err }] });
     }
   }
 );
@@ -143,13 +137,7 @@ router.patch(
 );
 
 router.patch("/:evaluationId", AuthController.authAdmin, async (req, res) => {
-  const {
-    category,
-    color,
-    brand,
-    detail,
-    selling_price,
-  } = req.body;
+  const { category, color, brand, detail, selling_price } = req.body;
 
   const evaluationDestructure = {};
 
@@ -168,7 +156,6 @@ router.patch("/:evaluationId", AuthController.authAdmin, async (req, res) => {
   if (selling_price) {
     evaluationDestructure.selling_price = selling_price;
   }
-  
 
   try {
     const patchAll = await Evaluation.findOneAndUpdate(
@@ -176,9 +163,9 @@ router.patch("/:evaluationId", AuthController.authAdmin, async (req, res) => {
       { $set: evaluationDestructure },
       { new: true }
     ).populate("seller");
-    res.status(200).json({success: true, evaluation: patchAll });
+    res.status(200).json({ success: true, evaluation: patchAll });
   } catch (err) {
-    res.status(404).json({ success: false, errors: [{ msg: err}] });
+    res.status(404).json({ success: false, errors: [{ msg: err }] });
   }
 });
 
@@ -200,14 +187,18 @@ router.patch(
     const rejectId = req.params.evaluationId;
     try {
       await Evaluation.findOne({ _id: rejectId }, function (err, result) {
-        let swap = new Rejections(result.toJSON()); //or result.toObject
+        try {
+          let swap = new Rejections(result.toJSON()); //or result.toObject
 
-        result.remove();
-        swap.save();
-        res.status(200).json(swap);
+          result.remove();
+          swap.save();
+          res.status(200).json({ success: true, swap });
+        } catch (err) {
+          return res.status(500).json({ message: err.message });
+        }
       });
     } catch (err) {
-      return res.status(400).json({ message: err.message });
+      return res.status(500).json({ message: err.message });
     }
   }
 );
