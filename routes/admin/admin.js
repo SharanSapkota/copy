@@ -25,6 +25,8 @@ const {
   movePostsToShop,
   editPost,
   deletePost,
+  getPublishedPosts,
+  getPublishedCount,
   getUnpublishedPosts,
   getUnpublishedCount,
 } = require("../../functions/admins/admin");
@@ -116,15 +118,11 @@ router.patch(
 );
 
 router.get("/posts", AuthController.authAdmin, async (req, res) => {
-  try {
-    const adminPosts = await Post.find({
-      seller: req.user.id,
-      isPublished: true,
-    });
-    res.status(200).json(adminPosts);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+  const page = parseInt(req.query.page);
+  const admin = req.user.id;
+  const count = await getPublishedCount();
+  const publishedPosts = await getPublishedPosts(admin, page);
+  return res.json({ posts: publishedPosts, count });
 });
 
 router.get("/posts/unpublished", AuthController.authAdmin, async (req, res) => {
@@ -135,14 +133,10 @@ router.get("/posts/unpublished", AuthController.authAdmin, async (req, res) => {
   return res.json({ posts: unpublishedPosts, count });
 });
 
-router.delete(
-  "/unpublished/:id",
-  AuthController.authAdmin,
-  async (req, res) => {
-    const deleted = await deletePost(req.params.id);
-    return res.json(deleted);
-  }
-);
+router.delete("/posts/:id", AuthController.authAdmin, async (req, res) => {
+  const deleted = await deletePost(req.params.id);
+  return res.json(deleted);
+});
 
 router.get("/posts/ecom", AuthController.authAdmin, async (req, res) => {
   try {
@@ -202,7 +196,7 @@ router.post("/seller", AuthController.authAdmin, async (req, res) => {
   }
 });
 
-router.patch("/unpublished/:id", AuthController.authAdmin, async (req, res) => {
+router.patch("/posts/:id", AuthController.authAdmin, async (req, res) => {
   const id = req.params.id;
 
   const data = req.body;
@@ -237,7 +231,7 @@ router.patch(
 
 router.get("/users/verified", AuthController.authAdmin, async (req, res) => {
   const verified = await getAllUsers({ role: "1" });
-  return res.json({ verified });
+  return res.json({ success: true, verified });
 });
 
 router.get(
@@ -247,18 +241,18 @@ router.get(
     const page = parseInt(req.query.page);
     const unregistered = await getAllUnregisteredUsers(page);
     const count = await getUnregisteredCount();
-    return res.json({ sellers: unregistered, count });
+    return res.json({ success: true, sellers: unregistered, count });
   }
 );
 
 router.get("/users/admin", AuthController.authAdmin, async (req, res) => {
   const admin = await getAllUsers({ role: "99" });
-  return res.json({ admin });
+  return res.json({ success: true, admin });
 });
 
 router.get("/users/unverified", AuthController.authAdmin, async (req, res) => {
   const unverified = await getAllUsers({ role: "2" });
-  return res.json({ unverified });
+  return res.json({ success: true, unverified });
 });
 
 router.delete(
