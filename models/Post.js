@@ -108,24 +108,6 @@ const PostSchema = mongoose.Schema({
   },
 });
 
-PostSchema.pre("save", async function (next) {
-  const Post = this;
-
-  Post.platform_fee = Post.selling_price * 0.15;
-  Post.commission = Post.selling_price * 0.85;
-
-  next();
-});
-
-PostSchema.pre("update", async function (next) {
-  const Post = this;
-
-  Post.platform_fee = Post.selling_price * 0.15;
-  Post.commission = Post.selling_price * 0.85;
-
-  next();
-});
-
 module.exports = {
   Archive: mongoose.model("archievePosts", PostSchema),
   Post: mongoose.model("Posts", PostSchema),

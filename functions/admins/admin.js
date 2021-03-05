@@ -2,6 +2,7 @@ const Users = require("../../models/Users");
 const { Post, Unverified } = require("../../models/Post");
 const UserDetails = require("../../models/UserDetails");
 const Seller = require("../../models/admin/Seller");
+const { Rejections } = require("../../models/admin/Evaluation");
 
 module.exports = {
   getAllUsers: async function (filters = {}) {
@@ -51,58 +52,20 @@ module.exports = {
       return err;
     }
   },
-  getUnpublishedCount: function () {
+  getPostsCount: function (filters) {
     try {
-      const count = Post.estimatedDocumentCount({
-        seller: admin,
-        isPublished: false,
-      });
+      const count = Post.countDocuments(filters);
       return count;
     } catch (err) {
       return err;
     }
   },
-  getUnpublishedPosts: async function (admin, page) {
+  getPosts: async function (filters) {
     try {
-      const unpublishedPosts = await Post.find({
-        seller: admin,
-        isPublished: false,
-        status: "Available",
-      })
+      const posts = await Post.find(filters)
         .populate("tags")
         .sort({ date: -1 });
-      // .skip((page - 1) * 20)
-      // .limit(20);
-
-      return unpublishedPosts;
-    } catch (err) {
-      return err;
-    }
-  },
-  getPublishedCount: function () {
-    try {
-      const count = Post.estimatedDocumentCount({
-        seller: admin,
-        isPublished: true,
-      });
-      return count;
-    } catch (err) {
-      return err;
-    }
-  },
-  getPublishedPosts: async function (admin, page) {
-    try {
-      const publishedPosts = await Post.find({
-        seller: admin,
-        isPublished: true,
-        status: "Available",
-      })
-        .populate("tags")
-        .sort({ date: -1 });
-      // .skip((page - 1) * 20)
-      // .limit(20);
-
-      return publishedPosts;
+      return posts;
     } catch (err) {
       return err;
     }
@@ -120,6 +83,16 @@ module.exports = {
   deletePost: async function (id) {
     try {
       const res = await Post.deleteOne({ _id: id });
+      if (res.deletedCount > 0) return { success: true };
+      else return { success: false };
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  },
+  deleteRejected: async function (id) {
+    try {
+      const res = await Rejections.deleteOne({ _id: id });
       if (res.deletedCount > 0) return { success: true };
       else return { success: false };
     } catch (err) {
@@ -163,6 +136,7 @@ module.exports = {
         };
       }
     } catch (err) {
+      console.log(err);
       return { success: false, errors: [{ msg: "User not found." }] };
     }
   },

@@ -180,18 +180,19 @@ router.delete("/:evaluationId", AuthController.authAdmin, async (req, res) => {
   }
 });
 
-router.patch(
+router.post(
   "/reject/:evaluationId",
   AuthController.authAdmin,
   async (req, res) => {
     const rejectId = req.params.evaluationId;
     try {
-      await Evaluation.findOne({ _id: rejectId }, function (err, result) {
+      await Evaluation.findOne({ _id: rejectId }, async (err, result) => {
         try {
           let swap = new Rejections(result.toJSON()); //or result.toObject
 
-          result.remove();
-          swap.save();
+          await result.remove();
+          await swap.save();
+          await Rejections.populate(swap, { path: "seller" });
           res.status(200).json({ success: true, swap });
         } catch (err) {
           return res.status(500).json({ message: err.message });
