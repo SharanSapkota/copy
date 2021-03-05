@@ -25,10 +25,8 @@ const {
   movePostsToShop,
   editPost,
   deletePost,
-  getPublishedPosts,
-  getPublishedCount,
-  getUnpublishedPosts,
-  getUnpublishedCount,
+  getPosts,
+  getPostsCount,
 } = require("../../functions/admins/admin");
 const AuthController = require("../../controllers/authController");
 
@@ -120,16 +118,46 @@ router.patch(
 router.get("/posts", AuthController.authAdmin, async (req, res) => {
   const page = parseInt(req.query.page);
   const admin = req.user.id;
-  const count = await getPublishedCount();
-  const publishedPosts = await getPublishedPosts(admin, page);
+  const count = await getPostsCount({
+    seller: admin,
+    isPublished: true,
+    status: "Available",
+  });
+  const publishedPosts = await getPosts({
+    seller: admin,
+    isPublished: true,
+    status: "Available",
+  });
   return res.json({ posts: publishedPosts, count });
+});
+
+router.get("/posts/booked", AuthController.authAdmin, async (req, res) => {
+  const page = parseInt(req.query.page);
+  const admin = req.user.id;
+  const count = await getPostsCount({
+    seller: admin,
+    status: "Booked",
+  });
+  const posts = await getPosts({
+    seller: admin,
+    status: "Booked",
+  });
+  return res.json({ posts, count });
 });
 
 router.get("/posts/unpublished", AuthController.authAdmin, async (req, res) => {
   const page = parseInt(req.query.page);
   const admin = req.user.id;
-  const count = await getUnpublishedCount();
-  const unpublishedPosts = await getUnpublishedPosts(admin, page);
+  const count = await getPostsCount({
+    seller: admin,
+    isPublished: false,
+    status: "Available",
+  });
+  const unpublishedPosts = await getPosts({
+    seller: admin,
+    isPublished: false,
+    status: "Available",
+  });
   return res.json({ posts: unpublishedPosts, count });
 });
 
@@ -289,22 +317,9 @@ router.post(
 router.post(
   "/direct",
   AuthController.authAdmin,
-  // upload.fields([{ name: "images" }, { name: "data" }]),
   upload.fields([{ name: "data" }]),
   async (req, res) => {
-    // const images = req.files["images"];
-
     const data = JSON.parse(req.body.data);
-
-    // let tempArr = [];
-
-    // if (images !== undefined) {
-    //   for (let i = 0; i < images.length; i++) {
-    //     tempArr.push(await s3Upload(images[i]));
-    //   }
-    // }
-
-    // data.images = tempArr;
 
     const seller = await Seller.findOne({ usercode: data.seller_code });
 
@@ -370,6 +385,10 @@ router.post(
       if (data.color) {
         postClothings.color = data.color;
       }
+      if (data.isPublished) {
+        postClothings.isPublished = data.isPublished;
+      }
+      console.log(data);
       postClothings.originalSeller = seller.id;
 
       var asd = seller.usercode.concat(categoryCode);
@@ -410,7 +429,6 @@ router.post(
       postClothings.item_code = asd;
 
       postClothings.box_no = parseInt(data.box_no);
-      postClothings.isPublished = false;
 
       const post = await postNewItem(postClothings);
 

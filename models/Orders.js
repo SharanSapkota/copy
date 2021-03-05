@@ -32,6 +32,15 @@ const orderSchema = mongoose.Schema({
           type: Date,
         },
       },
+      payment: {
+        status: {
+          type: Boolean,
+          default: false,
+        },
+        date: {
+          type: Date,
+        },
+      },
     },
   ],
 
@@ -79,12 +88,6 @@ const orderSchema = mongoose.Schema({
   delivery_type: {
     type: String,
     required: true,
-  },
-
-  payment_status: {
-    type: String,
-    required: true,
-    default: "pending",
   },
 
   order_status: {

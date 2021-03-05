@@ -176,6 +176,8 @@ router.post(
     if (color) {
       postClothings.color = color;
     }
+    postClothings.platform_fee = data.selling_price * 0.15;
+    postClothings.commission = data.selling_price * 0.85;
     if (req.verified) {
       const result = await postNewItem(postClothings);
       if (result) {

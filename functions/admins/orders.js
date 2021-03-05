@@ -13,9 +13,11 @@ const getAllOrders = async () => {
 
 const getAllCompletedOrders = async () => {
   try {
-    const orders = await Order.find({ order_status: "completed" }).sort({
-      completed_date: -1,
-    });
+    const orders = await Order.find({ order_status: "completed" })
+      .populate("clothes.item")
+      .sort({
+        completed_date: -1,
+      });
     return { success: true, orders };
   } catch (err) {
     return err;
@@ -24,9 +26,11 @@ const getAllCompletedOrders = async () => {
 
 const getAllPendingOrders = async () => {
   try {
-    const orders = await Order.find({ order_status: "pending" }).sort({
-      date: -1,
-    });
+    const orders = await Order.find({ order_status: "pending" })
+      .populate("clothes.item")
+      .sort({
+        date: -1,
+      });
     return { success: true, orders };
   } catch (err) {
     return err;
@@ -35,9 +39,11 @@ const getAllPendingOrders = async () => {
 
 const getAllProcessingOrders = async () => {
   try {
-    const orders = await Order.find({ order_status: "processing" }).sort({
-      date: -1,
-    });
+    const orders = await Order.find({ order_status: "processing" })
+      .populate("clothes.item")
+      .sort({
+        date: -1,
+      });
     return { success: true, orders };
   } catch (err) {
     return err;
@@ -46,9 +52,11 @@ const getAllProcessingOrders = async () => {
 
 const getAllCancelledOrders = async () => {
   try {
-    const orders = await Order.find({ order_status: "cancelled" }).sort({
-      date: -1,
-    });
+    const orders = await Order.find({ order_status: "cancelled" })
+      .populate("clothes.item")
+      .sort({
+        date: -1,
+      });
     return { success: true, orders };
   } catch (err) {
     return err;
@@ -57,7 +65,7 @@ const getAllCancelledOrders = async () => {
 
 const getOrderById = async (id, clothes) => {
   try {
-    const getOrderById = await Order.findById(id).populate(clothes);
+    const getOrderById = await Order.findById(id).populate("clothes.item");
 
     return getOrderById;
   } catch (err) {
@@ -71,10 +79,13 @@ const postOrder = async (clothes, seller) => {
 };
 
 const patchOrder = async (id, orderUpdateDestructure) => {
-  const patchOrders = await Order.findOneAndUpdate({
-    id,
-    $set: orderUpdateDestructure,
-  });
+  const patchOrders = await Order.findOneAndUpdate(
+    {
+      _id: id,
+    },
+    orderUpdateDestructure,
+    { new: true }
+  );
   return patchOrders;
 };
 

@@ -134,6 +134,10 @@ module.exports = {
     return result[0].discount;
   },
   changeClothingStatus: async function (clothes, status) {
-    await Post.updateMany({ _id: { $in: clothes } }, { status: status });
+    await Post.updateMany(
+      { _id: { $in: clothes } },
+      { status: status },
+      { new: true }
+    );
   },
 };
